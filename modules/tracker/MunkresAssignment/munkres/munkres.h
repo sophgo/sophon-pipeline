@@ -90,7 +90,9 @@ public:
 
         // Follow the steps
         int step = 1;
-        while ( step ) {
+	int max_iter = 200;
+	int inline_count = 0;
+        while ( step && (inline_count < max_iter) ) {
             switch ( step ) {
             case 1:
                 step = step1();
@@ -113,6 +115,7 @@ public:
                 // step is always 3
                 break;
             }
+	    inline_count++;
         }
 
         // Store results
