@@ -1,0 +1,28 @@
+{
+  "cards": [
+    {
+      "devid": 0,
+      "cameras": [
+        {
+          "address": "/data/workspace/media/face.h264",
+          "chan_num": 1
+        }
+      ]
+    }
+  ],
+  "pipeline": {
+    "preprocess": {
+      "thread_num": 4,
+      "queue_size": 16
+    },
+    "inference": {
+      "thread_num": 1,
+      "queue_size": 16
+    },
+    "postprocess": {
+      "thread_num": 4,
+      "queue_size": 16
+    }
+  }
+}
+
