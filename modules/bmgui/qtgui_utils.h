@@ -1,6 +1,3 @@
-//
-// Created by hsyuan on 2019-08-01.
-//
 
 #ifndef PROJECT_QTGUI_UTILS_H
 #define PROJECT_QTGUI_UTILS_H

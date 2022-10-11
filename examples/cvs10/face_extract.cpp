@@ -1,21 +1,21 @@
-//
-// Created by yuan on 11/24/21.
-//
 
 #include "face_extract.h"
 
-FaceExtract::FaceExtract(bm::BMNNContextPtr bmctx, int max_batch):m_bmctx(bmctx),MAX_BATCH(max_batch) {
-    m_bmnet = std::make_shared<bm::BMNNNetwork>(m_bmctx->bmrt(), "feature_extract_bmnetc");
+FaceExtract::FaceExtract(bm::BMNNContextPtr bmctx):m_bmctx(bmctx) {
+    auto net_name = bmctx->network_name(1);
+    m_bmnet = std::make_shared<bm::BMNNNetwork>(m_bmctx->bmrt(), net_name); //feature_extract_bmnetc
+
     assert(m_bmnet != nullptr);
-    m_alpha_int8 = 1.003921316;
-    m_beta_int8  = -127.5 * 1.003921316;
-    m_alpha_fp32 = 0.0078125;
-    m_beta_fp32  = -127.5 * 0.0078125;
+    m_alpha_int8 = 0.0078431;
+    m_beta_int8  = -1;
+    m_alpha_fp32 = 0.0078431;
+    m_beta_fp32  = -1;
 
     auto shape = m_bmnet->inputTensor(0)->get_shape();
     // for NCHW
     m_net_h = shape->dims[2];
     m_net_w = shape->dims[3];
+    MAX_BATCH = shape->dims[0];
 
 }
 
@@ -82,8 +82,8 @@ int FaceExtract::preprocess(std::vector<bm::FeatureFrame> &frames, std::vector<b
         bm_image_data_format_ext img_type;
         auto tensor = m_bmnet->inputTensor(0);
         if (tensor->get_dtype() == BM_INT8) {
-            alpha            = m_alpha_int8;
-            beta             = m_beta_int8;
+            alpha            = m_alpha_int8 * tensor->get_scale();
+            beta             = m_beta_int8 * tensor->get_scale();
             img_type = DATA_TYPE_EXT_1N_BYTE_SIGNED;
         }else{
             alpha            = m_alpha_fp32;
@@ -167,7 +167,7 @@ void FaceExtract::extract_facefeature_cpu(bm::FeatureFrameInfo &frame_info) {
     int frameNum = frame_info.frames.size();
     frame_info.out_datums.resize(frameNum);
     for(int frameIdx = 0; frameIdx < frameNum;++frameIdx) {
-        bm::BMNNTensorPtr output_tensor = get_output_tensor("fc1_scale", frame_info, 1.0);
+        bm::BMNNTensorPtr output_tensor = get_output_tensor("fc1_scale", frame_info, m_bmnet->get_output_scale(0));
         const void *out_data = (const void *) output_tensor->get_cpu_data();
         auto output_shape = output_tensor->get_shape();
         int out_c = output_shape->dims[1];

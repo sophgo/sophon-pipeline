@@ -1,6 +1,3 @@
-//
-// Created by yuan on 2/26/21.
-//
 
 #include "bmutility_timer.h"
 #include <algorithm>

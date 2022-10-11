@@ -1,9 +1,6 @@
-//
-// Created by yuan on 2/22/21.
-//
 
-#ifndef INFERENCE_FRAMEWORK_THREAD_QUEUE_H
-#define INFERENCE_FRAMEWORK_THREAD_QUEUE_H
+#ifndef SOPHON_PIPELINE_THREAD_QUEUE_H
+#define SOPHON_PIPELINE_THREAD_QUEUE_H
 
 #include <iostream>
 #include <string>
@@ -351,4 +348,4 @@ public:
 
 
 
-#endif //INFERENCE_FRAMEWORK_THREAD_QUEUE_H
+#endif //SOPHON_PIPELINE_THREAD_QUEUE_H

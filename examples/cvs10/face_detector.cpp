@@ -1,6 +1,3 @@
-//
-// Created by yuan on 2/23/21.
-//
 
 #include "face_detector.h"
 #include <algorithm>
@@ -13,23 +10,28 @@ static inline bool compareBBox(const bm::NetOutputObject &a, const bm::NetOutput
     return a.score > b.score;
 }
 
-FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int max_batch)
+FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx)
 {
+    auto net_name = bmctx->network_name(0);
+
     bmctx_ = bmctx;
     anchor_ratios_.push_back(1.0f);
     anchor_scales_.push_back(1);
     anchor_scales_.push_back(2);
     anchor_num_ = 2;
-    MAX_BATCH = max_batch;
+
     is4N_ = false;
 
-    bmnet_ = std::make_shared<bm::BMNNNetwork>(bmctx_->bmrt(), "squeezenet_bmnetc");
+    bmnet_ = std::make_shared<bm::BMNNNetwork>(bmctx_->bmrt(), net_name); //squeezenet_bmnetc
+
     assert(bmnet_ != nullptr);
+    assert(bmnet_->inputTensorNum() == 1);
 
     auto tensor = bmnet_->inputTensor(0);
     m_net_h = 400; // static net
     m_net_w = 711; // static net
 
+    MAX_BATCH = tensor->get_shape()->dims[0];
 
 }
 
@@ -139,8 +141,8 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
         auto tensor = bmnet_->inputTensor(0);
         if (tensor->get_dtype() == BM_INT8) {
             img_type = DATA_TYPE_EXT_1N_BYTE_SIGNED;
-            alpha            = 0.847682119;
-            beta             = -0.5;
+            alpha            = tensor->get_scale() * 1.0;//0.847682119;
+            beta             = 0.0;
             img_type = (is4N_) ? (DATA_TYPE_EXT_4N_BYTE_SIGNED)
                                : (DATA_TYPE_EXT_1N_BYTE_SIGNED);
         }else{
@@ -284,16 +286,21 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
 {
     int image_n = frame_info.frames.size();
 
-    float m3_scale_to_float = 0.00587051f;
-    float m2_scale_to_float = 0.00527f;
-    float m1_scale_to_float = 0.00376741f;
+    float m3_scale_to_float = bmnet_->get_output_scale(0);//0.00587051f;
+    float m2_scale_to_float = bmnet_->get_output_scale(2);//0.00527f;
+    float m1_scale_to_float = bmnet_->get_output_scale(4);//0.00376741f;
 
-    bm::BMNNTensorPtr m3_cls_tensor = get_output_tensor("m3@ssh_cls_prob_reshape_output", frame_info);
+    float m3_cls_scale_to_float = bmnet_->get_output_scale(1);
+    float m2_cls_scale_to_float = bmnet_->get_output_scale(3);
+    float m1_cls_scale_to_float = bmnet_->get_output_scale(5);
+
+    
     bm::BMNNTensorPtr m3_bbox_tensor = get_output_tensor("m3@ssh_bbox_pred_output", frame_info, m3_scale_to_float);
-    bm::BMNNTensorPtr m2_cls_tensor = get_output_tensor("m2@ssh_cls_prob_reshape_output", frame_info);
+    bm::BMNNTensorPtr m3_cls_tensor = get_output_tensor("m3@ssh_cls_prob_reshape_output", frame_info, m3_cls_scale_to_float);
     bm::BMNNTensorPtr m2_bbox_tensor = get_output_tensor("m2@ssh_bbox_pred_output", frame_info, m2_scale_to_float);
-    bm::BMNNTensorPtr m1_cls_tensor = get_output_tensor("m1@ssh_cls_prob_reshape_output", frame_info);
+    bm::BMNNTensorPtr m2_cls_tensor = get_output_tensor("m2@ssh_cls_prob_reshape_output", frame_info, m2_cls_scale_to_float);
     bm::BMNNTensorPtr m1_bbox_tensor = get_output_tensor("m1@ssh_bbox_pred_output", frame_info, m1_scale_to_float);
+    bm::BMNNTensorPtr m1_cls_tensor = get_output_tensor("m1@ssh_cls_prob_reshape_output", frame_info, m1_cls_scale_to_float);
 
     // NCHW
     int m3_c = m3_cls_tensor->get_shape()->dims[1];

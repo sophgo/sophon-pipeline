@@ -1,6 +1,3 @@
-//
-// Created by yuan on 3/10/21.
-//
 
 #include "bmgui.h"
 #include <QtWidgets>

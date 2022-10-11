@@ -1,11 +1,10 @@
-//
-// Created by yuan on 11/24/21.
-//
 
 #include "face_extract.h"
 
-FaceExtract::FaceExtract(bm::BMNNContextPtr bmctx, int max_batch):m_bmctx(bmctx),MAX_BATCH(max_batch) {
-    m_bmnet = std::make_shared<bm::BMNNNetwork>(m_bmctx->bmrt(), "iresnet18");
+FaceExtract::FaceExtract(bm::BMNNContextPtr bmctx):m_bmctx(bmctx) {
+    auto net_name = bmctx->network_name(1);
+    m_bmnet = std::make_shared<bm::BMNNNetwork>(m_bmctx->bmrt(), net_name); //iresnet18
+
     assert(m_bmnet != nullptr);
     m_alpha_int8 = 0.0078431;
     m_beta_int8  = -1;
@@ -16,6 +15,8 @@ FaceExtract::FaceExtract(bm::BMNNContextPtr bmctx, int max_batch):m_bmctx(bmctx)
     // for NCHW
     m_net_h = shape->dims[2];
     m_net_w = shape->dims[3];
+    m_batch_size = shape->dims[0];
+    MAX_BATCH = m_batch_size;
 
 }
 
@@ -203,4 +204,8 @@ bm::BMNNTensorPtr FaceExtract::get_output_tensor(const std::string &name, bm::Fe
     bm::BMNNTensorPtr tensor = std::make_shared<bm::BMNNTensor>(m_bmctx->handle(), name, scale,
                                                                 &frame_info.output_tensors[idx]);
     return tensor;
+}
+
+int FaceExtract::getBatchSize() {
+    return m_batch_size;
 }

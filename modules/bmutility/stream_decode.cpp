@@ -1,6 +1,3 @@
-//
-// Created by hsyuan on 2019-02-27.
-//
 
 #include "stream_decode.h"
 #include "stream_sei.h"

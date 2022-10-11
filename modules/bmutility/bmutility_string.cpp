@@ -1,6 +1,4 @@
-//
-// Created by yuan on 3/25/21.
-//
+
 #include "bmutility_string.h"
 #include <stdarg.h>
 

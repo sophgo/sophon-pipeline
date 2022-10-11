@@ -1,6 +1,3 @@
-//
-// Created by hsyuan on 2019-03-20.
-//
 
 #include "video_opengl_widget.h"
 #include <QOpenGLShaderProgram>

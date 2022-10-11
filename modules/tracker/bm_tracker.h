@@ -1,9 +1,6 @@
-//
-// Created by yuan on 11/24/21.
-//
 
-#ifndef INFERENCE_FRAMEWORK_BM_TRACKER_H
-#define INFERENCE_FRAMEWORK_BM_TRACKER_H
+#ifndef SOPHON_PIPELINE_BM_TRACKER_H
+#define SOPHON_PIPELINE_BM_TRACKER_H
 
 #include "bmutility_types.h"
 #include <memory>
@@ -19,4 +16,4 @@ namespace bm {
 
 }
 
-#endif //INFERENCE_FRAMEWORK_BM_TRACKER_H
+#endif //SOPHON_PIPELINE_BM_TRACKER_H

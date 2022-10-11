@@ -1,9 +1,7 @@
-//
-// Created by yuan on 3/12/21.
-//
 
-#ifndef INFERENCE_FRAMEWORK_CONFIGURATION_H
-#define INFERENCE_FRAMEWORK_CONFIGURATION_H
+
+#ifndef SOPHON_PIPELINE_CONFIGURATION_H
+#define SOPHON_PIPELINE_CONFIGURATION_H
 
 #include <fstream>
 #include <unordered_map>
@@ -12,6 +10,7 @@
 struct CardConfig {
     int devid;
     std::vector<std::string> urls;
+    std::vector<std::string> models;
 };
 
 struct SConcurrencyConfig {
@@ -32,12 +31,40 @@ struct SConcurrencyConfig {
     }
 };
 
+struct SModelConfig {
+    std::string name;
+    std::string path;
+    int   skip_frame;
+    int    class_num;
+    float class_threshold;
+    float obj_threshold;
+    float nms_threshold;
+
+    SModelConfig() = default;
+
+    SModelConfig(Json::Value& value) {
+        load(value);
+    }
+
+    void load(Json::Value& value) {
+        name            = value["name"].asString();
+        path            = value["path"].asString();
+        skip_frame      = value["num_skip_frame"].asInt();
+
+        class_threshold = value["class_threshold"].asFloat();
+        obj_threshold   = value["obj_threshold"].asFloat();
+        nms_threshold   = value["nms_threshold"].asFloat();
+        class_num      = value["class_num"].asInt();
+    }
+};
+
 class Config {
     std::vector<CardConfig> m_cards;
+    std::unordered_map<std::string, SModelConfig>       m_models;
     std::unordered_map<std::string, SConcurrencyConfig> m_concurrency;
 
-    void load_cameras(std::vector<CardConfig> &vctCardConfig, const char* config_file = "cameras.json") {
-#if 1
+    void load_cameras(const char* config_file = "cameras.json") {
+
         Json::Reader reader;
         Json::Value json_root;
 
@@ -66,14 +93,27 @@ class Config {
             Json::Value jsonCameras = jsonCard["cameras"];
             for(int i = 0;i < camera_num; ++i) {
                 auto json_url_info = jsonCameras[i];
-                int chan_num = json_url_info["chan_num"].asInt();
-                for(int j = 0; j < chan_num; ++j) {
-                    auto url = json_url_info["address"].asString();
-                    card_config.urls.push_back(url);
+                std::vector<std::string> candidate_models;
+                if (json_url_info.isMember("model_names")) {
+                    for (Json::ValueIterator itr = json_url_info["model_names"].begin(); itr != json_url_info["model_names"].end(); itr++) {
+                        candidate_models.push_back(itr->asString());
+                    }
                 }
+                int chan_num = json_url_info["chan_num"].asInt();
+                int loop = candidate_models.size() > 0 ? candidate_models.size() : 1;
+                for (int l = 0; l < loop; ++l) {
+                    for(int j = 0; j < chan_num; ++j) {
+                        auto url = json_url_info["address"].asString();
+                        card_config.urls.push_back(url);
+                        if (candidate_models.size() > 0) {
+                            card_config.models.push_back(candidate_models[l]);
+                        }
+                    }
+                }
+                
             }
 
-            vctCardConfig.push_back(card_config);
+            m_cards.push_back(card_config);
         }
         // load thread_num, queue_size for concurrency
         if (json_root.isMember("pipeline")) {
@@ -82,24 +122,27 @@ class Config {
             maybe_load_concurrency_cfg(pipeline_config, "inference");
             maybe_load_concurrency_cfg(pipeline_config, "postprocess");
         }
-        in.close();
-#else
-        for(int i=0; i < 2; i ++) {
-            CardConfig cfg;
-            cfg.devid = i;
-            std::string url = "/home/yuan/station.avi";
-            for(int j = 0;j < 1;j ++) {
-                cfg.urls.push_back(url);
+        // load model info
+        if (json_root.isMember("models")) {
+            int model_num = json_root["models"].size();
+            for(int i = 0;i < model_num; ++i) {
+                auto model = json_root["models"][i];
+                std::string model_name = model["name"].asString();
+                if (m_models.count(model_name) != 0) {
+                    std::cerr << "ERROR!!! duplicated model config, name: " << model_name << std::endl;
+                    continue;
+                }
+                SModelConfig cfg(model);
+                m_models.insert(std::make_pair(model_name, cfg));
             }
-
-            m_cards.push_back(cfg);
         }
-#endif
+        in.close();
+
     }
 
 public:
     Config(const char* config_file = "cameras.json") {
-        load_cameras(m_cards, config_file);
+        load_cameras(config_file);
     }
 
     int cardNums() {
@@ -120,6 +163,10 @@ public:
 
     const std::vector<std::string>& cardUrls(int index) {
         return m_cards[index].urls;
+    }
+
+    const std::vector<std::string>& cardModels(int index) {
+        return m_cards[index].models;
     }
 
     bool valid_check() {
@@ -145,6 +192,15 @@ public:
             return true;
         }
         return false;
+    }
+
+    const std::unordered_map<std::string, SModelConfig> &getModelConfig() {
+        return m_models;
+    }
+
+    std::set<std::string> getDistinctModels(int devid) {
+        std::set<std::string> st_models(m_cards[devid].models.begin(), m_cards[devid].models.end());
+        return std::move(st_models);
     }
 };
 
@@ -189,4 +245,4 @@ struct AppStatis {
 
 
 
-#endif //INFERENCE_FRAMEWORK_CONFIGURATION_H
+#endif //SOPHON_PIPELINE_CONFIGURATION_H
