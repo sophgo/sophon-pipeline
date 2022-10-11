@@ -1,9 +1,6 @@
-//
-// Created by yuan on 11/24/21.
-//
 
-#ifndef INFERENCE_FRAMEWORK_COMMON_TYPES_H
-#define INFERENCE_FRAMEWORK_COMMON_TYPES_H
+#ifndef SOPHON_PIPELINE_COMMON_TYPES_H
+#define SOPHON_PIPELINE_COMMON_TYPES_H
 
 #include "ddr_reduction.h"
 
@@ -104,4 +101,4 @@ struct cvs11FrameInfo {
 
 
 
-#endif //INFERENCE_FRAMEWORK_COMMON_TYPES_H
+#endif //SOPHON_PIPELINE_COMMON_TYPES_H

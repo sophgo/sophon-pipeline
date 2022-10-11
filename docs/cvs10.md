@@ -16,7 +16,7 @@
 
 ### 2.1 配置文件
 
-运行请注意修改`${SOPHON_PIPELINE}/release/cvs10/camera.json`配置：
+运行请注意修改`${SOPHON_PIPELINE}/release/cvs10/cameras_cvs.json`配置：
 
 ```bash
 {
@@ -26,7 +26,8 @@
       "cameras": [										# 若需要配置多个视频码流，可以在cameras下添加多组address和chan_num信息。若配置了多个address或多个cards，总的视频码流路数为所有的[chan_num]数量之和
         {
           "address": "/data/workspace/media/face.h264",	# 需要测试视频码流的地址
-          "chan_num": 1									# 将内容为上述[address]的视频码流配置[chan_num]数量的路数。默认设置为1，会接入1路的内容为上述[address]的视频码流。
+          "chan_num": 1,								# 将内容为上述[address]的视频码流配置[chan_num]数量的路数。默认设置为1，会接入1路的内容为上述[address]的视频码流。
+          "model_names": ["ex1"]						# 测试该[address]视频码流的模型名称，需要和[models]参数内的模型自定义名称[name]一致，表示使用该模型
         }
       ]
     }，
@@ -45,7 +46,14 @@
       "thread_num": 4,									# 后处理线程数
       "queue_size": 16									# 后处理队列最大长度
     }
-  }
+  },
+  "models":[
+    {
+      "name": "ex1",									# 对应于[path]的模型自定义名称
+      "path": "your_bmodel_path.bmodel",				# 对应[name]的bmodel模型的路径
+      "skip_frame_num": 1,								# 隔帧检测的跳帧数量。当设置为1时表示程序每间隔1帧做一次模型的pipeline。
+    }
+  ]
 }
 ```
 
@@ -67,10 +75,8 @@
 ```bash
 Usage: cvs10 [params]
 
-        --bmodel 
-                bmodel模型的路径
-        --config (value:./cameras.json)
-                cameras.json配置文件的路径，默认路径为./cameras.json。
+        --config (value:./cameras_cvs.json)
+                cameras_cvs.json配置文件的路径，默认路径为./cameras_cvs.json。
         --enable_l2_ddr_reduction (value:1)
                 是否使用L2 ddr reduction方法减少内存占用。0:不使用；1:使用。默认使用L2 ddr reduction方法。
         --feat_delay (value:1000)
@@ -79,23 +85,19 @@ Usage: cvs10 [params]
                 每路视频码流提取的人脸特征数量，默认为8。
         --help (value:true)
                 打印帮助信息
-        --max_batch (value:4)
-                程序运行使用的最大的batch size，默认为4。推荐使用4N，N为自然数。
         --model_type (value:0)
                 使用的模型类型。0: 使用face_detect方法 1: 使用resnet50方法。默认使用face_detect方法。
-        --skip (value:1)
-                隔帧检测的跳帧数量。当设置为1时表示程序每间隔1帧做一次模型的pipeline，默认为1。
 ```
 
 #### 2.2.1 x86 PCIe
 
-**以设置`cameras.json`的`chan_num=32`为例**测试示例如下：
+**以设置`cameras_cvs.json`的`chan_num=32`为例**测试示例如下：
 
 ```bash
 # ./x86/cvs10 --help 查看命行帮助信息
 cd ${SOPHON_PIPELINE}/release/cvs10
 # x86模式下,将下载好的cvs10模型拷贝到${SOPHON_PIPELINE}/release/cvs10目录下运行,${xyz}表示1684或1684x
-./x86/cvs10 --bmodel=./cvs10_${xyz}_int8_4b.bmodel --config=./cameras.json --feat_num=8
+./x86/cvs10 --config=./cameras_cvs.json
 ```
 
 执行命令后会打印如下信息：
@@ -126,13 +128,13 @@ cd ${SOPHON_PIPELINE}/release/cvs10
 
 #### 2.2.2 arm SoC
 
-交叉编译好的`${SOPHON_PIPELINE}/release/cvs10`文件夹下的`cameras.json`、`face.jpeg`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras.json的相应配置，运行：
+交叉编译好的`${SOPHON_PIPELINE}/release/cvs10`文件夹下的`cameras_cvs.json`、`face.jpeg`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_cvs.json的相应配置，运行：
 
 ```bash
 cd ${SOPHON_PIPELINE_CVS10}
 # ./soc/cvs10 --help 查看命行帮助信息
 # 以arm SoC 1684x为例,${xyz}表示1684或1684x
-./soc/cvs10 --bmodel=./cvs10_${xyz}_int8_4b.bmodel --config=./cameras.json --feat_num=8
+./soc/cvs10 --bmodel=./cvs10_${xyz}_int8_4b.bmodel --config=./cameras_cvs.json
 ```
 
 执行会打印如下信息：

@@ -1,6 +1,3 @@
-//
-// Created by yuan on 3/11/21.
-//
 
 #include "worker.h"
 #include "stream_sei.h"

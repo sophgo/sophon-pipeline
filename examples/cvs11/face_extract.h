@@ -1,9 +1,6 @@
-//
-// Created by yuan on 11/24/21.
-//
 
-#ifndef INFERENCE_FRAMEWORK_FACE_EXTRACT_H
-#define INFERENCE_FRAMEWORK_FACE_EXTRACT_H
+#ifndef SOPHON_PIPELINE_FACE_EXTRACT_H
+#define SOPHON_PIPELINE_FACE_EXTRACT_H
 
 
 #include "bmutility.h"
@@ -21,18 +18,22 @@ class FaceExtract : public bm::DetectorDelegate<bm::FeatureFrame, bm::FeatureFra
     int MAX_BATCH=1;
     int m_net_h;
     int m_net_w;
+    int m_batch_size;
 
 public:
-    FaceExtract(bm::BMNNContextPtr bmctx, int max_batch);
+    FaceExtract(bm::BMNNContextPtr bmctx);
     ~FaceExtract();
 
     virtual int preprocess(std::vector<bm::FeatureFrame> &in, std::vector<bm::FeatureFrameInfo> &of) override;
     virtual int forward(std::vector<bm::FeatureFrameInfo> &frames) override;
     virtual int postprocess(std::vector<bm::FeatureFrameInfo> &frames) override;
+
+    int getBatchSize();
+
 private:
     bm::BMNNTensorPtr get_output_tensor(const std::string &name, bm::FeatureFrameInfo& frame_info, float scale);
     void extract_facefeature_cpu(bm::FeatureFrameInfo& frame);
 };
 
 
-#endif //INFERENCE_FRAMEWORK_FACE_EXTRACT_H
+#endif //SOPHON_PIPELINE_FACE_EXTRACT_H

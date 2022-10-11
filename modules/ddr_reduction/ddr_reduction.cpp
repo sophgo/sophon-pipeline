@@ -1,6 +1,3 @@
-//
-// Created by yuan on 12/29/21.
-//
 
 #include "ddr_reduction.h"
 #include <iostream>

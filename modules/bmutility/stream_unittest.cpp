@@ -1,6 +1,4 @@
-//
-// Created by yuan on 3/29/21.
-//
+
 #include "stream_decode.h"
 #include <assert.h>
 #include "bmutility_string.h"

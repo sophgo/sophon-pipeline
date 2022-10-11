@@ -1,6 +1,3 @@
-//
-// Created by yuan on 12/29/21.
-//
 
 #ifndef DDR_REDUCTION_DEMO_DDR_REDUCTION_H
 #define DDR_REDUCTION_DEMO_DDR_REDUCTION_H

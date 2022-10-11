@@ -1,9 +1,6 @@
-//
-// Created by yuan on 3/10/21.
-//
 
-#ifndef INFERENCE_FRAMEWORK_BMGUI_H
-#define INFERENCE_FRAMEWORK_BMGUI_H
+#ifndef SOPHON_PIPELINE_BMGUI_H
+#define SOPHON_PIPELINE_BMGUI_H
 
 #include <thread>
 #include "bmutility_types.h"
@@ -41,4 +38,4 @@ namespace bm {
 
 
 
-#endif //INFERENCE_FRAMEWORK_BMGUI_H
+#endif //SOPHON_PIPELINE_BMGUI_H

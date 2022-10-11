@@ -1,10 +1,7 @@
-//
-// Created by yuan on 3/4/21.
-//
 
 #include "opencv2/opencv.hpp"
 #include "worker.h"
-#include "configuration.h"
+#include "configuration_cvs.h"
 #include "bmutility_timer.h"
 #include <iomanip>
 #include "face_extract.h"
@@ -19,12 +16,9 @@ int main(int argc, char *argv[])
 {
     const char *base_keys="{help | 0 | Print help information.}"
                           "{model_type | 0 | Model Type(0: face_detect 1: resnet50)}"
-                          "{bmodel |  | input bmodel path}"
-                          "{max_batch | 4 | Max batch size}"
                           "{enable_l2_ddr_reduction | 1 | L2 ddr reduction}"
                           "{feat_delay | 1000 | feature delay in msec}"
                           "{feat_num | 8 | feature num per channel}"
-                          "{skip | 1 | skip N frames to detect}"
                           "{config | ./cameras.json | path to cameras.json}";
 
     std::string keys;
@@ -35,10 +29,8 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    std::string bmodel_file = parser.get<std::string>("bmodel");
     std::string config_file = parser.get<std::string>("config");
 
-    int skip = parser.get<int>("skip");
     int model_type = parser.get<int>("model_type");
     int feature_delay = parser.get<int>("feat_delay");
     int feature_num = parser.get<int>("feat_num");
@@ -53,6 +45,8 @@ int main(int argc, char *argv[])
 
     int total_num = cfg.totalChanNums();
     AppStatis appStatis(total_num);
+
+    auto modelConfig = cfg.getModelConfig();
 
     int card_num = cfg.cardNums();
     int channel_num_per_card = total_num/card_num;
@@ -69,6 +63,7 @@ int main(int argc, char *argv[])
     std::vector<OneCardInferAppPtr> apps;
     for(int card_idx = 0; card_idx < card_num; ++card_idx) {
         int dev_id = cfg.cardDevId(card_idx);
+        std::set<std::string> distinct_models = cfg.getDistinctModels(dev_id);
         // load balance
         int channel_num = 0;
         if (card_idx < last_channel_num) {
@@ -77,27 +72,29 @@ int main(int argc, char *argv[])
             channel_num = channel_num_per_card;
         }
 
-        bm::BMNNHandlePtr handle = std::make_shared<bm::BMNNHandle>(dev_id);
-        bm::BMNNContextPtr contextPtr = std::make_shared<bm::BMNNContext>(handle, bmodel_file);
+        std::string model_name = (*distinct_models.begin());
+        auto& model_cfg = modelConfig[model_name];
 
-        int max_batch = parser.get<int>("max_batch");
+        bm::BMNNHandlePtr handle = std::make_shared<bm::BMNNHandle>(dev_id);
+        bm::BMNNContextPtr contextPtr = std::make_shared<bm::BMNNContext>(handle, model_cfg.path);
+
         std::shared_ptr<bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo>> detector;
         if (MODEL_FACE_DETECT == model_type) {
-            detector = std::make_shared<FaceDetector>(contextPtr, max_batch);
+            detector = std::make_shared<FaceDetector>(contextPtr);
         }else if (MODEL_RESNET50 == model_type) {
-            detector = std::make_shared<Resnet>(contextPtr, max_batch);
+            detector = std::make_shared<Resnet>(contextPtr);
         }
 
         std::cout << "start_chan_index=" << start_chan_index << ", channel_num=" << channel_num << std::endl;
         OneCardInferAppPtr appPtr = std::make_shared<OneCardInferApp>(appStatis, gui,
-                tqp, contextPtr, start_chan_index, channel_num, skip, feature_delay, feature_num,
+                tqp, contextPtr, start_chan_index, channel_num, model_cfg.skip_frame, feature_delay, feature_num,
                 enable_l2_ddrr);
         start_chan_index += channel_num;
 
         // set detector delegator
         appPtr->setDetectorDelegate(detector);
         std::shared_ptr<bm::DetectorDelegate<bm::FeatureFrame, bm::FeatureFrameInfo>> feature_delegate;
-        feature_delegate = std::make_shared<FaceExtract>(contextPtr, max_batch);
+        feature_delegate = std::make_shared<FaceExtract>(contextPtr);
         appPtr->setFeatureDelegate(feature_delegate);
         appPtr->start(cfg.cardUrls(card_idx), cfg);
         apps.push_back(appPtr);

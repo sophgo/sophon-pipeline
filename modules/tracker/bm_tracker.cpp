@@ -1,6 +1,3 @@
-//
-// Created by yuan on 11/24/21.
-//
 
 #include "bm_tracker.h"
 #include "KalmanFilter/tracker.h"

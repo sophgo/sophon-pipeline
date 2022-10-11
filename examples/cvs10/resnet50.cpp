@@ -1,12 +1,11 @@
-//
-// Created by yuan on 11/24/21.
-//
 
 #include "resnet50.h"
 #include <numeric>
 
-Resnet::Resnet(bm::BMNNContextPtr bmctx, int max_batch):m_bmctx(bmctx),MAX_BATCH(max_batch) {
-    m_bmnet = std::make_shared<bm::BMNNNetwork>(m_bmctx->bmrt(), "resnet-50");
+Resnet::Resnet(bm::BMNNContextPtr bmctx):m_bmctx(bmctx) {
+    auto net_name = bmctx->network_name(0);
+    m_bmnet = std::make_shared<bm::BMNNNetwork>(m_bmctx->bmrt(), net_name); //resnet-50
+
     assert(m_bmnet != nullptr);
     m_beta = -103.94;
     m_alpha = 1.0;
@@ -15,6 +14,7 @@ Resnet::Resnet(bm::BMNNContextPtr bmctx, int max_batch):m_bmctx(bmctx),MAX_BATCH
     // for NCHW
     m_net_h = shape->dims[2];
     m_net_w = shape->dims[3];
+    MAX_BATCH = shape->dims[0];
 
 }
 
@@ -171,7 +171,7 @@ void Resnet::extract_feature_cpu(bm::cvs10FrameInfo &frame_info) {
     int frameNum = frame_info.frames.size();
     frame_info.out_datums.resize(frameNum);
     for(int frameIdx = 0; frameIdx < frameNum;++frameIdx) {
-        bm::BMNNTensorPtr output_tensor = get_output_tensor("prob", frame_info, 1.0);
+        bm::BMNNTensorPtr output_tensor = get_output_tensor("prob", frame_info, m_bmnet->get_output_scale(0));
         float *data = output_tensor->get_cpu_data();
         auto output_shape = output_tensor->get_shape();
         int batch_size = output_shape->dims[0];

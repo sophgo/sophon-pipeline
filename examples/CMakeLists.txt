@@ -13,6 +13,8 @@ include_directories(${common_inc_dirs} ${libsophon_inc_dirs} ${ffmpeg_inc_dirs} 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 link_directories(${ffmpeg_link_dirs} ${libsophon_link_dirs} ${opencv_link_dirs})
 
+include_directories(common)
+
 if (USE_SOPHON_FFMPEG)
     if (HAVE_TRACKER)
         add_subdirectory(cvs10)
