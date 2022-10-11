@@ -10,8 +10,8 @@ You may obtain a copy of the License at
  See the License for the specific language governing permissions and
  limitations under the License.
 ============================================================================*/
-#ifndef _INFERENCEFRAMEWORK_BNUTILITY_BASEMODEL_H_
-#define _INFERENCEFRAMEWORK_BNUTILITY_BASEMODEL_H_
+#ifndef _SOPHON_PIPELINE_BNUTILITY_BASEMODEL_H_
+#define _SOPHON_PIPELINE_BNUTILITY_BASEMODEL_H_
 #include <memory>
 #include <vector>
 
@@ -41,4 +41,4 @@ protected:
 
 };
 } // namespace bm
-#endif // _INFERENCEFRAMEWORK_BNUTILITY_BASEMODEL_H_
+#endif // _SOPHON_PIPELINE_BNUTILITY_BASEMODEL_H_

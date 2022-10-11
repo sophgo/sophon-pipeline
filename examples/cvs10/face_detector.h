@@ -1,15 +1,15 @@
-//
-// Created by yuan on 2/23/21.
-//
 
-#ifndef INFERENCE_FRAMEWORK_FACE_DETECTOR_H
-#define INFERENCE_FRAMEWORK_FACE_DETECTOR_H
+#ifndef SOPHON_PIPELINE_FACE_DETECTOR_H
+#define SOPHON_PIPELINE_FACE_DETECTOR_H
 
 #include "inference.h"
 #include "bmcv_api_ext.h"
 #include "common_types.h"
+#include "bmutility_basemodel.hpp"
 
-class FaceDetector : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo> {
+class FaceDetector : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo> 
+                   , public bm::BaseModel 
+{
     bm::BMNNContextPtr bmctx_;
     bm::BMNNNetworkPtr bmnet_;
     bool               is4N_;
@@ -31,12 +31,13 @@ class FaceDetector : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs
     int  m_net_h, m_net_w;
     int MAX_BATCH;
 public:
-    FaceDetector(bm::BMNNContextPtr bmctx, int max_batch=4);
+    FaceDetector(bm::BMNNContextPtr bmctx);
     ~FaceDetector();
 
     virtual int preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::vector<bm::cvs10FrameInfo>& frame_info) override ;
     virtual int forward(std::vector<bm::cvs10FrameInfo>& frame_info) override ;
     virtual int postprocess(std::vector<bm::cvs10FrameInfo> &frame_info) override;
+
 private:
     int extract_facebox_cpu(bm::cvs10FrameInfo &frame_info);
     bm::BMNNTensorPtr get_output_tensor(const std::string &name, bm::cvs10FrameInfo& frame_info, float scale);
@@ -56,4 +57,4 @@ private:
 };
 
 
-#endif //INFERENCE_FRAMEWORK_FACE_DETECTOR_H
+#endif //SOPHON_PIPELINE_FACE_DETECTOR_H

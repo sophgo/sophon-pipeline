@@ -1,6 +1,4 @@
-//
-// Created by yuan on 2/18/21.
-//
+
 #ifndef BMNN_QTWIN_H
 #define BMNN_QTWIN_H
 

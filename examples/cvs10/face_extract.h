@@ -1,9 +1,6 @@
-//
-// Created by yuan on 11/24/21.
-//
 
-#ifndef INFERENCE_FRAMEWORK_FACE_EXTRACT_H
-#define INFERENCE_FRAMEWORK_FACE_EXTRACT_H
+#ifndef SOPHON_PIPELINE_FACE_EXTRACT_H
+#define SOPHON_PIPELINE_FACE_EXTRACT_H
 
 
 #include "bmutility.h"
@@ -23,7 +20,7 @@ class FaceExtract : public bm::DetectorDelegate<bm::FeatureFrame, bm::FeatureFra
     int m_net_w;
 
 public:
-    FaceExtract(bm::BMNNContextPtr bmctx, int max_batch);
+    FaceExtract(bm::BMNNContextPtr bmctx);
     ~FaceExtract();
 
     virtual int preprocess(std::vector<bm::FeatureFrame> &in, std::vector<bm::FeatureFrameInfo> &of) override;
@@ -35,4 +32,4 @@ private:
 };
 
 
-#endif //INFERENCE_FRAMEWORK_FACE_EXTRACT_H
+#endif //SOPHON_PIPELINE_FACE_EXTRACT_H

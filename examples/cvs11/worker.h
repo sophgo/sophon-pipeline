@@ -1,14 +1,11 @@
-//
-// Created by yuan on 3/4/21.
-//
 
-#ifndef INFERENCE_FRAMEWORK_WORKER_H
-#define INFERENCE_FRAMEWORK_WORKER_H
+#ifndef SOPHON_PIPELINE_WORKER_H
+#define SOPHON_PIPELINE_WORKER_H
 #include "bmutility.h"
 #include "bmgui.h"
 #include "inference.h"
 #include "stream_pusher.h"
-#include "configuration.h"
+#include "configuration_cvs.h"
 #include "bm_tracker.h"
 #include "common_types.h"
 #include "ddr_reduction.h"
@@ -211,4 +208,4 @@ public:
 using OneCardInferAppPtr = std::shared_ptr<OneCardInferApp>;
 
 
-#endif //INFERENCE_FRAMEWORK_MAIN_H
+#endif //SOPHON_PIPELINE_MAIN_H

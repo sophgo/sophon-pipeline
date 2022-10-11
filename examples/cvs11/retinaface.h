@@ -1,5 +1,5 @@
-#ifndef _INFERENCE_FRAMEWORK_RETINAFACE_H_
-#define _INFERENCE_FRAMEWORK_RETINAFACE_H_
+#ifndef _SOPHON_PIPELINE_RETINAFACE_H_
+#define _SOPHON_PIPELINE_RETINAFACE_H_
 
 #include "inference.h"
 #include "bmutility_profile.h"
@@ -40,7 +40,8 @@ public:
     virtual int postprocess(std::vector<bm::cvs11FrameInfo> &frame_info) override;
     bm_image read_image(bm::cvs11FrameBaseInfo &frame);
     int getBatchSize();
+
 };
 
 
-#endif // _INFERENCE_FRAMEWORK_RETINAFACE_H_
+#endif // _SOPHON_PIPELINE_RETINAFACE_H_

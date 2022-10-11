@@ -1,9 +1,6 @@
-//
-// Created by yuan on 11/24/21.
-//
 
-#ifndef INFERENCE_FRAMEWORK_RESNET50_H
-#define INFERENCE_FRAMEWORK_RESNET50_H
+#ifndef SOPHON_PIPELINE_RESNET50_H
+#define SOPHON_PIPELINE_RESNET50_H
 
 #include "inference.h"
 #include "bmcv_api_ext.h"
@@ -21,7 +18,7 @@ class Resnet : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs10Fram
     int m_net_w;
 
 public:
-    Resnet(bm::BMNNContextPtr bmctx, int max_batch);
+    Resnet(bm::BMNNContextPtr bmctx);
     ~Resnet();
 
     virtual int preprocess(std::vector<bm::cvs10FrameBaseInfo> &in, std::vector<bm::cvs10FrameInfo> &of) override;
@@ -34,4 +31,4 @@ private:
 };
 
 
-#endif //INFERENCE_FRAMEWORK_RESNET50_H
+#endif //SOPHON_PIPELINE_RESNET50_H

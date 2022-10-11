@@ -1,6 +1,3 @@
-//
-// Created by hsyuan on 2021-03-09.
-//
 
 #ifndef VIDEOUI_VIDEOUI_H
 #define VIDEOUI_VIDEOUI_H

@@ -1,9 +1,6 @@
-//
-// Created by hsyuan on 2021-02-22.
-//
 
-#ifndef INFERENCE_FRAMEWORK_INFERENCE_H
-#define INFERENCE_FRAMEWORK_INFERENCE_H
+#ifndef SOPHON_PIPELINE_INFERENCE_H
+#define SOPHON_PIPELINE_INFERENCE_H
 
 #include "bmutility.h"
 #include "thread_queue.h"
@@ -206,4 +203,4 @@ namespace bm {
 } // end namespace bm
 
 
-#endif //INFERENCE_FRAMEWORK_INFERENCE_H
+#endif //SOPHON_PIPELINE_INFERENCE_H

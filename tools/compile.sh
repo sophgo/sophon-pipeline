@@ -79,7 +79,7 @@ function release_others() {
   do
      mkdir -p release/$app/$arch
      cp $builddir/bin/$app release/$app/$arch/
-     cp ./configs/cameras.json release/$app/
+     cp ./configs/cameras_cvs.json release/$app/
      if [[ ! {${all_jpg_app_list}} = "${app}" ]]; then
        cp ./data/$app/face.jpeg release/$app/
      fi

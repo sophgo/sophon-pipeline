@@ -5,7 +5,8 @@
       "cameras": [
         {
           "address": "/data/workspace/media/face.h264",
-          "chan_num": 1
+          "chan_num": 1,
+          "model_names": ["ex1"]
         }
       ]
     }
@@ -23,6 +24,13 @@
       "thread_num": 4,
       "queue_size": 16
     }
-  }
+  },
+  "models":[
+    {
+      "name": "ex1",
+      "path": "your_bmodel_path.bmodel",
+      "skip_frame_num": 1
+    }
+  ]
 }
 

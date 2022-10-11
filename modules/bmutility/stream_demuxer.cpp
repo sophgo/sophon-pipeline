@@ -1,6 +1,3 @@
-//
-// Created by hsyuan on 2019-02-22.
-//
 
 #include "stream_demuxer.h"
 //#include "otl_utils.h"
