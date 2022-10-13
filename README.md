@@ -103,3 +103,5 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev libexiv2-dev
 - [cvs10](./docs/cvs10.md)
 
 - [cvs11](./docs/cvs11.md)
+
+- [yolov5](./docs/yolov5.md)
