@@ -4,7 +4,7 @@
       "devid": 0,
       "cameras": [
         {
-          "address": "/mnt/sda1/chenyanchao/sophon-pipeline/build/bin/test.264",
+          "address": "test.264",
           "chan_num": 1,
           "model_names": ["yolov5"]
         }
@@ -30,8 +30,7 @@
       "name": "yolov5",
       "path": "yolov5.bmodel",
       "skip_frame_num": 1,
-      "output_path": "/mnt/sda1/chenyanchao/sophon-pipeline/"
+      "output_path": "output_path"
     }
   ]
 }
-

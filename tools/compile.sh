@@ -84,12 +84,12 @@ function release_others() {
      else
         cp ./configs/cameras_cvs.json release/$app/
      fi
-     if [[ ! {${all_jpg_app_list}} = "${app}" ]]; then
-       cp ./data/$app/face.jpeg release/$app/
-     fi
-
-     
-
+     for jpg_app in ${all_jpg_app_list[@]}
+     do
+        if [[  "${jpg_app}" = "${app}" ]]; then
+           cp ./data/$app/face.jpeg release/$app/
+        fi
+     done
   done
 }
 

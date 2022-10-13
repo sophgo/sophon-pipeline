@@ -121,10 +121,7 @@ int main(int argc, char *argv[])
         std::cout << "[" << bm::timeToString(time(0)) << "] det ([SUCCESS: "
         << appStatis.m_total_statis << "/" << appStatis.m_total_decode << "]total fps ="
         << std::setiosflags(std::ios::fixed) << std::setprecision(1) << totalfps
-        <<  ",ch=" << ch << ": speed=" << chanfps
-        << ") feature ([SUCCESS: " << appStatis.m_total_feat_stat << "/" << appStatis.m_total_feat_decode
-        << "]total fps=" << std::setiosflags(std::ios::fixed) << std::setprecision(1)
-        << feat_totalfps <<  ",ch=" << ch << ": speed=" << feat_chanfps << ")" << std::endl;
+        <<  ",ch=" << ch << ": speed=" << chanfps << std::endl;
     }, 1, &timer_id);
 
     tqp->run_loop();

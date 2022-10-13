@@ -1,7 +1,3 @@
-# yolov5
-
-## 1 概述
-
 ### 1.1 定义
 
 - 使用pipeline运行yolov5目标检测。
@@ -12,7 +8,7 @@
 
 ### 2.1 配置文件
 
-运行请注意修改`${SOPHON_PIPELINE}/release/cvs11/cameras_yolov5.json`配置：
+运行请注意修改`${SOPHON_PIPELINE}/release/yolov5/cameras_yolov5.json`配置：
 
 ```bash
 {
@@ -48,22 +44,25 @@
       "name": "ex1",									# 对应于[path]的模型自定义名称
       "path": "your_bmodel_path.bmodel",				# 对应[name]的bmodel模型的路径
       "skip_frame_num": 1,								# 隔帧检测的跳帧数量。当设置为1时表示程序每间隔1帧做一次模型的pipeline。
-      "output_path": "output_path"                      # 输出地址
+      "output_path": "output_path"                      # 输出地址，只支持rtsp，tcp，udp 格式为rtsp://ip:port
     }
   ]
 }
 ```
 
 > **NOTE**  
->
+> 
 > 线程数和队列长度可根据设备情况自行定义。原则上，预处理线程数和后处理线程数设置为设备的逻辑CPU的个数。推理线程数单个pipeline一般为1。
 
-### 2.2 运行方法
+### 2.2 可视化
+json文件中的output_path参数为检测结果实时流的输出地址，在客户端得到可视化结果，参见[face_demo_client](https://github.com/sophon-ai-algo/face_demo_client)
+
+### 2.3 运行方法
 
   > **NOTE**  
-  > yolov5_1684X模型NAS云盘下载地址：/release/model_zoo/yolov5/BM1684X/yolov5s_640_coco_v6.1_3output_int8_1b.bmodel
+  > yolov5_1684X模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b.bmodel](http://219.142.246.77:65000/sharing/G0hOPGMFx)
   >
-  > yolov5_1684模型NAS云盘下载地址：/release/model_zoo/yolov5/yolov5s_640_coco_v6.1_3output_int8_1b.bmodel
+  > yolov5_1684模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b.bmodel](http://219.142.246.77:65000/sharing/lRDA6ml5b)
   >
   > 测试视频下载地址：[test.h264](http://219.142.246.77:65000/sharing/D5Y8Pkx44)
 
@@ -78,9 +77,9 @@ Usage: yolov5s_demo [params]
                 打印帮助信息
 ```
 
-#### 2.2.1 x86 PCIe
+#### 2.3.1 x86 PCIe
 
-**以设置`cameras_yolov5.json`的`chan_num=16`为例**测试示例如下：
+**以设置`cameras_yolov5.json`的`chan_num=1`为例**测试示例如下：
 
 ```bash
 cd ${SOPHON_PIPELINE}/release/yolov5
@@ -93,22 +92,21 @@ cd ${SOPHON_PIPELINE}/release/yolov5
 
 ```bash
 # 以x86 pcie 1684x为例
-# 先打印出每路(16路)视频码流及对应芯片相关信息，再打印16路检测器det和人脸特征提取器feature的总FPS和第0路视频码流处理对应的speed信息。其中，FPS和speed信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS和speed信息有一定波动属于正常现象。FPS和speed信息如下所示：
+# 先打印出每路(1路)视频码流及对应芯片相关信息，再打印1路检测器det的总FPS和第0路视频码流处理对应的speed信息。其中，FPS和speed信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS和speed信息有一定波动属于正常现象。FPS和speed信息如下所示：
 
 ...
-[2022-10-13:10:22:13] det ([SUCCESS: 196/0]total fps =150.0,ch=0: speed=12.0) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:22:14] det ([SUCCESS: 348/0]total fps =151.0,ch=0: speed=9.0) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:22:15] det ([SUCCESS: 496/0]total fps =150.0,ch=0: speed=10.3) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:22:16] det ([SUCCESS: 642/0]total fps =149.0,ch=0: speed=9.2) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:22:17] det ([SUCCESS: 786/0]total fps =147.5,ch=0: speed=8.8) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:22:18] det ([SUCCESS: 923/0]total fps =143.8,ch=0: speed=8.5) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:22:19] det ([SUCCESS: 1048/0]total fps =138.0,ch=0: speed=7.8) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:22:20] det ([SUCCESS: 1181/0]total fps =134.8,ch=0: speed=11.5) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:22:21] det ([SUCCESS: 1316/0]total fps =132.5,ch=0: speed=11.0) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
+[2022-10-13:16:01:21] det ([SUCCESS: 16/0]total fps =-nan,ch=0: speed=-nan)
+[2022-10-13:16:01:22] det ([SUCCESS: 41/0]total fps =25.0,ch=0: speed=25.0)
+[2022-10-13:16:01:23] det ([SUCCESS: 66/0]total fps =25.0,ch=0: speed=25.0)
+[2022-10-13:16:01:24] det ([SUCCESS: 91/0]total fps =25.0,ch=0: speed=25.0)
+[2022-10-13:16:01:25] det ([SUCCESS: 116/0]total fps =25.0,ch=0: speed=25.0)
+[2022-10-13:16:01:26] det ([SUCCESS: 141/0]total fps =25.0,ch=0: speed=25.0)
+[2022-10-13:16:01:27] det ([SUCCESS: 166/0]total fps =25.0,ch=0: speed=25.0)
+[2022-10-13:16:01:28] det ([SUCCESS: 191/0]total fps =25.0,ch=0: speed=25.0)
 ...
 ```
 
-#### 2.2.2 arm SoC
+#### 2.3.2 arm SoC
 
 将交叉编译好的`${SOPHON_PIPELINE}/release/yolov5`文件夹下的`cameras_yolov5.json`、`test.264`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_yolov5.json的相应配置，运行：
 
@@ -123,22 +121,16 @@ cd ${SOPHON_PIPELINE_YOLOV5}
 
 ```bash
 # 以arm SoC 1684x为例
-# 先打印出每路(16路)视频码流及对应芯片相关信息，再打印16路检测器det和人脸特征提取器feature的总FPS和第0路视频码流处理对应的speed信息。其中，FPS和speed信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS和speed信息有一定波动属于正常现象。FPS和speed信息如下所示：
+# 先打印出每路(1路)视频码流及对应芯片相关信息，再打印1路检测器det的总FPS和第0路视频码流处理对应的speed信息。其中，FPS和speed信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS和speed信息有一定波动属于正常现象。FPS和speed信息如下所示：
 
 ...
-[2022-10-13:10:25:39] det ([SUCCESS: 35/0]total fps =35.0,ch=0: speed=0.0) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:25:40] det ([SUCCESS: 73/0]total fps =36.5,ch=0: speed=1.0) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:25:41] det ([SUCCESS: 111/0]total fps =37.0,ch=0: speed=1.3) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:25:42] det ([SUCCESS: 149/0]total fps =37.2,ch=0: speed=1.0) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:25:43] det ([SUCCESS: 187/0]total fps =38.0,ch=0: speed=1.8) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:25:44] det ([SUCCESS: 224/0]total fps =37.8,ch=0: speed=2.8) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:25:45] det ([SUCCESS: 261/0]total fps =37.5,ch=0: speed=2.8) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:25:46] det ([SUCCESS: 298/0]total fps =37.2,ch=0: speed=2.8) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:25:47] det ([SUCCESS: 335/0]total fps =37.0,ch=0: speed=2.2) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:25:48] det ([SUCCESS: 372/0]total fps =37.0,ch=0: speed=1.2) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:25:49] det ([SUCCESS: 410/0]total fps =37.2,ch=0: speed=1.5) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:25:50] det ([SUCCESS: 446/0]total fps =37.0,ch=0: speed=1.8) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
-[2022-10-13:10:25:51] det ([SUCCESS: 482/0]total fps =36.8,ch=0: speed=1.8) feature ([SUCCESS: 0/0]total fps=0.0,ch=0: speed=0.0)
+[2022-10-13:16:00:26] det ([SUCCESS: 10/0]total fps =nan,ch=0: speed=nan)
+[2022-10-13:16:00:27] det ([SUCCESS: 35/0]total fps =25.0,ch=0: speed=25.0)
+[2022-10-13:16:00:28] det ([SUCCESS: 60/0]total fps =25.0,ch=0: speed=25.0)
+[2022-10-13:16:00:29] det ([SUCCESS: 85/0]total fps =25.0,ch=0: speed=25.0)
+[2022-10-13:16:00:30] det ([SUCCESS: 110/0]total fps =25.0,ch=0: speed=25.0)
+[2022-10-13:16:00:31] det ([SUCCESS: 135/0]total fps =25.0,ch=0: speed=25.0)
+[2022-10-13:16:00:32] det ([SUCCESS: 160/0]total fps =25.0,ch=0: speed=25.0)
+[2022-10-13:16:00:33] det ([SUCCESS: 185/0]total fps =25.0,ch=0: speed=25.0)
 ...
 ```
-
