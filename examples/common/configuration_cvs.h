@@ -6,6 +6,7 @@
 #include <fstream>
 #include <unordered_map>
 #include "json/json.h"
+#include <set>
 
 struct CardConfig {
     int devid;

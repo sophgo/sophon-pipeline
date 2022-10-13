@@ -652,11 +652,17 @@ namespace bm {
             }
             // Free Tensors
             for(auto& tensor : input_tensors) {
+                if (tensor.device_mem.size == 0)
+                    continue;
                 bm_free_device(handle, tensor.device_mem);
+                memset(&tensor.device_mem, 0, sizeof(tensor.device_mem));
             }
 
             for(auto& tensor: output_tensors) {
+                if (tensor.device_mem.size == 0)
+                    continue;
                 bm_free_device(handle, tensor.device_mem);
+                memset(&tensor.device_mem, 0, sizeof(tensor.device_mem));
             }
         }
         static void FrameInfoDestroyFn(bm::FrameInfo& obj) {

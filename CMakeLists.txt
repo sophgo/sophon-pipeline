@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2)
-project(sophon-pipeline_v0.1.2)
+project(sophon-pipeline)
 
 if (NOT DEFINED TARGET_ARCH)
     set(TARGET_ARCH x86)
@@ -164,13 +164,13 @@ message(STATUS "ffmpeg_link_dirs = ${ffmpeg_link_dirs}")
 message(STATUS "opencv_inc = ${opencv_inc_dirs}")
 message(STATUS "opencv_link_dirs = ${opencv_link_dirs}")
 
-set(common_inc_dirs ${COMMON_TOP} ${COMMON_TOP}/tracker ${COMMON_TOP}/bmutility ${COMMON_TOP}/bmgui ${TOP}/third_party/jsoncpp)
+set(common_inc_dirs ${COMMON_TOP} ${COMMON_TOP}/tracker ${COMMON_TOP}/bmutility ${COMMON_TOP}/bmgui ${TOP}/third_party/jsoncpp ${TOP}/third_party/live555)
 message(STATUS "common_inc=${common_inc_dirs}")
 
 add_subdirectory(modules)
 
 add_subdirectory(third_party/jsoncpp)
-# add_subdirectory(third_party/live555)
+add_subdirectory(third_party/live555)
 
 add_subdirectory(examples)
 
