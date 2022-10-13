@@ -1,0 +1,36 @@
+{
+  "cards": [
+    {
+      "devid": 0,
+      "cameras": [
+        {
+          "address": "test.264",
+          "chan_num": 1,
+          "model_names": ["yolov5"]
+        }
+      ]
+    }
+  ],
+  "pipeline": {
+    "preprocess": {
+      "thread_num": 4,
+      "queue_size": 16
+    },
+    "inference": {
+      "thread_num": 1,
+      "queue_size": 16
+    },
+    "postprocess": {
+      "thread_num": 4,
+      "queue_size": 16
+    }
+  },
+  "models":[
+    {
+      "name": "yolov5",
+      "path": "yolov5.bmodel",
+      "skip_frame_num": 1,
+      "output_path": "output_path"
+    }
+  ]
+}

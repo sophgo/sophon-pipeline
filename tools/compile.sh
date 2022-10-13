@@ -73,17 +73,23 @@ function build_app()
 
 function release_others() {
   local arch=$1
-  local all_app_list="cvs10 cvs11"
+  local all_app_list="cvs10 cvs11 video_stitch_demo yolov5s_demo"
   local all_jpg_app_list="cvs10 cvs11"
   for app in ${all_app_list[@]}
   do
      mkdir -p release/$app/$arch
      cp $builddir/bin/$app release/$app/$arch/
-     cp ./configs/cameras_cvs.json release/$app/
-     if [[ ! {${all_jpg_app_list}} = "${app}" ]]; then
-       cp ./data/$app/face.jpeg release/$app/
+     if [[ ${app} = "yolov5s_demo" ]]; then
+        cp ./configs/cameras_yolov5.json release/$app/
+     else
+        cp ./configs/cameras_cvs.json release/$app/
      fi
-
+     for jpg_app in ${all_jpg_app_list[@]}
+     do
+        if [[  "${jpg_app}" = "${app}" ]]; then
+           cp ./data/$app/face.jpeg release/$app/
+        fi
+     done
   done
 }
 
