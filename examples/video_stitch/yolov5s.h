@@ -33,7 +33,8 @@ struct FrameInfo {
  */
 
 class YoloV5 : public bm::DetectorDelegate<bm::FrameBaseInfo, bm::FrameInfo> {
-    int MAX_BATCH = 1;
+    // int MAX_BATCH = 1;
+    int MAX_BATCH;
     bm::BMNNContextPtr m_bmctx;
     bm::BMNNNetworkPtr m_bmnet;
     int m_net_h, m_net_w;
@@ -52,9 +53,11 @@ class YoloV5 : public bm::DetectorDelegate<bm::FrameBaseInfo, bm::FrameInfo> {
     std::map<int, std::shared_ptr<bm::BMTracker>> m_trackerPerChanel;
 
 public:
-    YoloV5(bm::BMNNContextPtr bmctx, int start_chan, int chan_num, int max_batch=1);
+    // YoloV5(bm::BMNNContextPtr bmctx, int start_chan, int chan_num, int max_batch=1);
+    YoloV5(bm::BMNNContextPtr bmctx, int start_chan, int chan_num);
     ~YoloV5();
 
+    virtual int get_Batch();
     virtual int preprocess(std::vector<bm::FrameBaseInfo>& frames, std::vector<bm::FrameInfo>& frame_info) override ;
     virtual int forward(std::vector<bm::FrameInfo>& frame_info) override ;
     virtual int postprocess(std::vector<bm::FrameInfo> &frame_info) override;

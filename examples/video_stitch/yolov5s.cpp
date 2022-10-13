@@ -6,7 +6,8 @@
 #define USE_ASPECT_RATIO 1
 #define USE_MULTICLASS_NMS 1
 
-YoloV5::YoloV5(bm::BMNNContextPtr bmctx, int start_chan, int chan_num, int max_batch):m_bmctx(bmctx),MAX_BATCH(max_batch)
+// YoloV5::YoloV5(bm::BMNNContextPtr bmctx, int start_chan, int chan_num, int max_batch):m_bmctx(bmctx),MAX_BATCH(max_batch)
+YoloV5::YoloV5(bm::BMNNContextPtr bmctx, int start_chan, int chan_num):m_bmctx(bmctx)
 {
     // the bmodel has only one yolo network.
     auto net_name = m_bmctx->network_name(0);
@@ -18,6 +19,7 @@ YoloV5::YoloV5(bm::BMNNContextPtr bmctx, int start_chan, int chan_num, int max_b
     //YOLOV5 input is NCHW
     m_net_h = tensor->get_shape()->dims[2];
     m_net_w = tensor->get_shape()->dims[3];
+    MAX_BATCH = tensor->get_shape()->dims[0];
 
     for (int i = start_chan; i < start_chan + chan_num; ++i) {
         m_trackerPerChanel.insert(std::make_pair(i, bm::BMTracker::create()));
@@ -28,6 +30,10 @@ YoloV5::YoloV5(bm::BMNNContextPtr bmctx, int start_chan, int chan_num, int max_b
 YoloV5::~YoloV5()
 {
 
+}
+
+int YoloV5::get_Batch(){
+    return MAX_BATCH;
 }
 
 int YoloV5::preprocess(std::vector<bm::FrameBaseInfo>& frames, std::vector<bm::FrameInfo>& frame_infos)

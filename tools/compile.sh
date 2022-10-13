@@ -73,7 +73,7 @@ function build_app()
 
 function release_others() {
   local arch=$1
-  local all_app_list="cvs10 cvs11 yolov5s_demo video_stitch_demo"
+  local all_app_list="cvs10 cvs11 video_stitch_demo yolov5s_demo"
   local all_jpg_app_list="cvs10 cvs11"
   for app in ${all_app_list[@]}
   do
