@@ -118,8 +118,7 @@ int main(int argc, char *argv[])
         double feat_chanfps = appStatis.m_chan_feat_fpsPtr->getSpeed();
         double feat_totalfps = appStatis.m_total_feat_fpsPtr->getSpeed();
 
-        std::cout << "[" << bm::timeToString(time(0)) << "] det ([SUCCESS: "
-        << appStatis.m_total_statis << "/" << appStatis.m_total_decode << "]total fps ="
+        std::cout << "[" << bm::timeToString(time(0)) << "] total fps ="
         << std::setiosflags(std::ios::fixed) << std::setprecision(1) << totalfps
         <<  ",ch=" << ch << ": speed=" << chanfps << std::endl;
     }, 1, &timer_id);
