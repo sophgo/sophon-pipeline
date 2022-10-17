@@ -23,6 +23,8 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 |                        | [ddr_reduction](./modules/ddr_reduction) | 提供一种节约DDR占用的软件实现方案                            |
 | [examples](./examples) | [cvs10](./examples/cvs10)                | 提供了算能一路的参考实现                                     |
 |                        | [cvs11](./examples/cvs11)                | 提供了算能一路的参考实现                                     |
+|                        | [yolov5](./examples/yolov5)              | yolov5s目标检测                                              |
+|                        | [video_stitch](./examples/video_stitch)  | 4路yolov5s目标检测 + 拼接 + 编码 + RTSP服务                  |
 
 **Sophon Pipeline的主要结构设计如下图：** 
 
@@ -30,10 +32,11 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 
 **更新说明**
 
-| 版本  | 说明                                                       |
-| ----- | ---------------------------------------------------------- |
-| 0.1.1 | cvs10、cvs11例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe) |
-| 0.1.0 | cvs10、cvs11例程，适配1684x(x86 PCIe)                      |
+| 版本  | 说明                                                         |
+| ----- | ------------------------------------------------------------ |
+| 0.1.2 | 添加yolov5、video_stitch例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC) |
+| 0.1.1 | cvs10、cvs11例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC) |
+| 0.1.0 | cvs10、cvs11例程，适配1684x(x86 PCIe)                        |
 
 ## 2 编译方法
 
@@ -106,3 +109,5 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev libexiv2-dev
 - [cvs11](./docs/cvs11.md)
 
 - [yolov5](./docs/yolov5.md)
+
+- [video_stitch](./docs/video_stitch.md)
