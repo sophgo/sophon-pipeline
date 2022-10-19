@@ -12,7 +12,7 @@
 
 ### 2.1 配置文件
 
-运行请注意修改`${SOPHON_PIPELINE}/release/yolov5/cameras_yolov5.json`配置：
+运行请注意修改`${SOPHON_PIPELINE}/release/yolov5s_demo/cameras_yolov5.json`配置：
 
 ```bash
 {
@@ -23,7 +23,7 @@
         {
           "address": "/data/workspace/media/face.h264",	# 需要测试视频码流的地址
           "chan_num": 1,								# 将内容为上述[address]的视频码流配置[chan_num]数量的路数。默认设置为1，会接入1路的内容为上述[address]的视频码流。
-          "model_names": ["ex1"]						# 测试该[address]视频码流的模型名称，需要和[models]参数内的模型自定义名称[name]一致，表示使用该模型
+          "model_names": ["test"]						# 测试该[address]视频码流的模型名称，需要和此配置文件下面的[models]参数内的模型自定义名称[name]一致，表示使用该模型，多个模型的名字用逗号分开。
         }
       ]
     }，
@@ -45,10 +45,10 @@
   },
   "models":[
     {
-      "name": "ex1",									# 对应于[path]的模型自定义名称
-      "path": "your_bmodel_path.bmodel",				# 对应[name]的bmodel模型的路径
+      "name": "test",									# 对应于[path]的模型自定义名称
+      "path": "/path_to_bmodel/test.bmodel",	        # 对应[name]的bmodel模型的路径
       "skip_frame_num": 1,								# 隔帧检测的跳帧数量。当设置为1时表示程序每间隔1帧做一次模型的pipeline。
-      "output_path": "output_path"                      # 输出地址，只支持rtsp，tcp，udp 格式为rtsp://ip:port
+      "output_path": "output_path"                      # 输出地址，只支持rtsp，tcp，udp 格式为protocol://ip:port/, 例如rtsp://192.168.0.1:8080/test ， tcp://172.28.1.1:5353。对于rtsp推流，地址为rtsp server配置的地址。对于tcp和udp，需要开放自己配置的端口。
     }
   ]
 }
@@ -64,9 +64,9 @@ json文件中的output_path参数为检测结果实时流的输出地址，在�
 ### 2.3 运行方法
 
   > **NOTE**  
-  > yolov5_1684X模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b.bmodel](http://219.142.246.77:65000/sharing/G0hOPGMFx)
+  > yolov5_1684模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684.bmodel](hhttp://219.142.246.77:65000/sharing/0IAlz5YOk)
   >
-  > yolov5_1684模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b.bmodel](http://219.142.246.77:65000/sharing/lRDA6ml5b)
+  > yolov5_1684X模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/EWfwFpkoD)
   >
   > 测试视频下载地址：[test.h264](http://219.142.246.77:65000/sharing/D5Y8Pkx44)
 
@@ -86,9 +86,9 @@ Usage: yolov5s_demo [params]
 **以设置`cameras_yolov5.json`的`chan_num=1`为例**测试示例如下：
 
 ```bash
-cd ${SOPHON_PIPELINE}/release/yolov5
+cd ${SOPHON_PIPELINE}/release/yolov5s_demo
 # ./x86/yolov5 --help 查看命行帮助信息
-# 以x86 pcie 1684x为例,将下载好的yolov5模型拷贝到${SOPHON_PIPELINE}/release/yolov5目录下运行
+# 以x86 pcie 1684x为例,将下载好的yolov5模型拷贝到${SOPHON_PIPELINE}/release/yolov5s_demo目录下运行
 ./x86/yolov5s_demo --config=./cameras_yolov5.json
 ```
 
@@ -112,12 +112,12 @@ cd ${SOPHON_PIPELINE}/release/yolov5
 
 #### 2.3.2 arm SoC
 
-将交叉编译好的`${SOPHON_PIPELINE}/release/yolov5`文件夹下的`cameras_yolov5.json`、`test.264`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_yolov5.json的相应配置，运行：
+将交叉编译好的`${SOPHON_PIPELINE}/release/yolov5s_demo`文件夹下的`cameras_yolov5.json`、`test.264`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_yolov5.json的相应配置，运行：
 
 ```bash
 cd ${SOPHON_PIPELINE_YOLOV5}
 # ./soc/yolov5 --help 查看命行帮助信息
-# 以arm SoC 1684x为例,${xyz}表示1684或1684x
+# 以arm SoC 1684x为例
 ./soc/yolov5s_demo --config=./cameras_yolov5.json 
 ```
 
