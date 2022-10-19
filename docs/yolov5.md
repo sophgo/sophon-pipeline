@@ -64,7 +64,7 @@ json文件中的output_path参数为检测结果实时流的输出地址，在�
 ### 2.3 运行方法
 
   > **NOTE**  
-  > yolov5_1684模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684.bmodel](hhttp://219.142.246.77:65000/sharing/0IAlz5YOk)
+  > yolov5_1684模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684.bmodel](http://219.142.246.77:65000/sharing/0IAlz5YOk)
   >
   > yolov5_1684X模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/EWfwFpkoD)
   >
