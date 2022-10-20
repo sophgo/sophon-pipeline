@@ -28,7 +28,7 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 
 **Sophon Pipeline的主要结构设计如下图：** 
 
-![**avatar**](./docs/pics/sophon-pipeline.jpg)
+![**avatar**](./docs/pics/sophon-pipeline.png)
 
 **更新说明**
 
