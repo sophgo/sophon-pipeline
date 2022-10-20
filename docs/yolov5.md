@@ -99,14 +99,14 @@ cd ${SOPHON_PIPELINE}/release/yolov5s_demo
 # 先打印出每路(1路)视频码流及对应芯片相关信息，再打印1路检测器det的总FPS和第0路视频码流处理对应的speed信息。其中，FPS和speed信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS和speed信息有一定波动属于正常现象。FPS和speed信息如下所示：
 
 ...
-[2022-10-13:16:01:21] det ([SUCCESS: 16/0]total fps =-nan,ch=0: speed=-nan)
-[2022-10-13:16:01:22] det ([SUCCESS: 41/0]total fps =25.0,ch=0: speed=25.0)
-[2022-10-13:16:01:23] det ([SUCCESS: 66/0]total fps =25.0,ch=0: speed=25.0)
-[2022-10-13:16:01:24] det ([SUCCESS: 91/0]total fps =25.0,ch=0: speed=25.0)
-[2022-10-13:16:01:25] det ([SUCCESS: 116/0]total fps =25.0,ch=0: speed=25.0)
-[2022-10-13:16:01:26] det ([SUCCESS: 141/0]total fps =25.0,ch=0: speed=25.0)
-[2022-10-13:16:01:27] det ([SUCCESS: 166/0]total fps =25.0,ch=0: speed=25.0)
-[2022-10-13:16:01:28] det ([SUCCESS: 191/0]total fps =25.0,ch=0: speed=25.0)
+[2022-10-13:16:01:21] total fps =-nan,ch=0: speed=-nan
+[2022-10-13:16:01:22] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:01:23] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:01:24] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:01:25] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:01:26] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:01:27] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:01:28] total fps =25.0,ch=0: speed=25.0
 ...
 ```
 
@@ -128,13 +128,13 @@ cd ${SOPHON_PIPELINE_YOLOV5}
 # 先打印出每路(1路)视频码流及对应芯片相关信息，再打印1路检测器det的总FPS和第0路视频码流处理对应的speed信息。其中，FPS和speed信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS和speed信息有一定波动属于正常现象。FPS和speed信息如下所示：
 
 ...
-[2022-10-13:16:00:26] det ([SUCCESS: 10/0]total fps =nan,ch=0: speed=nan)
-[2022-10-13:16:00:27] det ([SUCCESS: 35/0]total fps =25.0,ch=0: speed=25.0)
-[2022-10-13:16:00:28] det ([SUCCESS: 60/0]total fps =25.0,ch=0: speed=25.0)
-[2022-10-13:16:00:29] det ([SUCCESS: 85/0]total fps =25.0,ch=0: speed=25.0)
-[2022-10-13:16:00:30] det ([SUCCESS: 110/0]total fps =25.0,ch=0: speed=25.0)
-[2022-10-13:16:00:31] det ([SUCCESS: 135/0]total fps =25.0,ch=0: speed=25.0)
-[2022-10-13:16:00:32] det ([SUCCESS: 160/0]total fps =25.0,ch=0: speed=25.0)
-[2022-10-13:16:00:33] det ([SUCCESS: 185/0]total fps =25.0,ch=0: speed=25.0)
+[2022-10-13:16:00:26] total fps =nan,ch=0: speed=nan
+[2022-10-13:16:00:27] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:00:28] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:00:29] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:00:30] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:00:31] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:00:32] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:00:33] total fps =25.0,ch=0: speed=25.0
 ...
 ```
