@@ -90,8 +90,8 @@ namespace bm {
                 av_packet_free(&pkt);
                 if (ret != 0) {
                     std::cout << "av_interleaved_write_frame err" << ret << std::endl;
-                    m_output_state = DOWN;
-                    break;
+                    // m_output_state = DOWN;
+                    // break;
                 }
             }
 

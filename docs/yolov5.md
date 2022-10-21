@@ -58,10 +58,7 @@
 > 
 > 线程数和队列长度可根据设备情况自行定义。原则上，预处理线程数和后处理线程数设置为设备的逻辑CPU的个数。推理线程数单个pipeline一般为1。
 
-### 2.2 可视化
-json文件中的output_path参数为检测结果实时流的输出地址，在客户端得到可视化结果，参见[face_demo_client](https://github.com/sophon-ai-algo/face_demo_client)
-
-### 2.3 运行方法
+### 2.2 运行方法
 
   > **NOTE**  
   > yolov5_1684模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684.bmodel](http://219.142.246.77:65000/sharing/0IAlz5YOk)
@@ -81,7 +78,7 @@ Usage: yolov5s_demo [params]
                 打印帮助信息
 ```
 
-#### 2.3.1 x86 PCIe
+#### 2.2.1 x86 PCIe
 
 **以设置`cameras_yolov5.json`的`chan_num=1`为例**测试示例如下：
 
@@ -110,7 +107,7 @@ cd ${SOPHON_PIPELINE}/release/yolov5s_demo
 ...
 ```
 
-#### 2.3.2 arm SoC
+#### 2.2.2 arm SoC
 
 将交叉编译好的`${SOPHON_PIPELINE}/release/yolov5s_demo`文件夹下的`cameras_yolov5.json`、`test.264`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_yolov5.json的相应配置，运行：
 
@@ -138,3 +135,31 @@ cd ${SOPHON_PIPELINE_YOLOV5}
 [2022-10-13:16:00:33] total fps =25.0,ch=0: speed=25.0
 ...
 ```
+
+### 2.3 可视化
+json文件中的output_path参数为检测结果实时流的输出地址，在客户端（face_demo_client）得到可视化结果。
+  >**NOTE**
+  >
+  >前置条件：
+  >
+  >1.[face_demo_client](https://github.com/sophon-ai-algo/face_demo_client)(自行编译或者下载windows平台的可执行文件) [windows版](http://219.142.246.77:65000/sharing/0X6uo3g42) 。
+  >
+  >2.对于rtsp流，需要配合rtsp-server使用，[rtsp-server](https://github.com/aler9/rtsp-simple-server/releases/tag/v0.20.0)。
+  >
+  >3.确保face_demo_client所在设备（客户端）和此示例程序所在设备（服务端）之间可以通信。
+
+
+例如，此程序运行在服务器上，需要在笔记本显示实时流。那么，output_path中的ip应该配置为笔记本的ip地址，端口号配置为笔记本随意选择一个未被占用的端口。face_demo_client和rtsp-server也都应该运行在笔记本上。
+
+启动顺序为：启动rtsp-server（使用rtsp输出）；启动face_demo_client，输入json中配置的output_path参数以及json中配置的chan_num，点击OK，监听端口；在服务端输入telnet {ip} {port} 测试连通性；最后在服务端启动此示例程序。face_demo_client将显示实时流。
+
+#### 2.3.1 tcp
+output_path配置为 tcp://192.168.0.1:11111 , 其中192.168.0.1为face_demo_client所在设备ip， 11111为face_demo_client所在设备的空闲端口。然后打开face_demo_client，输入地址，开始监听。最后启动此示例程序。
+
+#### 2.3.1 udp
+与tcp类似
+
+#### 2.3.1 rtsp
+rtsp输出需要rtsp-server配合使用。rtsp-server与face_demo_client运行在同一设备上。
+output_path配置为 rtsp://192.168.0.1:8554/live , 其中192.168.0.1为face_demo_client与rtsp-server所在设备ip， 8554为rtsp-server默认输出端口。 由于face_demo_client在解析rtsp地址时，会附带chann_num，上述实例地址将被解析为rtsp://192.168.0.1:8554/live_0，如果地址配置为rtsp://192.168.0.1:8554，那么face_demo_client将解析为rtsp://192.168.0.1:8554_0。
+开启rtsp-server，然后打开face_demo_client，输入地址，开始监听。最后在服务端启动此示例程序。
