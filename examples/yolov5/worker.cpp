@@ -115,7 +115,7 @@ void OneCardInferApp::start(const std::vector<std::string> &urls, Config &config
 
                 if (bm::start_with(m_output_url, "rtsp://")) {
                     std::string connect = "_";
-                    url = bm::format("%s%s%d", m_output_url.c_str(), connect.c_str, pchan->channel_id);
+                    url = bm::format("%s%s%d", m_output_url.c_str(), connect.c_str(), pchan->channel_id);
                 }else{
                     size_t pos = m_output_url.rfind(":");
                     std::string base_url = m_output_url.substr(0, pos);
