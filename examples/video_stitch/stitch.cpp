@@ -61,6 +61,13 @@ int VideoStitchImpl::draw(std::vector<bm::FrameInfo>& frames, std::vector<bm::Fr
                 rects[j].start_y = iter->second->objs[j].y1;
                 rects[j].crop_w = iter->second->objs[j].x2 - iter->second->objs[j].x1;
                 rects[j].crop_h = iter->second->objs[j].y2 - iter->second->objs[j].y1;
+                if (iter->second->objs[j].x1 < 0) {
+                    rects[j].start_x = 0;
+                }
+                if (iter->second->objs[j].y1 < 0) {
+                    rects[j].start_y = 0;
+                }
+
 #if 0
                 // track id
                 if (draw_flag != 0)
