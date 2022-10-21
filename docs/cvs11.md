@@ -50,7 +50,7 @@
     {
       "name": "ex1",									# 对应于[path]的模型自定义名称
       "path": "your_bmodel_path.bmodel",				# 对应[name]的bmodel模型的路径
-      "skip_frame_num": 1,								# 隔帧检测的跳帧数量。当设置为1时表示程序每间隔1帧做一次模型的pipeline。
+      "num_skip_frame": 1,								# 隔帧检测的跳帧数量。当设置为1时表示程序每间隔1帧做一次模型的pipeline。
     }
   ]
 }

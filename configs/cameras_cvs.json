@@ -29,7 +29,7 @@
     {
       "name": "ex1",
       "path": "your_bmodel_path.bmodel",
-      "skip_frame_num": 1
+      "num_skip_frame": 1
     }
   ]
 }
