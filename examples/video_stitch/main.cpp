@@ -70,8 +70,12 @@ int main(int argc, char *argv[])
     // Only statistics encoder fps
     AppStatis appStatis(1);
     
+    std::set<std::string> distinct_ = cfg.getDistinctModels(0);
+    std::string model_name = (*distinct_.begin());
+    auto modelConfig = cfg.getModelConfig();
+    auto& model_cfg = modelConfig[model_name];
 
-    std::shared_ptr<CVEncoder>       encoder = std::make_shared<CVEncoder>(25 / 1, 1920, 1080, 0, pRtspServer, &appStatis);
+    std::shared_ptr<CVEncoder>       encoder = std::make_shared<CVEncoder>(25 / model_cfg.skip_frame, 1920, 1080, 0, pRtspServer, &appStatis);
     std::shared_ptr<VideoStitchImpl> stitch  = std::make_shared<VideoStitchImpl>(0, total_num, encoder);
     bm::BMMediaPipeline<bm::FrameBaseInfo, bm::FrameInfo> m_media_pipeline;
     bm::MediaParam param;
