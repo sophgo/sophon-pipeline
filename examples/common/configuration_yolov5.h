@@ -50,7 +50,7 @@ struct SModelConfig {
     void load(Json::Value& value) {
         name            = value["name"].asString();
         path            = value["path"].asString();
-        skip_frame      = value["num_skip_frame"].asInt();
+        skip_frame      = value["skip_frame_num"].asInt();
         output_path     = value["output_path"].asString();
 
         class_threshold = value["class_threshold"].asFloat();

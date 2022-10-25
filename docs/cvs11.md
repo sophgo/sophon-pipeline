@@ -50,7 +50,7 @@
     {
       "name": "ex1",									# 对应于[path]的模型自定义名称
       "path": "your_bmodel_path.bmodel",				# 对应[name]的bmodel模型的路径
-      "num_skip_frame": 1,								# 隔帧检测的跳帧数量。当设置为1时表示程序每间隔1帧做一次模型的pipeline。
+      "skip_frame_num": 1,								# 隔帧检测的跳帧数量。当设置为1时表示程序每间隔1帧做一次模型的pipeline。
     }
   ]
 }
@@ -93,8 +93,8 @@ Usage: cvs11 [params]
 ```bash
 cd ${SOPHON_PIPELINE}/release/cvs11
 # ./x86/cvs11 --help 查看命行帮助信息
-# 以x86 pcie 1684x为例,将下载好的cvs11模型拷贝到${SOPHON_PIPELINE}/release/cvs11目录下运行,${xyz}表示1684或1684x
-./x86/cvs11 --bmodel=./cvs11_${xyz}_retinaface025_iresnet18_int8_4b.bmodel --config=./cameras_cvs.json --feat_num=8
+# 以x86 pcie 1684x为例,将下载好的cvs11模型拷贝到${SOPHON_PIPELINE}/release/cvs11目录下运行
+./x86/cvs11 --config=./cameras_cvs.json
 ```
 
 执行会打印如下信息：
@@ -129,8 +129,8 @@ cd ${SOPHON_PIPELINE}/release/cvs11
 ```bash
 cd ${SOPHON_PIPELINE_CVS11}
 # ./soc/cvs11 --help 查看命行帮助信息
-# 以arm SoC 1684x为例,${xyz}表示1684或1684x
-./soc/cvs11 --config=./cameras_cvs.json --feat_num=8
+# 以arm SoC 1684x为例
+./soc/cvs11 --config=./cameras_cvs.json
 ```
 
 执行会打印如下信息：

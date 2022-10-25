@@ -11,33 +11,23 @@
 #include "stitch.h"
 
 
-// const char* APP_ARG_STRING= //"{bmodel | /data/models/yolov5s_4batch_int8.bmodel | input bmodel path}"
-//         //"{bmodel | /data/models/yolov5s_1batch_fp32.bmodel | input bmodel path}"
-//         "{max_batch | 4 | Max batch size}";
-//         // "{config | ./cameras.json | path to cameras.json}";
-
 
 int main(int argc, char *argv[])
 {
     const char *base_keys="{help | 0 | Print help information.}"
                          "{config | ./cameras_cvs.json | path to cameras.json}";
-                        //   "{skip | 2 | skip N frames to detect}"
-                        //  "{num | 4 | Channels to run}";
 
     std::string keys;
     keys = base_keys;
-    // keys += APP_ARG_STRING;
     cv::CommandLineParser parser(argc, argv, keys);
     if (parser.get<bool>("help")) {
         parser.printMessage();
         return 0;
     }
 
-    // std::string bmodel_file = parser.get<std::string>("bmodel");
     std::string config_file = parser.get<std::string>("config");
     Config cfg(config_file.c_str());
-
-    // int total_num = parser.get<int>("num");
+    
     int total_num = 4;
     std::cout <<"total_num=" <<total_num << std::endl;
     
@@ -61,7 +51,6 @@ int main(int argc, char *argv[])
     bm::TimerQueuePtr tqp = bm::TimerQueue::create();
     int start_chan_index = 0;
     std::vector<OneCardInferAppPtr> apps;
-    // int skip = parser.get<int>("skip");
 
     // live555 RTSP Server
     CreateRtspServer();
@@ -75,7 +64,7 @@ int main(int argc, char *argv[])
     auto modelConfig = cfg.getModelConfig();
     auto& model_cfg = modelConfig[model_name];
 
-    std::shared_ptr<CVEncoder>       encoder = std::make_shared<CVEncoder>(25 / model_cfg.skip_frame, 1920, 1080, 0, pRtspServer, &appStatis);
+    std::shared_ptr<CVEncoder>       encoder = std::make_shared<CVEncoder>(25 / (model_cfg.skip_frame + 1), 1920, 1080, 0, pRtspServer, &appStatis);
     std::shared_ptr<VideoStitchImpl> stitch  = std::make_shared<VideoStitchImpl>(0, total_num, encoder);
     bm::BMMediaPipeline<bm::FrameBaseInfo, bm::FrameInfo> m_media_pipeline;
     bm::MediaParam param;
@@ -117,24 +106,13 @@ int main(int argc, char *argv[])
             stitch->setHandle(contextPtr->handle());
         }
 
-        // int max_batch = parser.get<int>("max_batch");
-        // std::shared_ptr<YoloV5> detector = std::make_shared<YoloV5>(contextPtr, start_chan_index, channel_num, max_batch);
-        // detector->set_next_inference_pipe(&m_media_pipeline);
-
         std::shared_ptr<YoloV5> detector = std::make_shared<YoloV5>(contextPtr, start_chan_index, channel_num);
         detector->set_next_inference_pipe(&m_media_pipeline);
 
-        // OneCardInferAppPtr appPtr = std::make_shared<OneCardInferApp>(
-        //         tqp, contextPtr, start_chan_index, channel_num, handle->handle(), model_cfg.skip_frame, max_batch);
-        // start_chan_index += channel_num;
         OneCardInferAppPtr appPtr = std::make_shared<OneCardInferApp>(
                 tqp, contextPtr, start_chan_index, channel_num, handle->handle(), model_cfg.skip_frame, detector->get_Batch());
         start_chan_index += channel_num;
         
-        
-
-
-
         // set detector delegator
         appPtr->setDetectorDelegate(detector);
         appPtr->start(cfg.cardUrls(card_idx), cfg);

@@ -130,13 +130,13 @@ void OneCardInferApp::start(const std::vector<std::string> &urls, Config &config
             if (pchan->outputer) pchan->outputer->CloseOutputStream(); });
 
         pchan->decoder->open_stream(urls[i % urls.size()], true, opts);
-        // pchan->decoder->open_stream("rtsp://admin:hk123456@11.73.11.99/test", false, opts);
+
         av_dict_free(&opts);
         pchan->decoder->set_decoded_frame_callback([this, pchan, ch](const AVPacket *pkt, const AVFrame *frame)
                                                    {
             uint64_t seq = pchan->seq++;
             if (m_skipN > 0) {
-                if (seq % m_skipN != 0) {
+                if (seq % (m_skipN + 1) != 0) {
                     return;
                 }
             }

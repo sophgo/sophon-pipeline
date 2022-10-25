@@ -97,13 +97,13 @@ cd ${SOPHON_PIPELINE}/release/yolov5s_demo
 
 ...
 [2022-10-13:16:01:21] total fps =-nan,ch=0: speed=-nan
-[2022-10-13:16:01:22] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:01:23] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:01:24] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:01:25] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:01:26] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:01:27] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:01:28] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:01:22] total fps =12.2,ch=0: speed=12.2
+[2022-10-13:16:01:23] total fps =12.5,ch=0: speed=12.5
+[2022-10-13:16:01:24] total fps =12.8,ch=0: speed=12.8
+[2022-10-13:16:01:25] total fps =13.0,ch=0: speed=13.0
+[2022-10-13:16:01:26] total fps =13.0,ch=0: speed=13.0
+[2022-10-13:16:01:27] total fps =12.5,ch=0: speed=12.5
+[2022-10-13:16:01:28] total fps =12.5,ch=0: speed=12.5
 ...
 ```
 
@@ -126,13 +126,13 @@ cd ${SOPHON_PIPELINE_YOLOV5}
 
 ...
 [2022-10-13:16:00:26] total fps =nan,ch=0: speed=nan
-[2022-10-13:16:00:27] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:00:28] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:00:29] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:00:30] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:00:31] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:00:32] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:00:33] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:00:27] total fps =12.0,ch=0: speed=12.0
+[2022-10-13:16:00:28] total fps =12.0,ch=0: speed=12.0
+[2022-10-13:16:00:29] total fps =12.5,ch=0: speed=12.5
+[2022-10-13:16:00:30] total fps =13.0,ch=0: speed=13.0
+[2022-10-13:16:00:31] total fps =13.0,ch=0: speed=13.0
+[2022-10-13:16:00:32] total fps =12.5,ch=0: speed=12.5
+[2022-10-13:16:00:33] total fps =12.5,ch=0: speed=12.5
 ...
 ```
 
@@ -161,5 +161,5 @@ output_path配置为 tcp://192.168.0.1:11111 , 其中192.168.0.1为face_demo_cli
 
 #### 2.3.1 rtsp
 rtsp输出需要rtsp-server配合使用。rtsp-server与face_demo_client运行在同一设备上。
-output_path配置为 rtsp://192.168.0.1:8554/live , 其中192.168.0.1为face_demo_client与rtsp-server所在设备ip， 8554为rtsp-server默认输出端口。 由于face_demo_client在解析rtsp地址时，会附带chann_num，上述实例地址将被解析为rtsp://192.168.0.1:8554/live_0，如果地址配置为rtsp://192.168.0.1:8554，那么face_demo_client将解析为rtsp://192.168.0.1:8554_0。
+output_path配置为 rtsp://192.168.0.1:8554/live , 其中192.168.0.1为face_demo_client与rtsp-server所在设备ip， 8554为rtsp-server默认输出端口。 由于face_demo_client在解析rtsp地址时，会附带chann_num，上述实例地址将被解析为rtsp://192.168.0.1:8554/live_0。如果地址配置为rtsp://192.168.0.1:8554，那么face_demo_client将解析为rtsp://192.168.0.1:8554_0，face_demo_client将拉流失败。因此output_path必须配置为形如rtsp://{ip}:{port}/live，而不能只配置rtsp://{ip}:{port}。
 开启rtsp-server，然后打开face_demo_client，输入地址，开始监听。最后在服务端启动此示例程序。
