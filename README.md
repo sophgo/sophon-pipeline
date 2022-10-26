@@ -15,16 +15,15 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 
 **主要目录结构和模块说明：**
 
-| 目录                   | 模块                                     | 功能说明                                                     |
-| ---------------------- | ---------------------------------------- | ------------------------------------------------------------ |
-| [modules](./modules)   | [bmgui](./modules/bmgui)                 | 存放Sophon Pipeline用来GUI显示视频的模块                     |
-|                        | [bmgui-lite](./modules/bmgui-lite)       | 由于SDK自带的OpenCV没有显示功能，此模块提供bm::imshow来显示视频，作为补充。 |
-|                        | [bmutility](./modules/bmutility)         | 提供了基础库，字符串、定时器等                               |
-|                        | [ddr_reduction](./modules/ddr_reduction) | 提供一种节约DDR占用的软件实现方案                            |
-| [examples](./examples) | [cvs10](./examples/cvs10)                | 提供了算能一路的参考实现                                     |
-|                        | [cvs11](./examples/cvs11)                | 提供了算能一路的参考实现                                     |
-|                        | [yolov5](./examples/yolov5)              | yolov5s目标检测                                              |
-|                        | [video_stitch](./examples/video_stitch)  | 4路yolov5s目标检测 + 拼接 + 编码 + RTSP服务                  |
+| 目录                   | 模块                                    | 功能说明                                                     |
+| ---------------------- | --------------------------------------- | ------------------------------------------------------------ |
+| [modules](./modules)   | [bmgui](./modules/bmgui)                | 存放Sophon Pipeline用来GUI显示视频的模块                     |
+|                        | [bmgui-lite](./modules/bmgui-lite)      | 由于SDK自带的OpenCV没有显示功能，此模块提供bm::imshow来显示视频，作为补充。 |
+|                        | [bmutility](./modules/bmutility)        | 提供了基础库，字符串、定时器等                               |
+| [examples](./examples) | [cvs10](./examples/cvs10)               | 提供了算能一路的参考实现                                     |
+|                        | [cvs11](./examples/cvs11)               | 提供了算能一路的参考实现                                     |
+|                        | [yolov5](./examples/yolov5)             | yolov5s目标检测                                              |
+|                        | [video_stitch](./examples/video_stitch) | 4路yolov5s目标检测 + 拼接 + 编码 + RTSP服务                  |
 
 **Sophon Pipeline的主要结构设计如下图：** 
 

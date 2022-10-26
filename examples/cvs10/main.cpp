@@ -16,7 +16,6 @@ int main(int argc, char *argv[])
 {
     const char *base_keys="{help | 0 | Print help information.}"
                           "{model_type | 0 | Model Type(0: face_detect 1: resnet50)}"
-                          "{enable_l2_ddr_reduction | 1 | L2 ddr reduction}"
                           "{feat_delay | 1000 | feature delay in msec}"
                           "{feat_num | 8 | feature num per channel}"
                           "{config | ./cameras.json | path to cameras.json}";
@@ -35,7 +34,7 @@ int main(int argc, char *argv[])
     int feature_delay = parser.get<int>("feat_delay");
     int feature_num = parser.get<int>("feat_num");
 
-    int enable_l2_ddrr = parser.get<int>("enable_l2_ddr_reduction");
+    int enable_l2_ddrr = 0;
 
     Config cfg(config_file.c_str());
     if (!cfg.valid_check()) {

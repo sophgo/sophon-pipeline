@@ -76,8 +76,6 @@ Usage: cvs11 [params]
 
         --config (value:./cameras_cvs.json)
                 cameras_cvs.json配置文件的路径，默认路径为./cameras_cvs.json。
-        --enable_l2_ddr_reduction (value:1)
-                是否使用L2 ddr reduction方法减少内存占用。0:不使用；1:使用。默认使用L2 ddr reduction方法。
         --feat_delay (value:1000)
                 人脸特征提取器较人脸检测器启动延迟时间(毫秒)：默认设置为1000，表示人脸检测开始1000毫秒后，开启人脸特征提取
         --feat_num (value:8)

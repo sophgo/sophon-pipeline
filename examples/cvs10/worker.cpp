@@ -84,12 +84,9 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         av_dict_set(&opts, "extra_frame_buffer_num", "5", 0);
 
         pchan->demuxer->set_avformat_opend_callback([this, pchan](AVFormatContext *ifmt) {
-            // create DDR reduction
-            if (m_use_l2_ddrr) {
-                pchan->m_ddrr = DDRReduction::create(this->m_dev_id, ifmt->streams[0]->codecpar->codec_id);
-            }else{
-                pchan->create_video_decoder(m_dev_id, ifmt);
-            }
+            pchan->create_video_decoder(m_dev_id, ifmt);
+            // todo create DDR reduction for optimization
+
         });
 
         pchan->demuxer->set_avformat_closed_callback([this, pchan]() {
@@ -98,62 +95,34 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
 
         pchan->demuxer->set_read_Frame_callback([this, pchan, ch](AVPacket* pkt){
             int ret = 0;
-            if (pchan->m_ddrr) {
-                pchan->m_ddrr->put_packet(pkt, [this, pchan, ch](int64_t pkt_id, AVFrame *frame){
-                    bm::cvs10FrameBaseInfo fbi;
-                    fbi.seq = pchan->seq++;
-                    fbi.chan_id = ch;
-                    fbi.ddrr = pchan->m_ddrr;
-                    fbi.pkt_id = pkt_id;
+            //not use ddr reduction
+            int got_picture = 0;
+            AVFrame *frame = av_frame_alloc();
+            pchan->decode_video2(pchan->m_decoder, frame, &got_picture, pkt);
+            if (got_picture) {
+                bm::cvs10FrameBaseInfo fbi;
+                fbi.seq = pchan->seq++;
+                fbi.chan_id = ch;
+                fbi.pkt_id = 0;
 
-                    if (m_skipN > 0) {
-                        if (fbi.seq % (m_skipN+1) != 0) fbi.skip = true;
-                    }
-
-#if 0
-                    if (ch == 0) std::cout << " seq = " << fbi.seq << " skip= " << fbi.skip << std::endl;
-#endif
-                    if(!fbi.skip) {
-                        fbi.avframe = av_frame_alloc();
-                        av_frame_ref(fbi.avframe, frame);
-                        m_appStatis.m_statis_lock.lock();
-                        m_appStatis.m_total_decode++;
-                        m_appStatis.m_statis_lock.unlock();
-                        m_inferPipe.push_frame(&fbi);
-                    }
-
-                });
-            }else{
-                //not use ddr reduction
-                int got_picture = 0;
-                AVFrame *frame = av_frame_alloc();
-                pchan->decode_video2(pchan->m_decoder, frame, &got_picture, pkt);
-                if (got_picture) {
-                    bm::cvs10FrameBaseInfo fbi;
-                    fbi.seq = pchan->seq++;
-                    fbi.chan_id = ch;
-                    fbi.ddrr = pchan->m_ddrr;
-                    fbi.pkt_id = 0;
-
-                    if (m_skipN > 0) {
-                        if (fbi.seq % (m_skipN + 1) != 0) fbi.skip = true;
-                    }
-
-#if 0
-                    if (ch == 0) std::cout << " seq = " << fbi.seq << " skip= " << fbi.skip << std::endl;
-#endif
-                    if (!fbi.skip) {
-                        fbi.avframe = av_frame_alloc();
-                        av_frame_ref(fbi.avframe, frame);
-                        m_appStatis.m_statis_lock.lock();
-                        m_appStatis.m_total_decode++;
-                        m_appStatis.m_statis_lock.unlock();
-                        m_inferPipe.push_frame(&fbi);
-                    }
+                if (m_skipN > 0) {
+                    if (fbi.seq % (m_skipN + 1) != 0) fbi.skip = true;
                 }
 
-                av_frame_free(&frame);
+#if 0
+                if (ch == 0) std::cout << " seq = " << fbi.seq << " skip= " << fbi.skip << std::endl;
+#endif
+                if (!fbi.skip) {
+                    fbi.avframe = av_frame_alloc();
+                    av_frame_ref(fbi.avframe, frame);
+                    m_appStatis.m_statis_lock.lock();
+                    m_appStatis.m_total_decode++;
+                    m_appStatis.m_statis_lock.unlock();
+                    m_inferPipe.push_frame(&fbi);
+                }
             }
+
+            av_frame_free(&frame);
 
             uint64_t current_time = bm::gettime_msec();
             if (current_time - m_chans[ch]->m_last_feature_time > m_feature_delay) {
