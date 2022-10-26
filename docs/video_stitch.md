@@ -32,38 +32,38 @@ Play streams from this server using the URL
 
 ```bash
 {
-  "cards": [                      # 若需要配置多个device，可以在cards下添加多组devid和cameras信息
+  "cards": [                      						# 若需要配置多个device，可以在cards下添加多组devid和cameras信息
     {
-      "devid": 0,                   # 设备id
-      "cameras": [                    # 若需要配置多个视频码流，可以在cameras下添加多组address和chan_num信息。若配置了多个address或多个cards，总的视频码流路数为所有的[chan_num]数量之和,必须等于4
+      "devid": 0,                  		 				# 设备id
+      "cameras": [                    					# 若需要配置多个视频码流，可以在cameras下添加多组address和chan_num信息。若配置了多个address或多个cards，总的视频码流路数为所有的[chan_num]数量之和,必须等于4
         {
           "address": "/data/workspace/media/face.h264", # 需要测试视频码流的地址
-          "chan_num": 1,                # 将内容为上述[address]的视频码流配置[chan_num]数量的路数。默认设置为1，会接入1路的内容为上述[address]的视频码流。
-          "model_names": ["ex1"]            # 测试该[address]视频码流的模型名称，需要和[models]参数内用户自定义的模型名称[name]一致，表示使用该模型
+          "chan_num": 1,                				# 将内容为上述[address]的视频码流配置[chan_num]数量的路数。默认设置为1，会接入1路的内容为上述[address]的视频码流。
+          "model_names": ["ex1"]            			# 测试该[address]视频码流的模型名称，需要和[models]参数内用户自定义的模型名称[name]一致，表示使用该模型
         }
       ]
     }，
   ],
   
-  "pipeline": {                     # pipeline中的线程数和队列长度
+  "pipeline": {                     					# pipeline中的线程数和队列长度
     "preprocess": {
-      "thread_num": 4,                  # 预处理线程数
-      "queue_size": 16                  # 预处理队列最大长度
+      "thread_num": 4,                  				# 预处理线程数
+      "queue_size": 16                  				# 预处理队列最大长度
     },
     "inference": {
-      "thread_num": 1,                  # 推理线程数
-      "queue_size": 16                  # 推理队列最大长度
+      "thread_num": 1,                  				# 推理线程数
+      "queue_size": 16                  				# 推理队列最大长度
     },
     "postprocess": {
-      "thread_num": 4,                  # 后处理线程数
-      "queue_size": 16                  # 后处理队列最大长度
+      "thread_num": 4,                  				# 后处理线程数
+      "queue_size": 16                  				# 后处理队列最大长度
     }
   },
   "models":[
     {
-      "name": "ex1",                  # 对应于[path]的模型用户自定义的名称,需要和[path]参数内的模型自定义名称[model_names]一致，表示使用该模型
-      "path": "your_bmodel_path.bmodel",        # 对应[name]的bmodel模型的路径
-      "num_skip_frame": 1,                # 隔帧检测的跳帧数量。当设置为1时表示程序每间隔1帧做一次模型的pipeline。
+      "name": "ex1",                  					# 对应于[path]的模型用户自定义的名称,需要和[path]参数内的模型自定义名称[model_names]一致，表示使用该模型
+      "path": "your_bmodel_path.bmodel",        		# 对应[name]的bmodel模型的路径
+      "skip_frame_num": 1,                				# 隔帧检测的跳帧数量。当设置为1时表示程序每间隔1帧做一次模型的pipeline。
     }
   ]
 }
