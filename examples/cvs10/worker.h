@@ -9,7 +9,6 @@
 #include "face_detector.h"
 #include "bm_tracker.h"
 #include "common_types.h"
-#include "ddr_reduction.h"
 
 struct TChannel: public bm::NoCopyable {
     int channel_id;
@@ -17,7 +16,7 @@ struct TChannel: public bm::NoCopyable {
     bm::StreamDemuxer *demuxer;
     std::shared_ptr<bm::BMTracker> tracker;
     uint64_t m_last_feature_time=0; // last do feature time
-    std::shared_ptr<DDRReduction> m_ddrr;
+
     int64_t ref_pkt_id = -1;
     AVCodecContext* m_decoder=nullptr;
 

@@ -19,7 +19,6 @@ if (USE_QTGUI)
 endif()
 
 add_subdirectory(bmutility)
-add_subdirectory(ddr_reduction)
 
 if (HAVE_TRACKER)
     add_subdirectory(tracker)

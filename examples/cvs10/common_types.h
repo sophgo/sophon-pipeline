@@ -2,7 +2,7 @@
 #ifndef SOPHON_PIPELINE_COMMON_TYPES_H
 #define SOPHON_PIPELINE_COMMON_TYPES_H
 
-#include "ddr_reduction.h"
+
 
 namespace bm {
     struct FeatureFrame {
@@ -58,7 +58,7 @@ namespace bm {
 struct cvs10FrameBaseInfo {
     int chan_id;
     uint64_t seq;
-    std::shared_ptr<DDRReduction> ddrr;
+
     int64_t pkt_id;
     //AVPacket *avpkt;
     AVFrame *avframe;
