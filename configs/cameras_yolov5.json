@@ -29,7 +29,7 @@
     {
       "name": "yolov5",
       "path": "yolov5.bmodel",
-      "skip_frame": 1,
+      "skip_frame_num": 1,
       "output_path": "output_path"
     }
   ]
