@@ -134,7 +134,7 @@ cd ${SOPHON_PIPELINE}/release/cvs10
 cd ${SOPHON_PIPELINE_CVS10}
 # ./soc/cvs10 --help 查看命行帮助信息
 # 以arm SoC 1684x为例
-./soc/cvs10 --bmodel=./cvs10_${xyz}_int8_4b.bmodel --config=./cameras_cvs.json
+./soc/cvs10 --config=./cameras_cvs.json
 ```
 
 执行会打印如下信息：
