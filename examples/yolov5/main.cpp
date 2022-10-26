@@ -1,6 +1,11 @@
+//===----------------------------------------------------------------------===//
 //
-// Created by yuan on 3/4/21.
+// Copyright (C) 2022 Sophgo Technologies Inc.  All rights reserved.
 //
+// SOPHON-PIPELINE is licensed under the 2-Clause BSD License except for the
+// third-party components.
+//
+//===----------------------------------------------------------------------===//
 
 #include "opencv2/opencv.hpp"
 #include "worker.h"

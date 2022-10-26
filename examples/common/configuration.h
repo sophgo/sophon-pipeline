@@ -1,6 +1,11 @@
+//===----------------------------------------------------------------------===//
 //
-// Created by yuan on 3/12/21.
+// Copyright (C) 2022 Sophgo Technologies Inc.  All rights reserved.
 //
+// SOPHON-PIPELINE is licensed under the 2-Clause BSD License except for the
+// third-party components.
+//
+//===----------------------------------------------------------------------===//
 
 #ifndef INFERENCE_FRAMEWORK_CONFIGURATION_H
 #define INFERENCE_FRAMEWORK_CONFIGURATION_H
