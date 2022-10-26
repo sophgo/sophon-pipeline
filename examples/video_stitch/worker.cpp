@@ -62,15 +62,11 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         pchan->decoder->set_decoded_frame_callback([this, pchan, ch](const AVPacket* pkt, const AVFrame *frame) {
             int frame_seq = pchan->seq++;
             if (m_skipN > 0) {
-                if (frame_seq % m_skipN != 0) {
+                if (frame_seq % (m_skipN + 1) != 0) {
                     return;
                 }
             }
             bm::FrameBaseInfo fbi;
-//            fbi.avframe = av_frame_alloc();
-//            fbi.avpkt = av_packet_alloc();
-//            av_frame_ref(fbi.avframe, frame);
-//            av_packet_ref(fbi.avpkt, pkt);
             bm_image image;
             bm::BMImage::from_avframe(
                     m_handle,
@@ -79,7 +75,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             fbi.original = image;
             fbi.seq = frame_seq;
             if (m_skipN > 0) {
-                if (fbi.seq % m_skipN != 0) fbi.skip = true;
+                if (fbi.seq % (m_skipN + 1) != 0) fbi.skip = true;
             }
             fbi.chan_id = ch;
 #ifdef DEBUG

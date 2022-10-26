@@ -6,7 +6,6 @@
 #define USE_ASPECT_RATIO 1
 #define USE_MULTICLASS_NMS 1
 
-// YoloV5::YoloV5(bm::BMNNContextPtr bmctx, int start_chan, int chan_num, int max_batch):m_bmctx(bmctx),MAX_BATCH(max_batch)
 YoloV5::YoloV5(bm::BMNNContextPtr bmctx, int start_chan, int chan_num):m_bmctx(bmctx)
 {
     // the bmodel has only one yolo network.
@@ -75,7 +74,7 @@ int YoloV5::preprocess(std::vector<bm::FrameBaseInfo>& frames, std::vector<bm::F
             padding_attr.padding_r = 114;
             padding_attr.if_memset = 1;
             if (isAlignWidth) {
-            padding_attr.dst_crop_h = m_net_w*ratio;
+            padding_attr.dst_crop_h = image1.height*ratio;
             padding_attr.dst_crop_w = m_net_w;
 
             int ty1 = (int)((m_net_h - padding_attr.dst_crop_h) / 2);
@@ -83,7 +82,7 @@ int YoloV5::preprocess(std::vector<bm::FrameBaseInfo>& frames, std::vector<bm::F
             padding_attr.dst_crop_stx = 0;
             }else{
             padding_attr.dst_crop_h = m_net_h;
-            padding_attr.dst_crop_w = m_net_w*ratio;
+            padding_attr.dst_crop_w = image1.width*ratio;
 
             int tx1 = (int)((m_net_w - padding_attr.dst_crop_w) / 2);
             padding_attr.dst_crop_sty = 0;
@@ -98,17 +97,6 @@ int YoloV5::preprocess(std::vector<bm::FrameBaseInfo>& frames, std::vector<bm::F
 #endif
             assert(BM_SUCCESS == ret);
 
-            // convert data to jpeg
-//            uint8_t *jpeg_data=NULL;
-//            size_t out_size = 0;
-//#if USE_QTGUI
-//            bmcv_image_jpeg_enc(handle, 1, &image1, (void**)&jpeg_data, &out_size);
-//#endif
-//            frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size);
-//            frames[start_idx + i].height= frames[start_idx + i].avframe->height;
-//            frames[start_idx + i].width = frames[start_idx + i].avframe->width;
-//            av_frame_unref(frames[start_idx + i].avframe);
-//            av_frame_free(&frames[start_idx + i].avframe);
             frames[start_idx + i].height = frames[start_idx + i].original.height;
             frames[start_idx + i].width  = frames[start_idx + i].original.width;
             finfo.frames.push_back(frames[start_idx+i]);
@@ -198,31 +186,7 @@ int YoloV5::postprocess(std::vector<bm::FrameInfo> &frame_infos)
         if (m_pfnDetectFinish != nullptr) {
             m_pfnDetectFinish(frame_info);
         }
-
-//         for(int j = 0; j < frame_info.frames.size(); ++j) {
-//
-//             auto reff = frame_info.frames[j];
-//             assert(reff.avpkt != nullptr);
-//             av_packet_unref(reff.avpkt);
-//             av_packet_free(&reff.avpkt);
-//
-//             //assert(reff.avframe == nullptr);
-// //            av_frame_unref(reff.avframe);
-// //            av_frame_free(&reff.avframe);
-//         }
-//
-//         // Free Tensors
-//         for(auto& tensor : frame_info.input_tensors) {
-//             bm_free_device(m_bmctx->handle(), tensor.device_mem);
-//         }
-//
-//         for(auto& tensor: frame_info.output_tensors) {
-//             bm_free_device(m_bmctx->handle(), tensor.device_mem);
-//         }
-//
-//         if (m_nextMediaPipe) {
-//             m_nextMediaPipe->push_frame(frame_info);
-//         }
+        
 
     }
     return 0;
@@ -250,16 +214,16 @@ int YoloV5::argmax(float* data, int num) {
 float YoloV5::get_aspect_scaled_ratio(int src_w, int src_h, int dst_w, int dst_h, bool *pIsAligWidth)
 {
     float ratio;
-    ratio = (float) dst_w / src_w;
-    int dst_h1 = src_h * ratio;
-    if (dst_h1 > dst_h) {
-        *pIsAligWidth = false;
-        ratio = (float) src_w / src_h;
-    } else {
+    float r_w = (float)dst_w / src_w;
+    float r_h = (float)dst_h / src_h;
+    if (r_h > r_w){
         *pIsAligWidth = true;
-        ratio = (float)src_h/src_w;
+        ratio = r_w;
     }
-
+    else{
+        *pIsAligWidth = false;
+        ratio = r_h;
+    }
     return ratio;
 }
 
@@ -320,11 +284,9 @@ void YoloV5::extract_yolobox_cpu(bm::FrameInfo& frameInfo)
         float ratio = get_aspect_scaled_ratio(frame.width, frame.height, m_net_w, m_net_h, &isAlignWidth);
 
         if (isAlignWidth) {
-            frame_height = frame_width*(float)m_net_h/m_net_w;
-            ty1 = (int)((m_net_h - (int)(m_net_w*ratio)) / 2);
+            ty1 = (int)((m_net_h - (int)(frame.height*ratio)) / 2);
         }else{
-            frame_width = frame_height*(float)m_net_w/m_net_h;
-            tx1 = (int)((m_net_w - (int)(m_net_w*ratio)) / 2);
+            tx1 = (int)((m_net_w - (int)(frame.width*ratio)) / 2);
         }
 #endif
 
@@ -345,10 +307,10 @@ void YoloV5::extract_yolobox_cpu(bm::FrameInfo& frameInfo)
                         bm::NetOutputObject box;
                         box.score = confidence * score;
 
-                        float centerX = (ptr[0]+1 - tx1)/m_net_w*frame_width-1;
-                        float centerY = (ptr[1]+1 - ty1)/m_net_h*frame_height-1;
-                        float width = (ptr[2]+0.5) * frame_width / m_net_w;
-                        float height = (ptr[3]+0.5) * frame_height / m_net_h;
+                        float centerX = (ptr[0]+1 - tx1)/ratio -1;
+                        float centerY = (ptr[1]+1 - ty1)/ratio -1;
+                        float width = (ptr[2]+0.5) / ratio;
+                        float height = (ptr[3]+0.5) / ratio;
                         box.x1  = int(centerX - width  / 2);
                         box.y1  = int(centerY - height / 2);
                         box.x2  = box.x1 + width;
@@ -378,10 +340,10 @@ void YoloV5::extract_yolobox_cpu(bm::FrameInfo& frameInfo)
                         {
                             float centerX = (sigmoid(ptr[0]) * 2 - 0.5 + i % feat_w) * m_net_w / feat_w;
                             float centerY = (sigmoid(ptr[1]) * 2 - 0.5 + i / feat_w) * m_net_h / feat_h; //center_y
-                            centerX = (centerX - tx1)/m_net_w*frame_width-1;
-                            centerY = (centerY - ty1)/m_net_h*frame_height-1;
-                            float width   = pow((sigmoid(ptr[2]) * 2), 2) * m_anchors[tidx][anchor_idx][0] * frame_width  / m_net_w; //w
-                            float height  = pow((sigmoid(ptr[3]) * 2), 2) * m_anchors[tidx][anchor_idx][1] * frame_height / m_net_h; //h
+                            centerX = (centerX - tx1)/ratio -1;
+                            centerY = (centerY - ty1)/ratio -1;
+                            float width   = pow((sigmoid(ptr[2]) * 2), 2) * m_anchors[tidx][anchor_idx][0] / ratio; //w
+                            float height  = pow((sigmoid(ptr[3]) * 2), 2) * m_anchors[tidx][anchor_idx][1] / ratio; //h
                             bm::NetOutputObject box;
                             box.x1  = int(centerX - width  / 2);
                             box.y1  = int(centerY - height / 2);
@@ -431,12 +393,7 @@ int YoloV5::track(std::vector<bm::FrameInfo> &frames) {
         for (int j = 0; j < frame_info.frames.size(); ++j) {
             // tracker
             if (frame_info.out_datums[j].obj_rects.size() > 0) {
-//                if (frame_info.frames[j].chan_id == 0) {
-//                    cv::Mat output_mat;
-//                    cv::bmcv::toMAT(& frame_info.frames[j].original, output_mat, true);
-//                    std::string filename = "jpgs/raw_" + std::to_string(frame_info.frames[j].seq) + ".jpg";
-//                    cv::imwrite(filename.c_str(), output_mat);
-//                }
+
                 if (m_trackerPerChanel.count(frame_info.frames[j].chan_id) != 0) {
                     m_trackerPerChanel[frame_info.frames[j].chan_id]->update(
                         frame_info.out_datums[j].obj_rects, frame_info.out_datums[j].track_rects);

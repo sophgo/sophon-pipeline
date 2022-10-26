@@ -6,7 +6,7 @@
 #define USE_ASPECT_RATIO 1
 #define USE_MULTICLASS_NMS 1
 
-// YoloV5::YoloV5(bm::BMNNContextPtr bmctx, int max_batch):m_bmctx(bmctx),MAX_BATCH(max_batch)
+
 YoloV5::YoloV5(bm::BMNNContextPtr bmctx):m_bmctx(bmctx)
 {
     // the bmodel has only one yolo network.
@@ -70,7 +70,7 @@ int YoloV5::preprocess(std::vector<bm::FrameBaseInfo>& frames, std::vector<bm::F
             padding_attr.padding_r = 114;
             padding_attr.if_memset = 1;
             if (isAlignWidth) {
-            padding_attr.dst_crop_h = m_net_w*ratio;
+            padding_attr.dst_crop_h = image1.height*ratio;
             padding_attr.dst_crop_w = m_net_w;
 
             int ty1 = (int)((m_net_h - padding_attr.dst_crop_h) / 2);
@@ -78,7 +78,7 @@ int YoloV5::preprocess(std::vector<bm::FrameBaseInfo>& frames, std::vector<bm::F
             padding_attr.dst_crop_stx = 0;
             }else{
             padding_attr.dst_crop_h = m_net_h;
-            padding_attr.dst_crop_w = m_net_w*ratio;
+            padding_attr.dst_crop_w = image1.width*ratio;
 
             int tx1 = (int)((m_net_w - padding_attr.dst_crop_w) / 2);
             padding_attr.dst_crop_sty = 0;
@@ -240,16 +240,16 @@ int YoloV5::argmax(float* data, int num) {
 float YoloV5::get_aspect_scaled_ratio(int src_w, int src_h, int dst_w, int dst_h, bool *pIsAligWidth)
 {
     float ratio;
-    ratio = (float) dst_w / src_w;
-    int dst_h1 = src_h * ratio;
-    if (dst_h1 > dst_h) {
-        *pIsAligWidth = false;
-        ratio = (float) src_w / src_h;
-    } else {
+    float r_w = (float)dst_w / src_w;
+    float r_h = (float)dst_h / src_h;
+    if (r_h > r_w){
         *pIsAligWidth = true;
-        ratio = (float)src_h/src_w;
+	ratio = r_w;
     }
-
+    else{
+        *pIsAligWidth = false;
+        ratio = r_h;
+    }
     return ratio;
 }
 
@@ -311,11 +311,9 @@ void YoloV5::extract_yolobox_cpu(bm::FrameInfo& frameInfo)
         float ratio = get_aspect_scaled_ratio(frame.width, frame.height, m_net_w, m_net_h, &isAlignWidth);
 
         if (isAlignWidth) {
-            frame_height = frame_width*(float)m_net_h/m_net_w;
-            ty1 = (int)((m_net_h - (int)(m_net_w*ratio)) / 2);
+            ty1 = (int)((m_net_h - (int)(frame.height*ratio)) / 2);
         }else{
-            frame_width = frame_height*(float)m_net_w/m_net_h;
-            tx1 = (int)((m_net_w - (int)(m_net_w*ratio)) / 2);
+            tx1 = (int)((m_net_w - (int)(frame.width*ratio)) / 2);
         }
 #endif
 
@@ -336,10 +334,10 @@ void YoloV5::extract_yolobox_cpu(bm::FrameInfo& frameInfo)
                         bm::NetOutputObject box;
                         box.score = confidence * score;
 
-                        float centerX = (ptr[0]+1 - tx1)/m_net_w*frame_width-1;
-                        float centerY = (ptr[1]+1 - ty1)/m_net_h*frame_height-1;
-                        float width = (ptr[2]+0.5) * frame_width / m_net_w;
-                        float height = (ptr[3]+0.5) * frame_height / m_net_h;
+                        float centerX = (ptr[0]+1 - tx1)/ratio -1;
+                        float centerY = (ptr[1]+1 - ty1)/ratio -1;
+                        float width = (ptr[2]+0.5) /ratio;
+                        float height = (ptr[3]+0.5) /ratio;
                         box.x1  = int(centerX - width  / 2);
                         box.y1  = int(centerY - height / 2);
                         box.x2  = box.x1 + width;
@@ -369,10 +367,10 @@ void YoloV5::extract_yolobox_cpu(bm::FrameInfo& frameInfo)
                         {
                             float centerX = (sigmoid(ptr[0]) * 2 - 0.5 + i % feat_w) * m_net_w / feat_w;
                             float centerY = (sigmoid(ptr[1]) * 2 - 0.5 + i / feat_w) * m_net_h / feat_h; //center_y
-                            centerX = (centerX - tx1)/m_net_w*frame_width-1;
-                            centerY = (centerY - ty1)/m_net_h*frame_height-1;
-                            float width   = pow((sigmoid(ptr[2]) * 2), 2) * m_anchors[tidx][anchor_idx][0] * frame_width  / m_net_w; //w
-                            float height  = pow((sigmoid(ptr[3]) * 2), 2) * m_anchors[tidx][anchor_idx][1] * frame_height / m_net_h; //h
+                            centerX = (centerX - tx1)/ratio-1;
+                            centerY = (centerY - ty1)/ratio-1;
+                            float width   = pow((sigmoid(ptr[2]) * 2), 2) * m_anchors[tidx][anchor_idx][0] / ratio; //w
+                            float height  = pow((sigmoid(ptr[3]) * 2), 2) * m_anchors[tidx][anchor_idx][1] / ratio; //h
                             bm::NetOutputObject box;
                             box.x1  = int(centerX - width  / 2);
                             box.y1  = int(centerY - height / 2);
