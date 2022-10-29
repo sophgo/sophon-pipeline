@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     std::vector<OneCardInferAppPtr> apps;
     for(int card_idx = 0; card_idx < card_num; ++card_idx) {
         int dev_id = cfg.cardDevId(card_idx);
-        std::set<std::string> distinct_models = cfg.getDistinctModels(dev_id);
+        std::set<std::string> distinct_models = cfg.getDistinctModels(card_idx);
         // load balance
         int channel_num = 0;
         if (card_idx < last_channel_num) {
