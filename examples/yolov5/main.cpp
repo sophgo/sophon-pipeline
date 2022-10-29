@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     for(int card_idx = 0; card_idx < card_num; ++card_idx) {
         int dev_id = cfg.cardDevId(card_idx);
 
-        std::set<std::string> distinct_models = cfg.getDistinctModels(dev_id);
+        std::set<std::string> distinct_models = cfg.getDistinctModels(card_idx);
         std::string model_name = (*distinct_models.begin());
         auto modelConfig = cfg.getModelConfig();
         auto& model_cfg = modelConfig[model_name];

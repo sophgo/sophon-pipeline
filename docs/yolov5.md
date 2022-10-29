@@ -47,7 +47,7 @@
     {
       "name": "test",									# 对应于[path]的模型自定义名称
       "path": "/path_to_bmodel/test.bmodel",	        # 对应[name]的bmodel模型的路径
-      "skip_frame_num": 1,								# 隔帧检测的跳帧数量。当设置为1时表示程序每间隔1帧做一次模型的pipeline。
+      "skip_frame_num": 0,								# 隔帧检测的跳帧数量。当设置为0时表示程序不跳帧检测，当设置为1时表示程序每间隔1帧做一次模型的pipeline。
       "output_path": "output_path"                      # 输出地址，只支持rtsp，tcp，udp 格式为protocol://ip:port/, 例如rtsp://192.168.0.1:8080/test ， tcp://172.28.1.1:5353。对于rtsp推流，地址为rtsp server配置的地址。对于tcp和udp，需要开放自己配置的端口。
     }
   ]
@@ -97,13 +97,13 @@ cd ${SOPHON_PIPELINE}/release/yolov5s_demo
 
 ...
 [2022-10-13:16:01:21] total fps =-nan,ch=0: speed=-nan
-[2022-10-13:16:01:22] total fps =12.2,ch=0: speed=12.2
-[2022-10-13:16:01:23] total fps =12.5,ch=0: speed=12.5
-[2022-10-13:16:01:24] total fps =12.8,ch=0: speed=12.8
-[2022-10-13:16:01:25] total fps =13.0,ch=0: speed=13.0
-[2022-10-13:16:01:26] total fps =13.0,ch=0: speed=13.0
-[2022-10-13:16:01:27] total fps =12.5,ch=0: speed=12.5
-[2022-10-13:16:01:28] total fps =12.5,ch=0: speed=12.5
+[2022-10-13:16:01:22] total fps =24.0,ch=0: speed=24.0
+[2022-10-13:16:01:23] total fps =25.3,ch=0: speed=25.3
+[2022-10-13:16:01:24] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:01:25] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:01:26] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:01:27] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:01:28] total fps =25.0,ch=0: speed=25.0
 ...
 ```
 
@@ -126,13 +126,13 @@ cd ${SOPHON_PIPELINE_YOLOV5}
 
 ...
 [2022-10-13:16:00:26] total fps =nan,ch=0: speed=nan
-[2022-10-13:16:00:27] total fps =12.0,ch=0: speed=12.0
-[2022-10-13:16:00:28] total fps =12.0,ch=0: speed=12.0
-[2022-10-13:16:00:29] total fps =12.5,ch=0: speed=12.5
-[2022-10-13:16:00:30] total fps =13.0,ch=0: speed=13.0
-[2022-10-13:16:00:31] total fps =13.0,ch=0: speed=13.0
-[2022-10-13:16:00:32] total fps =12.5,ch=0: speed=12.5
-[2022-10-13:16:00:33] total fps =12.5,ch=0: speed=12.5
+[2022-10-13:16:00:27] total fps =24.0,ch=0: speed=24.0
+[2022-10-13:16:00:28] total fps =24.0,ch=0: speed=24.0
+[2022-10-13:16:00:29] total fps =25.4,ch=0: speed=25.4
+[2022-10-13:16:00:30] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:00:31] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:00:32] total fps =25.0,ch=0: speed=25.0
+[2022-10-13:16:00:33] total fps =25.0,ch=0: speed=25.0
 ...
 ```
 
