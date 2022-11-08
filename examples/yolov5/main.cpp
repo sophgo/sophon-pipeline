@@ -9,7 +9,7 @@
 
 #include "opencv2/opencv.hpp"
 #include "worker.h"
-#include "configuration_yolov5.h"
+#include "configuration.h"
 #include "bmutility_timer.h"
 #include <iomanip>
 
@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 {
     const char *base_keys=
                          "{help | 0 | Print help information.}"
-                         "{config | ./cameras.json | path to cameras.json}";
+                         "{config | ./cameras_yolov5.json | path to cameras_yolov5.json}";
 
     std::string keys;
     keys = base_keys;
@@ -70,8 +70,11 @@ int main(int argc, char *argv[])
         bm::BMNNContextPtr contextPtr = std::make_shared<bm::BMNNContext>(handle, model_cfg.path);
         bmlib_log_set_level(BMLIB_LOG_VERBOSE);
 
-        std::shared_ptr<YoloV5> detector = std::make_shared<YoloV5>(contextPtr);
-
+        std::shared_ptr<YoloV5> detector = std::make_shared<YoloV5>(contextPtr, model_cfg.class_num);
+        // model thresholds
+        detector->set_cls(model_cfg.class_threshold);
+        detector->set_obj(model_cfg.obj_threshold);
+        detector->set_nms(model_cfg.nms_threshold);
         OneCardInferAppPtr appPtr = std::make_shared<OneCardInferApp>(appStatis, gui,
                 tqp, contextPtr, model_cfg.output_path, start_chan_index, channel_num, model_cfg.skip_frame, detector->get_Batch());
 
@@ -85,21 +88,15 @@ int main(int argc, char *argv[])
     uint64_t timer_id;
     tqp->create_timer(1000, [&appStatis](){
         int ch = 0;
-        appStatis.m_chan_det_fpsPtr->update(appStatis.m_chan_statis[ch]);
-        appStatis.m_total_det_fpsPtr->update(appStatis.m_total_statis);
+        appStatis.m_stat_imgps->update(appStatis.m_chan_statis[ch]);
+        appStatis.m_total_fpsPtr->update(appStatis.m_total_statis);
 
-        appStatis.m_chan_feat_fpsPtr->update(appStatis.m_chan_feat_stat[ch]);
-        appStatis.m_total_feat_fpsPtr->update(appStatis.m_total_feat_stat);
-
-        double chanfps = appStatis.m_chan_det_fpsPtr->getSpeed();
-        double totalfps = appStatis.m_total_det_fpsPtr->getSpeed();
-
-        double feat_chanfps = appStatis.m_chan_feat_fpsPtr->getSpeed();
-        double feat_totalfps = appStatis.m_total_feat_fpsPtr->getSpeed();
+        double imgfps = appStatis.m_stat_imgps->getSpeed();
+        double totalfps = appStatis.m_total_fpsPtr->getSpeed();
 
         std::cout << "[" << bm::timeToString(time(0)) << "] total fps ="
         << std::setiosflags(std::ios::fixed) << std::setprecision(1) << totalfps
-        <<  ",ch=" << ch << ": speed=" << chanfps << std::endl;
+        <<  ",ch=" << ch << ": speed=" << imgfps << std::endl;
     }, 1, &timer_id);
 
     tqp->run_loop();

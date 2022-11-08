@@ -11,9 +11,12 @@
 #include <sys/time.h>
 #include "bmutility.h"
 #include "inference.h"
+#include "bmutility_basemodel.hpp"
 
 
-class YoloV5 : public bm::DetectorDelegate<bm::FrameBaseInfo, bm::FrameInfo> {
+class YoloV5 : public bm::DetectorDelegate<bm::FrameBaseInfo, bm::FrameInfo> 
+             , public bm::BaseModel 
+{
     // int MAX_BATCH = 1;
     int MAX_BATCH;
     bm::BMNNContextPtr m_bmctx;
@@ -21,9 +24,6 @@ class YoloV5 : public bm::DetectorDelegate<bm::FrameBaseInfo, bm::FrameInfo> {
     int m_net_h, m_net_w;
 
     //configuration
-    float m_confThreshold= 0.5;
-    float m_nmsThreshold = 0.5;
-    float m_objThreshold = 0.5;
     std::vector<std::string> m_class_names;
     int m_class_num = 80; // default is coco names
     //const float m_anchors[3][6] = {{10.0, 13.0, 16.0, 30.0, 33.0, 23.0}, {30.0, 61.0, 62.0, 45.0, 59.0, 119.0},{116.0, 90.0, 156.0, 198.0, 373.0, 326.0}};
@@ -34,7 +34,7 @@ class YoloV5 : public bm::DetectorDelegate<bm::FrameBaseInfo, bm::FrameInfo> {
 
 public:
     // YoloV5(bm::BMNNContextPtr bmctx, int max_batch=1);
-    YoloV5(bm::BMNNContextPtr bmctx);
+    YoloV5(bm::BMNNContextPtr bmctx, int class_num=80);
     ~YoloV5();
 
     virtual int get_Batch();

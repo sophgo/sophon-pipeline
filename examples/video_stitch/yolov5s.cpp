@@ -11,7 +11,8 @@
 #define USE_ASPECT_RATIO 1
 #define USE_MULTICLASS_NMS 1
 
-YoloV5::YoloV5(bm::BMNNContextPtr bmctx, int start_chan, int chan_num):m_bmctx(bmctx)
+YoloV5::YoloV5(bm::BMNNContextPtr bmctx, int start_chan, int chan_num, 
+    int class_num):m_bmctx(bmctx), m_class_num(class_num)
 {
     // the bmodel has only one yolo network.
     auto net_name = m_bmctx->network_name(0);
@@ -307,8 +308,8 @@ void YoloV5::extract_yolobox_cpu(bm::FrameInfo& frameInfo)
                 float score = ptr[4];
                 int class_id = argmax(&ptr[5], m_class_num);
                 float confidence = ptr[class_id + 5];
-                if (confidence * score >= m_objThreshold) {
-                    if (score >= m_confThreshold) {
+                if (confidence * score >= m_obj_thres) {
+                    if (score >= m_cls_thres) {
                         bm::NetOutputObject box;
                         box.score = confidence * score;
 
@@ -341,7 +342,7 @@ void YoloV5::extract_yolobox_cpu(bm::FrameInfo& frameInfo)
                         float score = sigmoid(ptr[4]);
                         int class_id = argmax(&ptr[5], m_class_num);
                         float confidence = sigmoid(ptr[class_id + 5]);
-                        if((confidence * score > m_objThreshold) && (score >= m_confThreshold))
+                        if((confidence * score > m_obj_thres) && (score >= m_cls_thres))
                         {
                             float centerX = (sigmoid(ptr[0]) * 2 - 0.5 + i % feat_w) * m_net_w / feat_w;
                             float centerY = (sigmoid(ptr[1]) * 2 - 0.5 + i / feat_w) * m_net_h / feat_h; //center_y
@@ -376,14 +377,14 @@ void YoloV5::extract_yolobox_cpu(bm::FrameInfo& frameInfo)
         class_vec[box.class_id].push_back(box);
         }
         for (auto& cls_box : class_vec){
-        NMS(cls_box, m_nmsThreshold);
+        NMS(cls_box, m_nms_thres);
         }
         yolobox_vec.clear();
         for (auto& cls_box : class_vec){
         yolobox_vec.insert(yolobox_vec.end(), cls_box.begin(), cls_box.end());
         }
 #else
-        NMS(yolobox_vec, m_nmsThreshold);
+        NMS(yolobox_vec, m_nms_thres);
 #endif
         bm::NetOutputDatum datum(yolobox_vec);
         frameInfo.out_datums.push_back(datum);

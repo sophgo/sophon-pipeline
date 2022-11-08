@@ -81,6 +81,8 @@ function release_others() {
      cp $builddir/bin/$app release/$app/$arch/
      if [[ ${app} = "yolov5s_demo" ]]; then
         cp ./configs/cameras_yolov5.json release/$app/
+     elif [[ ${app} = "video_stitch_demo" ]]; then
+	cp ./configs/cameras_video_stitch.json release/$app/
      elif [[ ${app} = "retinaface_demo" ]]; then
 	cp ./configs/cameras_retinaface.json release/$app/
      else

@@ -7,13 +7,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef INFERENCE_FRAMEWORK_WORKER_H
-#define INFERENCE_FRAMEWORK_WORKER_H
+#ifndef SOPHON_PIPELINE_WORKER_H
+#define SOPHON_PIPELINE_WORKER_H
 #include "bmutility.h"
 #include "bmgui.h"
 #include "inference3.h"
 #include "stream_pusher.h"
-#include "configuration_cvs.h"
+#include "configuration.h"
 #include "yolov5s.h"
 #include "encoder.h"
 
@@ -93,4 +93,4 @@ public:
 using OneCardInferAppPtr = std::shared_ptr<OneCardInferApp>;
 
 
-#endif //INFERENCE_FRAMEWORK_MAIN_H
+#endif

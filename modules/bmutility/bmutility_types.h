@@ -523,8 +523,9 @@ namespace bm {
             std::shared_ptr<ByteBuffer> buf = std::make_shared<ByteBuffer>();
             buf->push_back((int32_t)type);
             if (Box == type) {
-                buf->push_back((uint32_t)obj_rects.size());
-                for(auto o: obj_rects) {
+                NetOutputObjects& output = track_rects.size() > 0 ? track_rects : obj_rects;
+                buf->push_back((uint32_t)output.size());
+                for(auto o: output) {
                     buf->push_back(o.x1);
                     buf->push_back(o.y1);
                     buf->push_back(o.x2);
