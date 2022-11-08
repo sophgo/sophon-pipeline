@@ -20,38 +20,38 @@
 
 ```bash
 {
-  "cards": [											# 若需要配置多个device，可以在cards下添加多组devid和cameras信息
+  "cards": [													# 若需要配置多个device，可以在cards下添加多组devid和cameras信息
     {
-      "devid": 0,										# 设备id
-      "cameras": [										# 若需要配置多个视频码流，可以在cameras下添加多组address和chan_num信息。若配置了多个address或多个cards，总的视频码流路数为所有的[chan_num]数量之和
+      "devid": 0,												# 设备id
+      "cameras": [												# 若需要配置多个视频码流，可以在cameras下添加多组address和chan_num信息。若配置了多个address或多个cards，总的视频码流路数为所有的[chan_num]数量之和
         {
-          "address": "/data/workspace/media/face.h264",	# 需要测试视频码流的地址
-          "chan_num": 1,								# 将内容为上述[address]的视频码流配置[chan_num]数量的路数。默认设置为1，会接入1路的内容为上述[address]的视频码流。
-          "model_names": ["ex1"]						# 测试该[address]视频码流的模型名称，需要和[models]参数内的模型自定义名称[name]一致，表示使用该模型
+          "address": "./elevator-1080p-25fps-4000kbps.h264",	# 需要测试视频码流的地址
+          "chan_num": 1,										# 将内容为上述[address]的视频码流配置[chan_num]数量的路数。默认设置为1，会接入1路的内容为上述[address]的视频码流。
+          "model_names": ["ex1"]								# 测试该[address]视频码流的模型名称，需要和[models]参数内的模型自定义名称[name]一致，表示使用该模型
         }
       ]
     }，
   ],
   
-  "pipeline": {											# pipeline中的线程数和队列长度
+  "pipeline": {													# pipeline中的线程数和队列长度
     "preprocess": {
-      "thread_num": 4,									# 预处理线程数
-      "queue_size": 16									# 预处理队列最大长度
+      "thread_num": 4,											# 预处理线程数
+      "queue_size": 16											# 预处理队列最大长度
     },
     "inference": {
-      "thread_num": 1,									# 推理线程数
-      "queue_size": 16									# 推理队列最大长度
+      "thread_num": 1,											# 推理线程数
+      "queue_size": 16											# 推理队列最大长度
     },
     "postprocess": {
-      "thread_num": 4,									# 后处理线程数
-      "queue_size": 16									# 后处理队列最大长度
+      "thread_num": 4,											# 后处理线程数
+      "queue_size": 16											# 后处理队列最大长度
     }
   },
   "models":[
     {
-      "name": "ex1",									# 对应于[path]的模型自定义名称
-      "path": "your_bmodel_path.bmodel",				# 对应[name]的bmodel模型的路径
-      "skip_frame_num": 1,								# 隔帧检测的跳帧数量。当设置为1时表示程序每间隔1帧做一次模型的pipeline。
+      "name": "ex1",											# 对应于[path]的模型自定义名称
+      "path": "your_bmodel_path.bmodel",						# 对应[name]的bmodel模型的路径
+      "skip_frame_num": 1,										# 隔帧检测的跳帧数量。当设置为1时表示程序每间隔1帧做一次模型的pipeline。
     }
   ]
 }
@@ -68,7 +68,7 @@
   >
   > cvs10_1684模型NAS云盘下载地址：[cvs10_1684_int8_4b.bmodel](http://219.142.246.77:65000/sharing/RKTzBIYov)
   >
-  > 测试视频下载地址：[station-1080p-25fps-2000kbps-3ref.h264](http://219.142.246.77:65000/sharing/8gTjG5lXB)
+  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](https://disk.sophgo.vip/sharing/tU6pYuuau)
 
 参数说明
 

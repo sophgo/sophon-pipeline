@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
                           "{model_type | 0 | Model Type(0: face_detect 1: resnet50)}"
                           "{feat_delay | 1000 | feature delay in msec}"
                           "{feat_num | 8 | feature num per channel}"
-                          "{config | ./cameras.json | path to cameras.json}";
+                          "{config | ./cameras_cvs.json | path to cameras_cvs.json}";
 
     std::string keys;
     keys = base_keys;
