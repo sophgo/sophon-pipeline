@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef INFERENCE_FRAMEWORK_CONFIGURATION_H
-#define INFERENCE_FRAMEWORK_CONFIGURATION_H
+#ifndef SOPHON_PIPELINE_CONFIGURATION_H
+#define SOPHON_PIPELINE_CONFIGURATION_H
 
 #include <fstream>
 #include <unordered_map>
@@ -42,7 +42,9 @@ struct SConcurrencyConfig {
 struct SModelConfig {
     std::string name;
     std::string path;
+    std::string output_path;
     int   skip_frame;
+    int    class_num;
     float class_threshold;
     float obj_threshold;
     float nms_threshold;
@@ -57,9 +59,11 @@ struct SModelConfig {
         name            = value["name"].asString();
         path            = value["path"].asString();
         skip_frame      = value["skip_frame_num"].asInt();
+        output_path     = value["output_path"].asString();
         class_threshold = value["class_threshold"].asFloat();
         obj_threshold   = value["obj_threshold"].asFloat();
         nms_threshold   = value["nms_threshold"].asFloat();
+        class_num      = value["class_num"].asInt();
     }
 };
 
@@ -69,7 +73,6 @@ class Config {
     std::unordered_map<std::string, SModelConfig>       m_models;
 
     void load_config(const char* config_file = "cameras.json") {
-#if 1
         Json::Reader reader;
         Json::Value json_root;
 
@@ -99,8 +102,8 @@ class Config {
             for(int i = 0;i < camera_num; ++i) {
                 auto json_url_info = jsonCameras[i];
                 std::vector<std::string> candidate_models;
-                if (json_url_info.isMember("models")) {
-                    for (Json::ValueIterator itr = json_url_info["models"].begin(); itr != json_url_info["models"].end(); itr++) {
+                if (json_url_info.isMember("model_names")) {
+                    for (Json::ValueIterator itr = json_url_info["model_names"].begin(); itr != json_url_info["model_names"].end(); itr++) {
                         candidate_models.push_back(itr->asString());
                     }
                 }
@@ -143,18 +146,7 @@ class Config {
         }
 
         in.close();
-#else
-        for(int i=0; i < 2; i ++) {
-            CardConfig cfg;
-            cfg.devid = i;
-            std::string url = "/home/yuan/station.avi";
-            for(int j = 0;j < 1;j ++) {
-                cfg.urls.push_back(url);
-            }
 
-            m_cards.push_back(cfg);
-        }
-#endif
     }
 
 public:
@@ -168,6 +160,14 @@ public:
 
     int cardDevId(int index){
         return m_cards[index].devid;
+    }
+
+    int totalChanNums() {
+        int total_num = 0;
+        for (int i = 0; i < m_cards.size(); i++){
+            total_num += m_cards[i].urls.size();
+        }
+        return total_num;
     }
 
     const std::vector<std::string>& cardUrls(int index) {
@@ -248,4 +248,4 @@ struct AppStatis {
 
 
 
-#endif //INFERENCE_FRAMEWORK_CONFIGURATION_H
+#endif

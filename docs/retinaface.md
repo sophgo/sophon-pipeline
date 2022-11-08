@@ -1,0 +1,168 @@
+# retinaface
+
+## 1 概述
+
+### 1.1 定义
+
+- 使用pipeline运行retinaface人脸检测。
+- 当运行N路FPS为M的视频码流时，检测器`det`的FPS达到`N * M / (1 + [skip])`或者平均单路speed达到`M / (1 + [skip])`，其中`[skip]`为隔帧检测的跳帧数量。说明当前环境下，能够满足跳帧数为`[skip]`帧的N路FPS为M的视频码流的处理
+
+
+## 2 运行
+
+### 2.1 配置文件
+
+运行请注意修改`${SOPHON_PIPELINE}/release/retinaface_demo/cameras_retinaface.json`配置：
+
+```bash
+{
+  "cards": [													# 若需要配置多个device，可以在cards下添加多组devid和cameras信息
+    {
+      "devid": 0,												# 设备id
+      "cameras": [												# 若需要配置多个视频码流，可以在cameras下添加多组address和chan_num信息。若配置了多个address或多个cards，总的视频码流路数为所有的[chan_num]数量之和
+        {
+          "address": "./elevator-1080p-25fps-4000kbps.h264",	# 需要测试视频码流的地址
+          "chan_num": 1,										# 将内容为上述[address]的视频码流配置[chan_num]数量的路数。默认设置为1，会接入1路的内容为上述[address]的视频码流。
+          "model_names": ["ex1"]								# 测试该[address]视频码流的模型名称，需要和此配置文件下面的[models]参数内的模型自定义名称[name]一致，表示使用该模型，多个模型的名字用逗号分开。
+        }
+      ]
+    }，
+  ],
+  
+  "pipeline": {													# pipeline中的线程数和队列长度
+    "preprocess": {
+      "thread_num": 4,											# 预处理线程数
+      "queue_size": 16											# 预处理队列最大长度
+    },
+    "inference": {
+      "thread_num": 1,											# 推理线程数
+      "queue_size": 16											# 推理队列最大长度
+    },
+    "postprocess": {
+      "thread_num": 4,											# 后处理线程数
+      "queue_size": 16											# 后处理队列最大长度
+    }
+  },
+  "models":[
+    {
+      "name": "ex1",											# 对应于[path]的模型自定义名称
+      "path": "your_bmodel_path.bmodel",	        			# 对应[name]的bmodel模型的路径
+      "skip_frame_num": 0,										# 隔帧检测的跳帧数量。当设置为0时表示程序不跳帧检测，当设置为1时表示程序每间隔1帧做一次模型的pipeline。
+      "output_path": "output_path",                     		# 输出地址，只支持rtsp，tcp，udp 格式为protocol://ip:port/, 例如rtsp://192.168.0.1:8080/test ， tcp://172.28.1.1:5353。对于rtsp推流，地址为rtsp server配置的地址。对于tcp和udp，需要开放自己配置的端口。
+      
+      "obj_threshold": 0.6,										# 对应[path]的bmodel模型后处理的置信度阈值
+      "nms_threshold": 0.5										# 对应[path]的bmodel模型后处理的非极大值抑制阈值
+    }
+  ]
+}
+```
+
+> **NOTE**  
+> 
+> 线程数和队列长度可根据设备情况自行定义。原则上，预处理线程数和后处理线程数设置为设备的逻辑CPU的个数。推理线程数单个pipeline一般为1。
+
+### 2.2 运行方法
+
+  > **NOTE**  
+  > retinaface_1684模型NAS云盘下载地址：[retinaface_mobilenet0.25_640w_384h_BM1684_b4.bmodel](http://219.142.246.77:65000/sharing/1gVuM4Aya)
+  >
+  > retinaface_1684X模型NAS云盘下载地址：[retinaface_mobilenet0.25_640w_384h_BM1684X_b4.bmodel](http://219.142.246.77:65000/sharing/VQ9pr10id)
+  >
+  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](https://disk.sophgo.vip/sharing/tU6pYuuau)
+
+参数说明
+
+```bash
+Usage: retinaface_demo [params]
+
+        --config (value:./cameras_retinaface.json)
+                cameras_retinaface.json配置文件的路径，默认路径为./cameras_retinaface.json。
+        --help (value:true)
+                打印帮助信息
+```
+
+#### 2.2.1 x86 PCIe
+
+**以设置`cameras_retinaface.json`的`chan_num=1`为例**测试示例如下：
+
+```bash
+cd ${SOPHON_PIPELINE}/release/retinaface_demo
+# ./x86/retinaface_demo --help 查看命行帮助信息
+# 以x86 pcie 1684x为例,将下载好的retinaface模型拷贝到${SOPHON_PIPELINE}/release/retinaface_demo目录下运行
+./x86/retinaface_demo --config=./cameras_retinaface.json
+```
+
+执行会打印如下信息：
+
+```bash
+# 以x86 pcie 1684x为例
+# 先打印出每路(1路)视频码流及对应芯片相关信息，再打印1路检测器det的总FPS和第0路视频码流处理对应的speed信息。其中，FPS和speed信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS和speed信息有一定波动属于正常现象。FPS和speed信息如下所示：
+
+...
+[2022-11-07:11:42:24] total fps =nan,ch=0: speed=nan
+[2022-11-07:11:42:25] total fps =24.0,ch=0: speed=24.0
+[2022-11-07:11:42:26] total fps =26.0,ch=0: speed=26.0
+[2022-11-07:11:42:27] total fps =25.3,ch=0: speed=25.3
+[2022-11-07:11:42:28] total fps =25.0,ch=0: speed=25.0
+[2022-11-07:11:42:29] total fps =25.0,ch=0: speed=25.0
+[2022-11-07:11:42:30] total fps =25.0,ch=0: speed=25.0
+[2022-11-07:11:42:31] total fps =25.0,ch=0: speed=25.0
+...
+```
+
+#### 2.2.2 arm SoC
+
+将交叉编译好的`${SOPHON_PIPELINE}/release/retinaface_demo`文件夹下的`cameras_retinaface.json`、`test.264`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_retinaface.json的相应配置，**以设置`cameras_retinaface.json`的`chan_num=1`为例**，运行：
+
+```bash
+cd ${SOPHON_PIPELINE_RETINAFACE}
+# ./soc/retinaface_demo --help 查看命行帮助信息
+# 以arm SoC 1684x为例
+./soc/retinaface_demo --config=./cameras_retinaface.json 
+```
+
+执行会打印如下信息：
+
+```bash
+# 以arm SoC 1684x为例
+# 先打印出每路(1路)视频码流及对应芯片相关信息，再打印1路检测器det的总FPS和第0路视频码流处理对应的speed信息。其中，FPS和speed信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS和speed信息有一定波动属于正常现象。FPS和speed信息如下所示：
+
+...
+[2022-11-07:11:32:43] total fps =nan,ch=0: speed=nan
+[2022-11-07:11:32:44] total fps =24.0,ch=0: speed=24.0
+[2022-11-07:11:32:45] total fps =24.0,ch=0: speed=24.0
+[2022-11-07:11:32:46] total fps =25.3,ch=0: speed=25.3
+[2022-11-07:11:32:47] total fps =25.0,ch=0: speed=25.0
+[2022-11-07:11:32:48] total fps =25.0,ch=0: speed=25.0
+[2022-11-07:11:32:49] total fps =25.0,ch=0: speed=25.0
+[2022-11-07:11:32:50] total fps =25.0,ch=0: speed=25.0
+...
+```
+
+### 2.3 可视化
+json文件中的output_path参数为检测结果实时流的输出地址，在客户端（face_demo_client）得到可视化结果。
+  >**NOTE**
+  >
+  >前置条件：
+  >
+  >1.[face_demo_client](https://github.com/sophon-ai-algo/face_demo_client)(自行编译或者下载windows平台的可执行文件) [windows版](http://219.142.246.77:65000/sharing/0X6uo3g42) 。
+  >
+  >2.对于rtsp流，需要配合rtsp-server使用，[rtsp-server](https://github.com/aler9/rtsp-simple-server/releases/tag/v0.20.0)。
+  >
+  >3.确保face_demo_client所在设备（客户端）和此示例程序所在设备（服务端）之间可以通信。
+
+
+例如，此程序运行在服务器上，需要在笔记本显示实时流。那么，output_path中的ip应该配置为笔记本的ip地址，端口号配置为笔记本随意选择一个未被占用的端口。face_demo_client和rtsp-server也都应该运行在笔记本上。
+
+启动顺序为：启动rtsp-server（使用rtsp输出）；启动face_demo_client，输入json中配置的output_path参数以及json中配置的chan_num，点击OK，监听端口；在服务端输入telnet {ip} {port} 测试连通性；最后在服务端启动此示例程序。face_demo_client将显示实时流。
+
+#### 2.3.1 tcp
+output_path配置为 tcp://192.168.0.1:11111 , 其中192.168.0.1为face_demo_client所在设备ip， 11111为face_demo_client所在设备的空闲端口。然后打开face_demo_client，输入地址，开始监听。最后启动此示例程序。
+
+#### 2.3.1 udp
+与tcp类似
+
+#### 2.3.1 rtsp
+rtsp输出需要rtsp-server配合使用。rtsp-server与face_demo_client运行在同一设备上。
+output_path配置为 rtsp://192.168.0.1:8554/live , 其中192.168.0.1为face_demo_client与rtsp-server所在设备ip， 8554为rtsp-server默认输出端口。 由于face_demo_client在解析rtsp地址时，会附带chann_num，上述实例地址将被解析为rtsp://192.168.0.1:8554/live_0。如果地址配置为rtsp://192.168.0.1:8554，那么face_demo_client将解析为rtsp://192.168.0.1:8554_0，face_demo_client将拉流失败。因此output_path必须配置为形如rtsp://{ip}:{port}/live，而不能只配置rtsp://{ip}:{port}。
+开启rtsp-server，然后打开face_demo_client，输入地址，开始监听。最后在服务端启动此示例程序。
