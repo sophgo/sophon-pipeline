@@ -532,6 +532,7 @@ namespace bm {
                     buf->push_back(o.y2);
                     buf->push_back(o.score);
                     buf->push_back(o.class_id);
+                    buf->push_back(o.track_id);
                 }
             } else if(Pose == type) {
                 buf->push_back(pose_keypoints.height);
