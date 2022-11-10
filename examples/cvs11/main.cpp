@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     const char *base_keys="{help | 0 | Print help information.}"
                           "{feat_delay | 1000 | feature delay in msec}"
                           "{feat_num | 8 | feature num per channel}"
-                          "{config | ./cameras.json | path to cameras.json}";
+                          "{config | ./cameras_cvs.json | path to cameras_cvs.json}";
 
     std::string keys;
     keys = base_keys;

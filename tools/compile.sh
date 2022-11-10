@@ -73,7 +73,7 @@ function build_app()
 
 function release_others() {
   local arch=$1
-  local all_app_list="cvs10 cvs11 video_stitch_demo yolov5s_demo"
+  all_app_list="cvs10 cvs11 video_stitch_demo yolov5s_demo retinaface_demo"
   local all_jpg_app_list="cvs10 cvs11"
   for app in ${all_app_list[@]}
   do
@@ -81,6 +81,10 @@ function release_others() {
      cp $builddir/bin/$app release/$app/$arch/
      if [[ ${app} = "yolov5s_demo" ]]; then
         cp ./configs/cameras_yolov5.json release/$app/
+     elif [[ ${app} = "video_stitch_demo" ]]; then
+	cp ./configs/cameras_video_stitch.json release/$app/
+     elif [[ ${app} = "retinaface_demo" ]]; then
+	cp ./configs/cameras_retinaface.json release/$app/
      else
         cp ./configs/cameras_cvs.json release/$app/
      fi

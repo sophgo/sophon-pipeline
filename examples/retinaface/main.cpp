@@ -7,22 +7,23 @@
 //
 //===----------------------------------------------------------------------===//
 
+
 #include "opencv2/opencv.hpp"
 #include "worker.h"
 #include "configuration.h"
 #include "bmutility_timer.h"
 #include <iomanip>
 
-
+const char *APP_ARG_STRING= "{config | ./cameras_retinaface.json | path to cameras_retinaface.json}";
+                       
 
 int main(int argc, char *argv[])
 {
-    const char *base_keys=
-                         "{help | 0 | Print help information.}"
-                         "{config | ./cameras_yolov5.json | path to cameras_yolov5.json}";
+    const char *base_keys="{help | 0 | Print help information.}";
 
     std::string keys;
     keys = base_keys;
+    keys += APP_ARG_STRING;
     cv::CommandLineParser parser(argc, argv, keys);
     if (parser.get<bool>("help")) {
         parser.printMessage();
@@ -32,6 +33,10 @@ int main(int argc, char *argv[])
     std::string config_file = parser.get<std::string>("config");
 
     Config cfg(config_file.c_str());
+    if (!cfg.valid_check()) {
+        std::cout << "ERROR:cameras.json config error, please check!" << std::endl;
+        return -1;
+    }
 
     int total_num = cfg.totalChanNums();
     AppStatis appStatis(total_num);
@@ -52,12 +57,10 @@ int main(int argc, char *argv[])
 
     for(int card_idx = 0; card_idx < card_num; ++card_idx) {
         int dev_id = cfg.cardDevId(card_idx);
-
         std::set<std::string> distinct_models = cfg.getDistinctModels(card_idx);
         std::string model_name = (*distinct_models.begin());
         auto modelConfig = cfg.getModelConfig();
         auto& model_cfg = modelConfig[model_name];
-
         // load balance
         int channel_num = 0;
         if (card_idx < last_channel_num) {
@@ -70,14 +73,10 @@ int main(int argc, char *argv[])
         bm::BMNNContextPtr contextPtr = std::make_shared<bm::BMNNContext>(handle, model_cfg.path);
         bmlib_log_set_level(BMLIB_LOG_VERBOSE);
 
-        std::shared_ptr<YoloV5> detector = std::make_shared<YoloV5>(contextPtr, model_cfg.class_num);
-        // model thresholds
-        detector->set_cls(model_cfg.class_threshold);
-        detector->set_obj(model_cfg.obj_threshold);
-        detector->set_nms(model_cfg.nms_threshold);
+        std::shared_ptr<Retinaface> detector = std::make_shared<Retinaface>(contextPtr, 
+            false, model_cfg.nms_threshold, model_cfg.obj_threshold);
         OneCardInferAppPtr appPtr = std::make_shared<OneCardInferApp>(appStatis, gui,
-                tqp, contextPtr, model_cfg.output_path, start_chan_index, channel_num, model_cfg.skip_frame, detector->get_Batch());
-
+                tqp, contextPtr, model_cfg.output_path, start_chan_index, channel_num, model_cfg.skip_frame);
         start_chan_index += channel_num;
         // set detector delegator
         appPtr->setDetectorDelegate(detector);
@@ -90,13 +89,11 @@ int main(int argc, char *argv[])
         int ch = 0;
         appStatis.m_stat_imgps->update(appStatis.m_chan_statis[ch]);
         appStatis.m_total_fpsPtr->update(appStatis.m_total_statis);
-
-        double imgfps = appStatis.m_stat_imgps->getSpeed();
+        double imgps = appStatis.m_stat_imgps->getSpeed();
         double totalfps = appStatis.m_total_fpsPtr->getSpeed();
-
         std::cout << "[" << bm::timeToString(time(0)) << "] total fps ="
         << std::setiosflags(std::ios::fixed) << std::setprecision(1) << totalfps
-        <<  ",ch=" << ch << ": speed=" << imgfps << std::endl;
+        <<  ",ch=" << ch << ": speed=" << imgps  << std::endl;
     }, 1, &timer_id);
 
     tqp->run_loop();

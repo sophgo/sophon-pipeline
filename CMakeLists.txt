@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2)
-project(sophon-pipeline_v0.1.2)
+project(sophon-pipeline_v0.2.0)
 
 if (NOT DEFINED TARGET_ARCH)
     set(TARGET_ARCH x86)
@@ -110,8 +110,9 @@ if (${TARGET_ARCH} STREQUAL "x86")
         set(libsophon_link_dirs ${LIBSOPHON_LIB_DIRS})
 
         set(sophon_ffmpeg_link_dirs ${FFMPEG_LIB_DIRS})
-        set(sophon_opencv_link_dirs ${OpenCV_LIBS})
+        set(sophon_ffmpeg_link_libs ${FFMPEG_LIBS})
 
+        set(sophon_opencv_link_dirs ${OpenCV_LIBS})
     else()
         set(sophon_ffmpeg_link_dirs ${LIBSOPHON_TOP}/lib/ffmpeg/pcie ${LIBSOPHON_TOP}/lib/decode/pcie
             ${LIBSOPHON_TOP}/lib/bmnn/pcie

@@ -24,6 +24,7 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 |                        | [cvs11](./examples/cvs11)               | 提供了算能一路的参考实现                                     |
 |                        | [yolov5](./examples/yolov5)             | yolov5s目标检测                                              |
 |                        | [video_stitch](./examples/video_stitch) | 4路yolov5s目标检测 + 拼接 + 编码 + RTSP服务                  |
+|                        | [retinaface](./examples/retinaface)     | retinaface人脸检测                                           |
 
 **Sophon Pipeline的主要结构设计如下图：** 
 
@@ -33,6 +34,7 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 
 | 版本  | 说明                                                         |
 | ----- | ------------------------------------------------------------ |
+| 0.2.0 | 添加retinaface例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC) |
 | 0.1.2 | 添加yolov5、video_stitch例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC) |
 | 0.1.1 | cvs10、cvs11例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC) |
 | 0.1.0 | cvs10、cvs11例程，适配1684x(x86 PCIe)                        |
@@ -55,6 +57,7 @@ sophon-pipeline主要依赖
 
 | sophon-pipeline版本 | 依赖的libsophon版本 | 依赖的sophon-ffmpeg版本 | 依赖的sophon-opencv版本 |
 | ------------------- | ------------------- | ----------------------- | ----------------------- |
+| 0.2.0               | >=0.4.2             | >=0.4.0                 | >=0.4.0                 |
 | 0.1.2               | >=0.4.1             | >=0.3.1                 | >=0.3.1                 |
 | 0.1.1               | >=0.3.0             | >=0.2.4                 | >=0.2.4                 |
 | 0.1.0               | >=0.2.3             | >=0.2.4                 | >=0.2.4                 |
@@ -110,3 +113,5 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev libexiv2-dev
 - [yolov5](./docs/yolov5.md)
 
 - [video_stitch](./docs/video_stitch.md)
+
+- [retinaface](./docs/retinaface.md)

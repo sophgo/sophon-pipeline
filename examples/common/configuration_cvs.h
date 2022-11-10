@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 
 
-#ifndef SOPHON_PIPELINE_CONFIGURATION_H
-#define SOPHON_PIPELINE_CONFIGURATION_H
+#ifndef SOPHON_PIPELINE_CONFIGURATION_CVS_H
+#define SOPHON_PIPELINE_CONFIGURATION_CVS_H
 
 #include <fstream>
 #include <unordered_map>

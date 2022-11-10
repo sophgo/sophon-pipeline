@@ -10,7 +10,7 @@
 #include <iomanip>
 #include "opencv2/opencv.hpp"
 #include "worker.h"
-#include "configuration_cvs.h"
+#include "configuration.h"
 #include "bmutility_timer.h"
 #include "rtsp/Live555RtspServer.h"
 #include "encoder.h"
@@ -21,7 +21,7 @@
 int main(int argc, char *argv[])
 {
     const char *base_keys="{help | 0 | Print help information.}"
-                         "{config | ./cameras_cvs.json | path to cameras.json}";
+                         "{config | ./cameras_video_stitch.json | path to cameras_video_stitch.json}";
 
     std::string keys;
     keys = base_keys;
@@ -112,7 +112,11 @@ int main(int argc, char *argv[])
             stitch->setHandle(contextPtr->handle());
         }
 
-        std::shared_ptr<YoloV5> detector = std::make_shared<YoloV5>(contextPtr, start_chan_index, channel_num);
+        std::shared_ptr<YoloV5> detector = std::make_shared<YoloV5>(contextPtr, start_chan_index, channel_num, model_cfg.class_num);
+        // model thresholds
+        detector->set_cls(model_cfg.class_threshold);
+        detector->set_obj(model_cfg.obj_threshold);
+        detector->set_nms(model_cfg.nms_threshold);
         detector->set_next_inference_pipe(&m_media_pipeline);
 
         OneCardInferAppPtr appPtr = std::make_shared<OneCardInferApp>(
@@ -127,8 +131,8 @@ int main(int argc, char *argv[])
 
     uint64_t timer_id;
     tqp->create_timer(1000, [&appStatis](){
-        appStatis.m_total_det_fpsPtr->update(appStatis.m_total_statis);
-        double totalfps = appStatis.m_total_det_fpsPtr->getSpeed();
+        appStatis.m_total_fpsPtr->update(appStatis.m_total_statis);
+        double totalfps = appStatis.m_total_fpsPtr->getSpeed();
         std::cout << "[" << bm::timeToString(time(0)) << "] encode fps ="
         << std::setiosflags(std::ios::fixed) << std::setprecision(1) << totalfps << std::endl;
     }, 1, &timer_id);

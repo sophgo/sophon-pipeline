@@ -17,7 +17,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/videoio.hpp>
 #include "rtsp/Live555RtspServer.h"
-#include "configuration_cvs.h"
+#include "configuration.h"
 
 class CVEncoder {
 public:
