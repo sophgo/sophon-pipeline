@@ -8,7 +8,7 @@ sophon-pipeline配套客户端，用来显示实时流和检测结果。
 
 ## 下载安装
 
-- windows，可使用编译好的[pipeline_client-winx64.zip](https://disk.sophgo.vip/sharing/p5ACNYRoL)
+- windows，可使用编译好的[pipeline_client-winx64.zip](http://219.142.246.77:65000/sharing/p5ACNYRoL)
 - ubuntu：请自行编译https://github.com/sophon-ai-algo/pipeline_client
 
 ## 使用条件
