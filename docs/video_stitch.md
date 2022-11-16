@@ -37,7 +37,7 @@ Play streams from this server using the URL
   "cards": [                      								# 若需要配置多个device，可以在cards下添加多组devid和cameras信息
     {
       "devid": 0,                  		 						# 设备id
-      "cameras": [                    							# 若需要配置多个视频码流，可以在cameras下添加多组address和chan_num信息。若配置了多个address或多个cards，总的视频码流路数为所有的[chan_num]数量之和,必须小于等于4。当设置的视频路数不够4路时，内部会直接复制最后1路视频凑到4路视频做检测拼接。
+      "cameras": [                    							# 若需要配置多个视频码流，可以在cameras下添加多组address和chan_num信息。若配置了多个address或多个cards，总的视频码流路数为所有的[chan_num]数量之和,必须小于等于4。当设置的视频路数不够4路时，2路时内部会各复制两路，3路时将第一路复制两路，其余做检测拼接。
         {
           "address": "./elevator-1080p-25fps-4000kbps.h264", 	# 需要测试视频码流的地址
           "chan_num": 1,                						# 将内容为上述[address]的视频码流配置[chan_num]数量的路数。默认设置为1，会接入1路的内容为上述[address]的视频码流。
@@ -87,7 +87,7 @@ Play streams from this server using the URL
   >
   > video_stitch_1684模型NAS云盘下载地址：[yolov5s-640x640-int8-4b.bmodel](http://219.142.246.77:65000/sharing/lMhYaEZZL)
   >
-  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](https://disk.sophgo.vip/sharing/tU6pYuuau)
+  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
 
 参数说明
 

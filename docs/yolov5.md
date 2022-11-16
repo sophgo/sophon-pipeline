@@ -70,7 +70,7 @@
   >
   > yolov5_1684X模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/EWfwFpkoD)
   >
-  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](https://disk.sophgo.vip/sharing/tU6pYuuau)
+  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
 
 参数说明
 

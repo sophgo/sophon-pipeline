@@ -67,7 +67,7 @@
   >
   > cvs11_1684模型NAS云盘下载地址：[cvs11_1684_retinaface025_iresnet18_int8_4b.bmodel](http://219.142.246.77:65000/sharing/6AJkOxzth)
   >
-  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](https://disk.sophgo.vip/sharing/tU6pYuuau)
+  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
 
 参数说明
 
