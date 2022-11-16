@@ -68,7 +68,7 @@
   >
   > retinaface_1684X模型NAS云盘下载地址：[retinaface_mobilenet0.25_640w_384h_BM1684X_b4.bmodel](http://219.142.246.77:65000/sharing/VQ9pr10id)
   >
-  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](https://disk.sophgo.vip/sharing/tU6pYuuau)
+  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
 
 参数说明
 
