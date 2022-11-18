@@ -114,7 +114,7 @@ cd ${SOPHON_PIPELINE}/release/yolov5s_demo
 
 #### 2.2.2 arm SoC
 
-将交叉编译好的`${SOPHON_PIPELINE}/release/yolov5s_demo`文件夹下的`cameras_yolov5.json`、`test.264`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_yolov5.json的相应配置，运行：
+将交叉编译好的`${SOPHON_PIPELINE}/release/yolov5s_demo`文件夹下的`cameras_yolov5.json`、`elevator-1080p-25fps-4000kbps.h264`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_yolov5.json的相应配置，运行：
 
 ```bash
 cd ${SOPHON_PIPELINE_YOLOV5}

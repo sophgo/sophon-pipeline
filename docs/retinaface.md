@@ -112,7 +112,7 @@ cd ${SOPHON_PIPELINE}/release/retinaface_demo
 
 #### 2.2.2 arm SoC
 
-将交叉编译好的`${SOPHON_PIPELINE}/release/retinaface_demo`文件夹下的`cameras_retinaface.json`、`test.264`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_retinaface.json的相应配置，**以设置`cameras_retinaface.json`的`chan_num=1`为例**，运行：
+将交叉编译好的`${SOPHON_PIPELINE}/release/retinaface_demo`文件夹下的`cameras_retinaface.json`、`elevator-1080p-25fps-4000kbps.h264`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_retinaface.json的相应配置，**以设置`cameras_retinaface.json`的`chan_num=1`为例**，运行：
 
 ```bash
 cd ${SOPHON_PIPELINE_RETINAFACE}
