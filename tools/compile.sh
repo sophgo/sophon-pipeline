@@ -73,7 +73,7 @@ function build_app()
 
 function release_others() {
   local arch=$1
-  all_app_list="cvs10 cvs11 video_stitch_demo yolov5s_demo retinaface_demo multi_demo facedetect_demo"
+  all_app_list="cvs10 cvs11 video_stitch_demo yolov5s_demo retinaface_demo multi_demo facedetect_demo face_recognition_demo"
   local all_jpg_app_list="cvs10 cvs11"
   for app in ${all_app_list[@]}
   do
@@ -89,6 +89,8 @@ function release_others() {
         cp ./configs/cameras_multi.json release/$app/
      elif [[ ${app} = "facedetect_demo" ]]; then
 	cp ./configs/cameras_face_detect.json release/$app/
+     elif [[ ${app} = "face_recognition_demo" ]]; then
+	cp ./configs/cameras_face_recognition.json release/$app/
      else
         cp ./configs/cameras_cvs.json release/$app/
      fi
