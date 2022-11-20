@@ -20,6 +20,7 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 | [modules](./modules)   | [bmgui](./modules/bmgui)                | 存放Sophon Pipeline用来GUI显示视频的模块                     |
 |                        | [bmgui-lite](./modules/bmgui-lite)      | 由于SDK自带的OpenCV没有显示功能，此模块提供bm::imshow来显示视频，作为补充。 |
 |                        | [bmutility](./modules/bmutility)        | 提供了基础库，字符串、定时器等                               |
+|                        | [tracker](./modules/tracker)            | 提供了CPU跟踪模块                                            |
 | [examples](./examples) | [cvs10](./examples/cvs10)               | 提供了算能一路的参考实现                                     |
 |                        | [cvs11](./examples/cvs11)               | 提供了算能一路的参考实现                                     |
 |                        | [yolov5](./examples/yolov5)             | yolov5s目标检测                                              |
@@ -43,7 +44,7 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 
 ### 2.1 环境准备
 
-如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装 `libsophon`、`sophon-opencv`和`sophon-ffmpeg`。`libsophon`的安装可参考《LIBSOPHON使用手册》，`sophon-opencv`和`sophon-ffmpeg`的安装可参考《multimedia使用手册》。注：需要获取《LIBSOPHON使用手册》和《multimedia使用参考手册》，请联系技术支持。
+如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装 `libsophon`、`sophon-opencv`和`sophon-ffmpeg`。`libsophon`的安装可参考《LIBSOPHON使用手册.pdf》，`sophon-opencv`和`sophon-ffmpeg`的安装可参考《MULTIMEDIA使用手册.pdf》。注：需要获取《LIBSOPHON使用手册.pdf》和《MULTIMEDIA使用手册.pdf》，请联系技术支持。
 
 ### 2.2 依赖安装
 
