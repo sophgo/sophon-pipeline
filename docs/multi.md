@@ -89,14 +89,14 @@
 Usage: multi_demo [params]
 
         --config (value:./cameras_multi.json)
-                cameras_yolov5.json配置文件的路径，默认路径为./cameras_multi.json。
+                cameras_multi.json配置文件的路径，默认路径为./cameras_multi.json。
         --help (value:true)
                 打印帮助信息
 ```
 
 #### 2.2.1 x86 PCIe
 
-**以设置`cameras_yolov5.json`的`chan_num=1`为例**测试示例如下：
+**以设置`cameras_multi.json`的`chan_num=1`为例**测试示例如下：
 
 ```bash
 cd ${SOPHON_PIPELINE}/release/multi_demo
@@ -125,7 +125,7 @@ cd ${SOPHON_PIPELINE}/release/multi_demo
 
 #### 2.2.2 arm SoC
 
-将交叉编译好的`${SOPHON_PIPELINE}/release/multi_demo`文件夹下的`cameras_multi.json`、`elevator-1080p-25fps-4000kbps.h264`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_yolov5.json的相应配置，运行：
+将交叉编译好的`${SOPHON_PIPELINE}/release/multi_demo`文件夹下的`cameras_multi.json`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_multi.json的相应配置，运行：
 
 ```bash
 cd ${SOPHON_PIPELINE_MULTI}
