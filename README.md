@@ -89,7 +89,7 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev libexiv2-dev
 
 **交叉编译环境和相关依赖环境的准备步骤详见：**[arm_soc平台编译准备](./docs/arm_soc.md)。
 
-> 如果遇到其他交叉编译问题，请参考《LIBSOPHON使用手册》的**4.2.2节 x86 交叉编译程序**章节。
+> 如果遇到其他交叉编译问题，请参考《LIBSOPHON使用手册.pdf》的**4.2.2节 x86 交叉编译程序**章节。
 
 ### 2.3 编译指令
 
