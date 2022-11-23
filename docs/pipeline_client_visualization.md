@@ -58,7 +58,7 @@ rtsp server推荐使用：
 
 或者直接下载release可执行程序：https://github.com/aler9/rtsp-simple-server/releases
 
-> **注意：rtsp-simple-server和pipeline_client运行在同一台设备上。且与sophon-pipeline例程程序运行的设备网络连通。**
+> **注意：rtsp-simple-server、pipeline_client、sophon-pipeline例程程序运行的设备须网络连通。建议rtsp-simple-server和pipeline_client运行在同一台设备上。**
 
 **具体步骤如下：**(**假设运行rtsp-simple-server和pipeline_client的设备ip为123.45.67.89**)
 
