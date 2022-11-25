@@ -445,6 +445,12 @@ namespace bm {
                 return -1;
             }
 
+	    /* wait for inference done */
+	    bm_status_t res = (bm_status_t)bm_thread_sync (m_handle);
+	    if (res != BM_SUCCESS) {
+	        std::cout << "bm_thread_sync: Failed to sync: " << m_netinfo->name << " inference" << std::endl;
+	        return -1;
+            }
 #if 0
             for(int i = 0;i < m_netinfo->output_num; ++i) {
                 auto tensor = m_outputTensors[i];
@@ -465,6 +471,13 @@ namespace bm {
                 return -1;
             }
 
+	    /* wait for inference done */
+	    bm_status_t res = (bm_status_t)bm_thread_sync (m_handle);
+	    if (res != BM_SUCCESS) {
+	        std::cout << "bm_thread_sync: Failed to sync: " << m_netinfo->name << " inference" << std::endl;
+	        return -1;
+	    }
+
             return 0;
         }
 
@@ -478,6 +491,13 @@ namespace bm {
                     output_tensors, output_num, true, false);
             if (!ok) {
                 std::cout << "bm_launch_tensor_ex() failed=" << std::endl;
+                return -1;
+            }
+
+	    /* wait for inference done */
+            bm_status_t res = (bm_status_t)bm_thread_sync (m_handle);
+            if (res != BM_SUCCESS) {
+                std::cout << "bm_thread_sync: Failed to sync: " << m_netinfo->name << " inference" << std::endl;
                 return -1;
             }
 
