@@ -77,9 +77,14 @@
 ### 2.2 运行方法
 
   > **NOTE**  
-  > yolov5_1684模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684.bmodel](http://219.142.246.77:65000/sharing/0IAlz5YOk)
   >
-  > yolov5_1684X模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/EWfwFpkoD)
+  > yolov5_1684模型1的NAS云盘下载地址：[yolov5s-640x640-int8-4b.bmodel](http://219.142.246.77:65000/sharing/lMhYaEZZL)
+  >
+  > yolov5_1684模型2的NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684.bmodel](http://219.142.246.77:65000/sharing/0IAlz5YOk)
+  >
+  > yolov5_1684X模型1的NAS云盘下载地址：[yolov5s-640x384-int8-4b-1684x.bmodel](http://219.142.246.77:65000/sharing/eEe5HvnHQ)
+  >
+  > yolov5_1684X模型2的NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/EWfwFpkoD)
   >
   > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
 
