@@ -64,9 +64,9 @@
 ### 2.2 运行方法
 
   > **NOTE**  
-  > face_recognition_1684模型NAS云盘下载地址：
+  > face_recognition_1684模型NAS云盘下载地址：[face_recognition_1684.bmodel](http://219.142.246.77:65000/sharing/SguTxdtTf)
   >
-  > face_recognition_1684X模型NAS云盘下载地址：
+  > face_recognition_1684X模型NAS云盘下载地址：[face_recognition_1684x.bmodel](http://219.142.246.77:65000/sharing/1egR6hEjU)
   >
   > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
 
