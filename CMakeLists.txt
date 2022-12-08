@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2)
-project(sophon-pipeline_v0.2.0)
+project(sophon-pipeline_v0.3.0)
 
 if (NOT DEFINED TARGET_ARCH)
     set(TARGET_ARCH x86)

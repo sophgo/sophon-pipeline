@@ -7,17 +7,19 @@
 //
 //===----------------------------------------------------------------------===//
 
+
 #ifndef SOPHON_PIPELINE_FACE_DETECTOR_H
 #define SOPHON_PIPELINE_FACE_DETECTOR_H
 
-#include "inference.h"
+#include "inference_serial.h"
 #include "bmcv_api_ext.h"
-#include "common_types.h"
+#include "face_common.h"
 #include "bmutility_basemodel.hpp"
 
-class FaceDetector : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo> 
-                   , public bm::BaseModel 
+class FaceDetector : public bm::DetectorDelegate<bm::FrameInfo2> 
+                   , public bm::BaseModel
 {
+
     bm::BMNNContextPtr bmctx_;
     bm::BMNNNetworkPtr bmnet_;
     bool               is4N_;
@@ -25,8 +27,6 @@ class FaceDetector : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs
     double             target_size_{400};
     double             max_size_ {800};
     double             im_scale_;
-    float              nms_threshold_{0.3};
-    float              base_threshold_{0.05};
     std::vector<float> anchor_ratios_;
     std::vector<float> anchor_scales_;
     int                per_nms_topn_{1000};
@@ -42,13 +42,12 @@ public:
     FaceDetector(bm::BMNNContextPtr bmctx);
     ~FaceDetector();
 
-    virtual int preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::vector<bm::cvs10FrameInfo>& frame_info) override ;
-    virtual int forward(std::vector<bm::cvs10FrameInfo>& frame_info) override ;
-    virtual int postprocess(std::vector<bm::cvs10FrameInfo> &frame_info) override;
-
+    virtual int preprocess(std::vector<bm::FrameInfo2>& frame_info) override ;
+    virtual int forward(std::vector<bm::FrameInfo2>& frame_info) override ;
+    virtual int postprocess(std::vector<bm::FrameInfo2> &frame_info) override;
 private:
-    int extract_facebox_cpu(bm::cvs10FrameInfo &frame_info);
-    bm::BMNNTensorPtr get_output_tensor(const std::string &name, bm::cvs10FrameInfo& frame_info, float scale);
+    int extract_facebox_cpu(bm::FrameInfo2 &frame_info);
+    bm::BMNNTensorPtr get_output_tensor(const std::string &name, bm::FrameInfo2& frame_info, float scale=1.0, int k=0);
     void generate_proposal(const float *          scores,
                            const float *          bbox_deltas,
                            const float            scale_factor,
@@ -65,4 +64,4 @@ private:
 };
 
 
-#endif //SOPHON_PIPELINE_FACE_DETECTOR_H
+#endif 
