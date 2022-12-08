@@ -93,7 +93,7 @@ function release_others() {
      elif [[ ${app} = "openpose_demo" ]]; then
         cp ./configs/cameras_openpose.json release/$app/	
      else
-        cp ./configs/cameras_cvs.json release/$app/
+	echo "${app} is not supported yet."
      fi
   done
 }
