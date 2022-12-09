@@ -50,7 +50,7 @@ function build_app()
     mkdir $builddir
     cd $builddir
     
-    cmake_params="-DTARGET_ARCH=$target_arch -DUSE_QTGUI=OFF"
+    cmake_params="-DTARGET_ARCH=$target_arch -DUSE_QTGUI=ON"
     
     if [ "$target_arch" == "arm64" -o "$target_arch" == "soc" ]; then
         cmake_params="$cmake_params -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-aarch64-linux.cmake -DSDK_PATH=${sdk_path}"
@@ -73,8 +73,8 @@ function build_app()
 
 function release_others() {
   local arch=$1
-  all_app_list="cvs10 cvs11"
-  local all_jpg_app_list="cvs10 cvs11"
+  all_app_list="cvs20"
+  local all_jpg_app_list="cvs20"
   for app in ${all_app_list[@]}
   do
      mkdir -p release/$app/$arch

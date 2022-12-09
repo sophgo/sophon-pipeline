@@ -13,7 +13,7 @@
 #include "bmutility_timer.h"
 #include <iomanip>
 #include "face_extract.h"
-#include "retinaface.h"
+#include "resnet50.h"
 
 enum ModelType {
     MODEL_FACE_DETECT=0,
@@ -23,8 +23,11 @@ enum ModelType {
 int main(int argc, char *argv[])
 {
     const char *base_keys="{help | 0 | Print help information.}"
-                          "{feat_delay | 1000 | feature delay in msec}"
-                          "{feat_num | 8 | feature num per channel}"
+                          "{model_type | 0 | Model Type(0: face_detect 1: resnet50)}"
+                          "{feat_delay | 500 | feature delay in msec}"
+                          "{feat_num | 10 | feature num per channel}"
+                          "{stop_frame_num | 1 | frame number early stop}"
+                          "{output | None | Output stream URL}"
                           "{config | ./cameras_cvs.json | path to cameras_cvs.json}";
 
     std::string keys;
@@ -35,10 +38,13 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    std::string output_url  = parser.get<std::string>("output");
     std::string config_file = parser.get<std::string>("config");
 
+    int model_type = parser.get<int>("model_type");
     int feature_delay = parser.get<int>("feat_delay");
     int feature_num = parser.get<int>("feat_num");
+    int stop_frame_num = parser.get<int>("stop_frame_num");
 
     int enable_l2_ddrr = 0;
 
@@ -66,11 +72,9 @@ int main(int argc, char *argv[])
     bm::TimerQueuePtr tqp = bm::TimerQueue::create();
     int start_chan_index = 0;
     std::vector<OneCardInferAppPtr> apps;
-    
     for(int card_idx = 0; card_idx < card_num; ++card_idx) {
         int dev_id = cfg.cardDevId(card_idx);
         std::set<std::string> distinct_models = cfg.getDistinctModels(card_idx);
-
         // load balance
         int channel_num = 0;
         if (card_idx < last_channel_num) {
@@ -81,19 +85,23 @@ int main(int argc, char *argv[])
 
         std::string model_name = (*distinct_models.begin());
         auto& model_cfg = modelConfig[model_name];
- 
+
         bm::BMNNHandlePtr handle = std::make_shared<bm::BMNNHandle>(dev_id);
         bm::BMNNContextPtr contextPtr = std::make_shared<bm::BMNNContext>(handle, model_cfg.path);
- 
-        std::shared_ptr<bm::DetectorDelegate<bm::cvs11FrameBaseInfo, bm::cvs11FrameInfo>> detector;
-        detector = std::make_shared<Retinaface>(contextPtr);
- 
+
+        std::shared_ptr<bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo>> detector;
+        if (MODEL_FACE_DETECT == model_type) {
+            detector = std::make_shared<FaceDetector>(contextPtr);
+        }else if (MODEL_RESNET50 == model_type) {
+            detector = std::make_shared<Resnet>(contextPtr);
+        }
+
         std::cout << "start_chan_index=" << start_chan_index << ", channel_num=" << channel_num << std::endl;
         OneCardInferAppPtr appPtr = std::make_shared<OneCardInferApp>(appStatis, gui,
-                tqp, contextPtr, start_chan_index, channel_num, model_cfg.skip_frame, feature_delay, feature_num,
-                enable_l2_ddrr);
+                tqp, contextPtr, output_url, start_chan_index, channel_num, model_cfg.skip_frame, feature_delay, feature_num,
+                enable_l2_ddrr, stop_frame_num);
         start_chan_index += channel_num;
- 
+
         // set detector delegator
         appPtr->setDetectorDelegate(detector);
         std::shared_ptr<bm::DetectorDelegate<bm::FeatureFrame, bm::FeatureFrameInfo>> feature_delegate;
@@ -102,7 +110,6 @@ int main(int argc, char *argv[])
         appPtr->start(cfg.cardUrls(card_idx), cfg);
         apps.push_back(appPtr);
     }
-
 
     uint64_t timer_id;
     tqp->create_timer(1000, [&appStatis](){
@@ -118,7 +125,7 @@ int main(int argc, char *argv[])
 
         double feat_chanfps = appStatis.m_chan_feat_fpsPtr->getSpeed();
         double feat_totalfps = appStatis.m_total_feat_fpsPtr->getSpeed();
-    
+
         std::cout << "[" << bm::timeToString(time(0)) << "] det ([SUCCESS: "
         << appStatis.m_total_statis << "/" << appStatis.m_total_decode << "]total fps ="
         << std::setiosflags(std::ios::fixed) << std::setprecision(1) << totalfps

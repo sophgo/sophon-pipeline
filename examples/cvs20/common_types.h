@@ -12,16 +12,6 @@
 
 
 
-#define call(fn, ...) \
-    do { \
-        auto ret = fn(__VA_ARGS__); \
-        if (ret != BM_SUCCESS) \
-        { \
-            std::cout << "[ERROR] " << #fn << " failed " << ret << std::endl; \
-            throw std::runtime_error("api error"); \
-        } \
-    } while (false);
-
 namespace bm {
     struct FeatureFrame {
         cv::Mat img;
@@ -73,12 +63,12 @@ namespace bm {
         std::vector<bm::NetOutputDatum> out_datums;
     };
 
-struct cvs11FrameBaseInfo {
+struct cvs10FrameBaseInfo {
     int chan_id;
     uint64_t seq;
 
     int64_t pkt_id;
-    //AVPacket *avpkt;
+    AVPacket *avpkt;
     AVFrame *avframe;
     bm::DataPtr jpeg_data;
     float x_offset = 0, y_offset = 0;
@@ -87,15 +77,16 @@ struct cvs11FrameBaseInfo {
     int width, height, original_width, original_height;
     bool skip;
 
-    cvs11FrameBaseInfo() : chan_id(0), seq(0), jpeg_data(nullptr), skip(false) {
+    cvs10FrameBaseInfo() : chan_id(0), seq(0), jpeg_data(nullptr), skip(false) {
         memset(&resized, 0, sizeof(bm_image));
         memset(&original, 0, sizeof(bm_image));
+        avpkt = nullptr;
     }
 };
 
-struct cvs11FrameInfo {
+struct cvs10FrameInfo {
     //AVFrame based
-    std::vector<cvs11FrameBaseInfo> frames;
+    std::vector<cvs10FrameBaseInfo> frames;
     std::vector<bm_tensor_t> input_tensors;
     std::vector<bm_tensor_t> output_tensors;
     std::vector<bm::NetOutputDatum> out_datums;

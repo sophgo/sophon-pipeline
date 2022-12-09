@@ -9,7 +9,7 @@
 
 #include "worker.h"
 #include "stream_sei.h"
-
+#define SAVE_NUM 0
 void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config)
 {
     bool enable_outputer = false;
@@ -17,7 +17,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         bm::start_with(m_output_url, "tcp://")) {
         enable_outputer = true;
     }
-
+    enable_outputer = true;
     m_detectorDelegate->set_detected_callback([this, enable_outputer](bm::cvs10FrameInfo &frameInfo) {
         for (int frame_idx = 0; frame_idx < frameInfo.frames.size(); ++frame_idx) {
             int ch = frameInfo.frames[frame_idx].chan_id;
@@ -26,7 +26,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             m_appStatis.m_statis_lock.lock();
             m_appStatis.m_total_statis++;
             m_appStatis.m_statis_lock.unlock();
-# if USE_DEBUG
+#if USE_DEBUG
             std::ostringstream oss;
             oss << " detect " << frameInfo.out_datums[frame_idx].obj_rects.size() << " objs.";
             for (int i = 0; i < frameInfo.out_datums[frame_idx].obj_rects.size(); i++) {
@@ -39,13 +39,61 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             }
             std::cout << "[" << bm::timeToString(time(0)) << "] ch:" << ch
                 << oss.str() << std::endl;
-# endif
+#endif
 
             // tracker
             if (frameInfo.out_datums[frame_idx].obj_rects.size() > 0) {
                 m_chans[ch]->tracker->update(frameInfo.out_datums[frame_idx].obj_rects, frameInfo.out_datums[frame_idx].track_rects);
             }
             // display
+#if USE_QTGUI
+            bm::UIFrame jpgframe;
+            jpgframe.jpeg_data = frameInfo.frames[frame_idx].jpeg_data;
+            jpgframe.chan_id = ch;
+            jpgframe.h = frameInfo.frames[frame_idx].height;
+            jpgframe.w = frameInfo.frames[frame_idx].width;
+            jpgframe.datum = frameInfo.out_datums[frame_idx];
+            m_guiReceiver->pushFrame(jpgframe);
+#endif
+            // save
+            if (enable_outputer && ((ch < SAVE_NUM) || (SAVE_NUM == -1))) {
+
+                std::shared_ptr<bm::ByteBuffer> buf = frameInfo.out_datums[frame_idx].toByteBuffer();
+                std::string base64_str = bm::base64_enc(buf->data(), buf->size());
+
+                AVPacket sei_pkt;
+                av_init_packet(&sei_pkt);
+                AVPacket *pkt1 = frameInfo.frames[frame_idx].avpkt;
+                av_packet_copy_props(&sei_pkt, pkt1);
+                sei_pkt.stream_index = pkt1->stream_index;
+
+                //AVCodecID codec_id = m_chans[ch]->decoder->get_video_codec_id();
+
+                if (true) {// (codec_id == AV_CODEC_ID_H264) {
+                    int packet_size = h264sei_calc_packet_size(base64_str.length());
+                    AVBufferRef *buf = av_buffer_alloc(packet_size << 1);
+                    //assert(packet_size < 16384);
+                    int real_size = h264sei_packet_write(buf->data, true, (uint8_t *) base64_str.data(),
+                                                         base64_str.length());
+                    sei_pkt.data = buf->data;
+                    sei_pkt.size = real_size;
+                    sei_pkt.buf = buf;
+
+                } 
+
+                m_chans[ch]->outputer->InputPacket(&sei_pkt);
+                m_chans[ch]->outputer->InputPacket(frameInfo.frames[frame_idx].avpkt);
+                av_packet_unref(&sei_pkt);
+
+                m_frame_count += 1;
+                if (m_frame_count >= m_stop_frame_num){
+                    std::cout <<  "-=-=-=-======exit==============>>> " << m_frame_count << std::endl;
+                
+                    m_chans[ch]->outputer->CloseOutputStream();
+                    exit(-1);
+                }
+                
+            }
         }
     });
 
@@ -79,10 +127,10 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
 
     for(int i = 0; i < m_channel_num; ++i) {
         int ch = m_channel_start + i;
-        std::cout << "push id=" << ch << std::endl;
+
         TChannelPtr pchan = std::make_shared<TChannel>();
         pchan->demuxer = new bm::StreamDemuxer(ch);
-        //if (enable_outputer) pchan->outputer = new bm::FfmpegOutputer();
+        if (enable_outputer) pchan->outputer = new bm::FfmpegOutputer();
         pchan->channel_id = ch;
 
         std::string media_file;
@@ -95,10 +143,38 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             pchan->create_video_decoder(m_dev_id, ifmt);
             // todo create DDR reduction for optimization
 
+            if (pchan->outputer && pchan->channel_id < SAVE_NUM) {
+                // std::string connect = "_";
+                // std::string prefix_url = "cvs10_save";
+                // std::string postfix_url = ".flv";
+                // std::string url = bm::format("%s%s%d%s", prefix_url.c_str(), connect.c_str(), pchan->channel_id, postfix_url.c_str()); // "/home/frotms/hdd/liuchenxi/repo/cvs20/test_save/sophon-pipeline/release/cvs10/sav/cvs10_save.flv";
+                
+                std::string url;
+                if (bm::start_with(m_output_url, "rtsp://")) {
+                    std::string connect = "_";
+                    url = bm::format("%s%s%d", m_output_url.c_str(), connect.c_str(), pchan->channel_id);
+                }
+                else if (bm::start_with(m_output_url, "udp://") || bm::start_with(m_output_url, "tcp://")){
+                    size_t pos = m_output_url.rfind(":");
+                    std::string base_url = m_output_url.substr(0, pos);
+                    int base_port = std::strtol(m_output_url.substr(pos + 1).c_str(), 0, 10);
+                    url = bm::format("%s:%d", base_url.c_str(), base_port + pchan->channel_id);
+                }
+                else{
+                    std::string connect = "_";
+                    std::string prefix_url = "/hdd/cvs20/cvs20_save";
+                    std::string postfix_url = ".flv";
+                    url = bm::format("%s%s%d%s", prefix_url.c_str(), connect.c_str(), pchan->channel_id, postfix_url.c_str()); // "/home/frotms/hdd/liuchenxi/repo/cvs20/test_save/sophon-pipeline/release/cvs10/sav/cvs10_save.flv";
+                
+                    //url = bm::format("%s", m_output_url.c_str());
+                }
+                pchan->outputer->OpenOutputStream(url, ifmt);
+            }
+
         });
 
         pchan->demuxer->set_avformat_closed_callback([this, pchan]() {
-            //if (pchan->outputer) pchan->outputer->CloseOutputStream();
+            if (pchan->outputer) pchan->outputer->CloseOutputStream();
         });
 
         pchan->demuxer->set_read_Frame_callback([this, pchan, ch](AVPacket* pkt){
@@ -122,7 +198,9 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
 #endif
                 if (!fbi.skip) {
                     fbi.avframe = av_frame_alloc();
+                    fbi.avpkt = av_packet_alloc();
                     av_frame_ref(fbi.avframe, frame);
+                    av_packet_ref(fbi.avpkt, pkt);
                     m_appStatis.m_statis_lock.lock();
                     m_appStatis.m_total_decode++;
                     m_appStatis.m_statis_lock.unlock();

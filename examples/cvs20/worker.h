@@ -22,6 +22,7 @@ struct TChannel: public bm::NoCopyable {
     int channel_id;
     uint64_t seq;
     bm::StreamDemuxer *demuxer;
+    bm::FfmpegOutputer *outputer;
     std::shared_ptr<bm::BMTracker> tracker;
     uint64_t m_last_feature_time=0; // last do feature time
 
@@ -32,6 +33,7 @@ struct TChannel: public bm::NoCopyable {
 
          tracker = bm::BMTracker::create();
          m_last_feature_time = 0;
+         outputer = nullptr;
     }
 
     ~TChannel() {
@@ -159,6 +161,8 @@ class OneCardInferApp {
     int m_feature_delay;
     int m_feature_num;
     int m_use_l2_ddrr= 0;
+    int m_frame_count = 0;
+    int m_stop_frame_num;
 
     bm::BMInferencePipe<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo> m_inferPipe;
     bm::BMInferencePipe<bm::FeatureFrame, bm::FeatureFrameInfo> m_featurePipe;
@@ -166,10 +170,10 @@ class OneCardInferApp {
     std::map<int, TChannelPtr> m_chans;
     std::vector<std::string> m_urls;
 public:
-    OneCardInferApp(AppStatis& statis,bm::VideoUIAppPtr gui, bm::TimerQueuePtr tq, bm::BMNNContextPtr ctx,
+    OneCardInferApp(AppStatis& statis,bm::VideoUIAppPtr gui, bm::TimerQueuePtr tq, bm::BMNNContextPtr ctx, std::string& output_url, 
             int start_index, int num, int skip=0, int feat_delay=1000, int feat_num=8,
-            int use_l2_ddrr=0): m_detectorDelegate(nullptr), m_channel_num(num),
-            m_bmctx(ctx), m_appStatis(statis),m_use_l2_ddrr(use_l2_ddrr)
+            int use_l2_ddrr=0, int stop_frame_num=0): m_detectorDelegate(nullptr), m_channel_num(num),
+            m_bmctx(ctx), m_appStatis(statis),m_use_l2_ddrr(use_l2_ddrr), m_stop_frame_num(stop_frame_num)
     {
         m_guiReceiver = gui;
         m_dev_id = m_bmctx->dev_id();
@@ -178,6 +182,7 @@ public:
         m_skipN = skip;
         m_feature_delay = feat_delay;
         m_feature_num = feat_num;
+        m_output_url = output_url;
 
     }
 

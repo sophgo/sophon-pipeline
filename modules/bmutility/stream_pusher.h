@@ -128,6 +128,7 @@ namespace bm {
                         break;
                     case SERVICE:
                         output_service();
+                        std::this_thread::sleep_for(std::chrono::milliseconds(40));
                         break;
                     case DOWN:
                         output_down();
@@ -165,9 +166,11 @@ namespace bm {
                 format_name = "rtp";
             } else if (string_start_with(m_url, "rtmp://")) {
                 format_name = "flv";
-            } else {
-                std::cout << "Not support this Url:" << m_url << std::endl;
-                return -1;
+            } else 
+            {
+                // std::cout << "Not support this Url:" << m_url << std::endl;
+                // return -1;
+                format_name = "flv";
             }
 
             std::cout << "open url=" << m_url << ",format_name=" << format_name << std::endl;

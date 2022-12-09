@@ -264,6 +264,11 @@ int FaceDetector::postprocess(std::vector<bm::cvs10FrameInfo> &frames)
                 av_frame_unref(reff.avframe);
                 av_frame_free(&reff.avframe);
             }
+
+            if (reff.avpkt){
+                av_packet_unref(reff.avpkt);
+                av_packet_free(&reff.avpkt);
+            }
         }
 
         // Free Tensors
