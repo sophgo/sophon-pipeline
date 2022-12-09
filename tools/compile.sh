@@ -73,28 +73,19 @@ function build_app()
 
 function release_others() {
   local arch=$1
-  all_app_list="video_stitch_demo yolov5s_demo retinaface_demo multi_demo facedetect_demo face_recognition_demo openpose_demo"
+  all_app_list="cvs10 cvs11"
+  local all_jpg_app_list="cvs10 cvs11"
   for app in ${all_app_list[@]}
   do
      mkdir -p release/$app/$arch
      cp $builddir/bin/$app release/$app/$arch/
-     if [[ ${app} = "yolov5s_demo" ]]; then
-        cp ./configs/cameras_yolov5.json release/$app/
-     elif [[ ${app} = "video_stitch_demo" ]]; then
-	cp ./configs/cameras_video_stitch.json release/$app/
-     elif [[ ${app} = "retinaface_demo" ]]; then
-	cp ./configs/cameras_retinaface.json release/$app/
-     elif [[ ${app} = "multi_demo" ]]; then
-        cp ./configs/cameras_multi.json release/$app/
-     elif [[ ${app} = "facedetect_demo" ]]; then
-	cp ./configs/cameras_face_detect.json release/$app/
-     elif [[ ${app} = "face_recognition_demo" ]]; then
-	cp ./configs/cameras_face_recognition.json release/$app/
-     elif [[ ${app} = "openpose_demo" ]]; then
-        cp ./configs/cameras_openpose.json release/$app/	
-     else
-	echo "${app} is not supported yet."
-     fi
+     cp ./configs/cameras_cvs.json release/$app/
+     for jpg_app in ${all_jpg_app_list[@]}
+     do
+        if [[  "${jpg_app}" = "${app}" ]]; then
+           cp ./data/$app/face.jpeg release/$app/
+        fi
+     done
   done
 }
 

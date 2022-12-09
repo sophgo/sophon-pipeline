@@ -42,7 +42,7 @@ cp -rf sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-opencv_${x.y.z}/include 
 
 ### 2.4 准备第三方库
 
-依赖libeigen3-dev、libgflags-dev、libgoogle-glog-dev、libexiv2-dev
+依赖libgflags-dev、libgoogle-glog-dev
 
 #### 2.4.1 准备和构建qemu虚拟环境
 
@@ -56,11 +56,11 @@ cd rootfs
 sudo qemu-debootstrap --arch=arm64 focal .
 sudo chroot . qemu-aarch64-static /bin/bash
 
-# 进入qemu 后，安装libeigen3-dev、libgflags-dev、libgoogle-glog-dev、libexiv2-dev
+# 进入qemu 后，安装libeigen3-dev、libgflags-dev、libgoogle-glog-dev
 apt-get install -y software-properties-common
 apt-add-repository universe
 apt-get update
-apt-get install -y libeigen3-dev libgflags-dev libgoogle-glog-dev libexiv2-dev
+apt-get install -y libgflags-dev libgoogle-glog-dev
 
 # 使用exit命令，退出qemu虚拟环境
 exit
@@ -76,11 +76,6 @@ cp -rf ${rootfs}/usr/include/glog ${soc-sdk}/include
 # libgflags-dev
 cp -rf ${rootfs}/usr/lib/aarch64-linux-gnu/libgflags* ${soc-sdk}/lib
 cp -rf ${rootfs}/usr/include/gflags ${soc-sdk}/include
-# libexiv2-dev
-cp -rf ${rootfs}/usr/lib/aarch64-linux-gnu/libexiv2* ${soc-sdk}/lib
-cp -rf ${rootfs}/usr/include/exiv2 ${soc-sdk}/include
-# libeigen3-dev
-cp -rf ${rootfs}/usr/include/eigen3 ${soc-sdk}/include
 ```
 
 > 这里，交叉编译环境和相关依赖环境的准备步骤已经准备完成，接下来可以编译需要在SoC平台上运行的程序。
