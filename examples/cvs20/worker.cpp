@@ -47,13 +47,16 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             }
             // display
 #if USE_QTGUI
-            bm::UIFrame jpgframe;
-            jpgframe.jpeg_data = frameInfo.frames[frame_idx].jpeg_data;
-            jpgframe.chan_id = ch;
-            jpgframe.h = frameInfo.frames[frame_idx].height;
-            jpgframe.w = frameInfo.frames[frame_idx].width;
-            jpgframe.datum = frameInfo.out_datums[frame_idx];
-            m_guiReceiver->pushFrame(jpgframe);
+            if (ch < m_display_num){
+                bm::UIFrame jpgframe;
+                jpgframe.jpeg_data = frameInfo.frames[frame_idx].jpeg_data;
+                jpgframe.chan_id = ch;
+                jpgframe.h = frameInfo.frames[frame_idx].height;
+                jpgframe.w = frameInfo.frames[frame_idx].width;
+                jpgframe.datum = frameInfo.out_datums[frame_idx];
+                m_guiReceiver->pushFrame(jpgframe);
+            }
+            
 #endif
             // save
             if (enable_outputer && ((ch < m_save_num) || (m_save_num == -1))) {

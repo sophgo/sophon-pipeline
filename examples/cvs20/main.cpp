@@ -26,8 +26,9 @@ int main(int argc, char *argv[])
                           "{model_type | 0 | Model Type(0: face_detect 1: resnet50)}"
                           "{feat_delay | 500 | feature delay in msec}"
                           "{feat_num | 10 | feature num per channel}"
+                          "{display_num | 1 | display number of channel in QT}"
                           "{stop_frame_num | 1 | frame number early stop}"
-                          "{save_num | 0 | Output stream URL}"
+                          "{save_num | 0 | number of channel to save .flv}"
                           "{output | None | Output stream URL}"
                           "{config | ./cameras_cvs.json | path to cameras_cvs.json}";
 
@@ -47,6 +48,7 @@ int main(int argc, char *argv[])
     int feature_num = parser.get<int>("feat_num");
     int stop_frame_num = parser.get<int>("stop_frame_num");
     int save_num = parser.get<int>("save_num");
+    int display_num = parser.get<int>("display_num");
 
     int enable_l2_ddrr = 0;
 
@@ -67,8 +69,10 @@ int main(int argc, char *argv[])
 
     std::shared_ptr<bm::VideoUIApp> gui;
 #if USE_QTGUI
-    gui = bm::VideoUIApp::create(argc, argv);
-    gui->bootUI(total_num);
+    if (display_num > 0){
+        gui = bm::VideoUIApp::create(argc, argv);
+        gui->bootUI(total_num);
+    }
 #endif
 
     bm::TimerQueuePtr tqp = bm::TimerQueue::create();
@@ -101,7 +105,7 @@ int main(int argc, char *argv[])
         std::cout << "start_chan_index=" << start_chan_index << ", channel_num=" << channel_num << std::endl;
         OneCardInferAppPtr appPtr = std::make_shared<OneCardInferApp>(appStatis, gui,
                 tqp, contextPtr, output_url, start_chan_index, channel_num, model_cfg.skip_frame, feature_delay, feature_num,
-                enable_l2_ddrr, stop_frame_num, save_num);
+                enable_l2_ddrr, stop_frame_num, save_num, display_num);
         start_chan_index += channel_num;
 
         // set detector delegator
