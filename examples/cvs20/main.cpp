@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
                           "{model_type | 0 | Model Type(0: face_detect 1: resnet50)}"
                           "{feat_delay | 500 | feature delay in msec}"
                           "{feat_num | 10 | feature num per channel}"
+                          "{num | 1 | number of channel to infer}"
                           "{display_num | 1 | display number of channel in QT}"
                           "{stop_frame_num | 1 | frame number early stop}"
                           "{save_num | 0 | number of channel to save .flv}"
@@ -46,6 +47,7 @@ int main(int argc, char *argv[])
     int model_type = parser.get<int>("model_type");
     int feature_delay = parser.get<int>("feat_delay");
     int feature_num = parser.get<int>("feat_num");
+    int num = parser.get<int>("num");
     int stop_frame_num = parser.get<int>("stop_frame_num");
     int save_num = parser.get<int>("save_num");
     int display_num = parser.get<int>("display_num");
@@ -58,7 +60,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    int total_num = cfg.totalChanNums();
+    int total_num = num;
     AppStatis appStatis(total_num);
 
     auto modelConfig = cfg.getModelConfig();
