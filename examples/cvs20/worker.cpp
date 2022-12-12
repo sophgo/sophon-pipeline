@@ -9,7 +9,7 @@
 
 #include "worker.h"
 #include "stream_sei.h"
-#define SAVE_NUM 0
+
 void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config)
 {
     bool enable_outputer = false;
@@ -56,7 +56,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             m_guiReceiver->pushFrame(jpgframe);
 #endif
             // save
-            if (enable_outputer && ((ch < SAVE_NUM) || (SAVE_NUM == -1))) {
+            if (enable_outputer && ((ch < m_save_num) || (m_save_num == -1))) {
 
                 std::shared_ptr<bm::ByteBuffer> buf = frameInfo.out_datums[frame_idx].toByteBuffer();
                 std::string base64_str = bm::base64_enc(buf->data(), buf->size());
@@ -88,7 +88,6 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 m_frame_count += 1;
                 if (m_frame_count >= m_stop_frame_num){
                     std::cout <<  "-=-=-=-======exit==============>>> " << m_frame_count << std::endl;
-                
                     m_chans[ch]->outputer->CloseOutputStream();
                     exit(-1);
                 }
@@ -143,7 +142,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             pchan->create_video_decoder(m_dev_id, ifmt);
             // todo create DDR reduction for optimization
 
-            if (pchan->outputer && pchan->channel_id < SAVE_NUM) {
+            if (pchan->outputer && pchan->channel_id < m_save_num) {
                 // std::string connect = "_";
                 // std::string prefix_url = "cvs10_save";
                 // std::string postfix_url = ".flv";
@@ -160,13 +159,19 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     int base_port = std::strtol(m_output_url.substr(pos + 1).c_str(), 0, 10);
                     url = bm::format("%s:%d", base_url.c_str(), base_port + pchan->channel_id);
                 }
-                else{
+                else if (bm::end_with(m_output_url, ".flv")){
                     std::string connect = "_";
-                    std::string prefix_url = "/hdd/cvs20/cvs20_save";
-                    std::string postfix_url = ".flv";
-                    url = bm::format("%s%s%d%s", prefix_url.c_str(), connect.c_str(), pchan->channel_id, postfix_url.c_str()); // "/home/frotms/hdd/liuchenxi/repo/cvs20/test_save/sophon-pipeline/release/cvs10/sav/cvs10_save.flv";
-                
-                    //url = bm::format("%s", m_output_url.c_str());
+                    std::string suffix_url = ".flv";
+                    size_t pos = m_output_url.rfind(suffix_url);
+                    std::string base_url = m_output_url.substr(0, pos);
+                    int base_port = std::strtol(m_output_url.substr(pos + 1).c_str(), 0, 10);
+                    url = bm::format("%s%s%d%s", base_url.c_str(), connect.c_str(), pchan->channel_id, suffix_url.c_str());;
+                }
+                else{
+                    size_t pos = m_output_url.rfind(":");
+                    std::string base_url = m_output_url.substr(0, pos);
+                    int base_port = std::strtol(m_output_url.substr(pos + 1).c_str(), 0, 10);
+                    url = bm::format("%s:%d", base_url.c_str(), base_port + pchan->channel_id);
                 }
                 pchan->outputer->OpenOutputStream(url, ifmt);
             }

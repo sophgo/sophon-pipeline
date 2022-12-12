@@ -27,6 +27,7 @@ int main(int argc, char *argv[])
                           "{feat_delay | 500 | feature delay in msec}"
                           "{feat_num | 10 | feature num per channel}"
                           "{stop_frame_num | 1 | frame number early stop}"
+                          "{save_num | 0 | Output stream URL}"
                           "{output | None | Output stream URL}"
                           "{config | ./cameras_cvs.json | path to cameras_cvs.json}";
 
@@ -45,6 +46,7 @@ int main(int argc, char *argv[])
     int feature_delay = parser.get<int>("feat_delay");
     int feature_num = parser.get<int>("feat_num");
     int stop_frame_num = parser.get<int>("stop_frame_num");
+    int save_num = parser.get<int>("save_num");
 
     int enable_l2_ddrr = 0;
 
@@ -99,7 +101,7 @@ int main(int argc, char *argv[])
         std::cout << "start_chan_index=" << start_chan_index << ", channel_num=" << channel_num << std::endl;
         OneCardInferAppPtr appPtr = std::make_shared<OneCardInferApp>(appStatis, gui,
                 tqp, contextPtr, output_url, start_chan_index, channel_num, model_cfg.skip_frame, feature_delay, feature_num,
-                enable_l2_ddrr, stop_frame_num);
+                enable_l2_ddrr, stop_frame_num, save_num);
         start_chan_index += channel_num;
 
         // set detector delegator

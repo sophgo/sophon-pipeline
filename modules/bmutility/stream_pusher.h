@@ -15,6 +15,7 @@
 #include <assert.h>
 #include <list>
 #include <mutex>
+#include <cmath>
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,6 +51,11 @@ namespace bm {
 
         bool string_start_with(const std::string &s, const std::string &prefix) {
             return (s.compare(0, prefix.size(), prefix) == 0);
+        }
+
+        bool string_end_with(const std::string& s, const std::string& suffix)
+        {
+            return s.rfind(suffix) == std::abs((int)s.size()-(int)suffix.size());
         }
 
         int output_initialize() {
@@ -166,11 +172,12 @@ namespace bm {
                 format_name = "rtp";
             } else if (string_start_with(m_url, "rtmp://")) {
                 format_name = "flv";
+            } else if (string_end_with(m_url, ".flv")){
+                format_name = "flv";
             } else 
             {
-                // std::cout << "Not support this Url:" << m_url << std::endl;
-                // return -1;
-                format_name = "flv";
+                std::cout << "Not support this Url:" << m_url << std::endl;
+                return -1;
             }
 
             std::cout << "open url=" << m_url << ",format_name=" << format_name << std::endl;

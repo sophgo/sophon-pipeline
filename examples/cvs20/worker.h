@@ -163,6 +163,7 @@ class OneCardInferApp {
     int m_use_l2_ddrr= 0;
     int m_frame_count = 0;
     int m_stop_frame_num;
+    int m_save_num;
 
     bm::BMInferencePipe<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo> m_inferPipe;
     bm::BMInferencePipe<bm::FeatureFrame, bm::FeatureFrameInfo> m_featurePipe;
@@ -172,8 +173,8 @@ class OneCardInferApp {
 public:
     OneCardInferApp(AppStatis& statis,bm::VideoUIAppPtr gui, bm::TimerQueuePtr tq, bm::BMNNContextPtr ctx, std::string& output_url, 
             int start_index, int num, int skip=0, int feat_delay=1000, int feat_num=8,
-            int use_l2_ddrr=0, int stop_frame_num=0): m_detectorDelegate(nullptr), m_channel_num(num),
-            m_bmctx(ctx), m_appStatis(statis),m_use_l2_ddrr(use_l2_ddrr), m_stop_frame_num(stop_frame_num)
+            int use_l2_ddrr=0, int stop_frame_num=0, int save_num=0): m_detectorDelegate(nullptr), m_channel_num(num),
+            m_bmctx(ctx), m_appStatis(statis),m_use_l2_ddrr(use_l2_ddrr), m_stop_frame_num(stop_frame_num), m_save_num(save_num)
     {
         m_guiReceiver = gui;
         m_dev_id = m_bmctx->dev_id();

@@ -16,6 +16,7 @@
 namespace bm {
     std::vector<std::string> split(std::string str, std::string pattern);
     bool start_with(const std::string &str, const std::string &head);
+    bool end_with(const std::string& s, const std::string& suffix);
     std::string file_name_from_path(const std::string& path, bool hasExt);
     std::string file_ext_from_path(const std::string& str);
     std::string format(const char *pszFmt, ...);

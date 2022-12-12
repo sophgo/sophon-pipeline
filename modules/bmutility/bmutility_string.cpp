@@ -9,6 +9,7 @@
 
 #include "bmutility_string.h"
 #include <stdarg.h>
+#include <cmath>
 
 namespace bm {
     std::vector<std::string> split(std::string str, std::string pattern)
@@ -34,6 +35,11 @@ namespace bm {
     bool start_with(const std::string &str, const std::string &head)
     {
         return str.compare(0, head.size(), head) == 0;
+    }
+
+    bool end_with(const std::string& s, const std::string& suffix)
+    {
+        return s.rfind(suffix) == std::abs((int)s.size()-(int)suffix.size());
     }
 
     std::string file_name_from_path(const std::string& path, bool hasExt){
