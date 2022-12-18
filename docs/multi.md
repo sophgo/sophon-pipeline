@@ -4,7 +4,7 @@
 
 ### 1.1 定义
 
-- 使用pipeline并联运行两个yolov5目标检测。
+- 使用pipeline并联运行两个yolov5目标检测
 - 当运行N路FPS为M的视频码流时，检测器`det`的FPS达到`N * M / (1 + [skip])`或者平均单路speed达到`M / (1 + [skip])`，其中`[skip]`为隔帧检测的跳帧数量。说明当前环境下，能够满足跳帧数为`[skip]`帧的N路FPS为M的视频码流的处理
 
 
