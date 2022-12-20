@@ -19,3 +19,4 @@
             throw std::runtime_error("api error"); \
         } \
     } while (false);
+

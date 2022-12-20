@@ -139,7 +139,7 @@ int FaceExtract::preprocess(std::vector <bm::FrameInfo2> &frame_infos)
         } // end of batch_idx
     } // end of frameinfo_idx
 
-    return 0;
+    return ret;
 }
 
 int FaceExtract::forward(std::vector <bm::FrameInfo2> &frame_infos)
@@ -222,6 +222,7 @@ int FaceExtract::postprocess(std::vector <bm::FrameInfo2> &frame_infos)
             }
         }
     }
+    return 0;
 }
 
 int FaceExtract::get_complex_idx(int idx, std::vector<bm::NetOutputDatum> out, int *p_frameIdx, int *prc_idx)

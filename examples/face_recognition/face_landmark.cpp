@@ -147,7 +147,7 @@ int FaceLandmark::preprocess(std::vector <bm::FrameInfo2> &frame_infos)
     } // end of frameinfo_idx
 
 
-    return  0;
+    return  ret;
 }
 
 
@@ -281,6 +281,7 @@ int FaceLandmark::postprocess(std::vector <bm::FrameInfo2> &frame_infos)
 
 
     }
+    return 0;
 }
 
 bm::BMNNTensorPtr FaceLandmark::get_output_tensor(const std::string &name, bm::NetForward *inferIO, float scale)

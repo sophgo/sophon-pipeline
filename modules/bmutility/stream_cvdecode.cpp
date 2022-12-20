@@ -24,7 +24,7 @@ namespace bm {
     }
 
     int CvStreamDecoder::get_frame() {
-
+        return 0;
     }
 
     void CvStreamDecoder::on_video_capture_closed() {

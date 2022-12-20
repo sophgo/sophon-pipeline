@@ -220,7 +220,7 @@ int FaceDetector::preprocess(std::vector<bm::FrameInfo2> &frame_infos)
 #endif
 
 
-    return 0;
+    return ret;
 }
 
 int FaceDetector::forward(std::vector<bm::FrameInfo2>& frame_infos)
@@ -236,7 +236,7 @@ int FaceDetector::forward(std::vector<bm::FrameInfo2>& frame_infos)
         }
     }
 
-    return 0;
+    return ret;
 }
 
 int FaceDetector::postprocess(std::vector<bm::FrameInfo2> &frame_infos)
@@ -311,6 +311,7 @@ int FaceDetector::postprocess(std::vector<bm::FrameInfo2> &frame_infos)
         }
 
     }
+    return ret;
 }
 
 bm::BMNNTensorPtr FaceDetector::get_output_tensor(const std::string &name, bm::FrameInfo2& frame_info, float scale, int k) {
