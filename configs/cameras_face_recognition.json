@@ -4,7 +4,7 @@
       "devid": 0,
       "cameras": [
         {
-          "address": "./station-1080p-25fps-2000kbps-3ref.h264",
+          "address": "./elevator-1080p-25fps-4000kbps.h264",
           "chan_num": 1,
           "model_names": ["ex1"]
         }
