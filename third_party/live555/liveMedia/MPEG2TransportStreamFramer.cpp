@@ -230,12 +230,12 @@ Boolean MPEG2TransportStreamFramer::updateTSPacketDurationEstimate(unsigned char
   unsigned pid = ((pkt[1]&0x1F)<<8) | pkt[2];
 
   // Check whether we already have a record of a PCR for this PID:
-  PIDStatus* pidStatus = (PIDStatus*)(fPIDStatusTable->Lookup((char*)pid));
+  PIDStatus* pidStatus = (PIDStatus*)(fPIDStatusTable->Lookup((char*)(long)pid));
 
   if (pidStatus == NULL) {
     // We're seeing this PID's PCR for the first time:
     pidStatus = new PIDStatus(clock, timeNow);
-    fPIDStatusTable->Add((char*)pid, pidStatus);
+    fPIDStatusTable->Add((char*)(long)pid, pidStatus);
 #ifdef DEBUG_PCR
     fprintf(stderr, "PID 0x%x, FIRST PCR 0x%08x+%d:%03x == %f @ %f, pkt #%lu\n", pid, pcrBaseHigh, pkt[10]>>7, pcrExt, clock, timeNow, fTSPacketCount);
 #endif

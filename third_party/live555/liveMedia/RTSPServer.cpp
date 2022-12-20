@@ -200,17 +200,17 @@ void RTSPServer::incomingConnectionHandlerHTTP() {
 void RTSPServer
 ::noteTCPStreamingOnSocket(int socketNum, RTSPClientSession* clientSession, unsigned trackNum) {
   streamingOverTCPRecord* sotcpCur
-    = (streamingOverTCPRecord*)fTCPStreamingDatabase->Lookup((char const*)socketNum);
+    = (streamingOverTCPRecord*)fTCPStreamingDatabase->Lookup((char const*)(long)socketNum);
   streamingOverTCPRecord* sotcpNew
     = new streamingOverTCPRecord(clientSession->fOurSessionId, trackNum, sotcpCur);
-  fTCPStreamingDatabase->Add((char const*)socketNum, sotcpNew);
+  fTCPStreamingDatabase->Add((char const*)(long)socketNum, sotcpNew);
 }
 
 void RTSPServer
 ::unnoteTCPStreamingOnSocket(int socketNum, RTSPClientSession* clientSession, unsigned trackNum) {
   if (socketNum < 0) return;
   streamingOverTCPRecord* sotcpHead
-    = (streamingOverTCPRecord*)fTCPStreamingDatabase->Lookup((char const*)socketNum);
+    = (streamingOverTCPRecord*)fTCPStreamingDatabase->Lookup((char const*)(long)socketNum);
   if (sotcpHead == NULL) return;
 
   // Look for a record of the (session,track); remove it if found:
@@ -231,10 +231,10 @@ void RTSPServer
 
     if (sotcpHead == NULL) {
       // There were no more entries on the list.  Remove the original entry from the hash table:
-      fTCPStreamingDatabase->Remove((char const*)socketNum);
+      fTCPStreamingDatabase->Remove((char const*)(long)socketNum);
     } else {
       // Add the rest of the list into the hash table (replacing the original):
-      fTCPStreamingDatabase->Add((char const*)socketNum, sotcpHead);
+      fTCPStreamingDatabase->Add((char const*)(long)socketNum, sotcpHead);
     }
   } else {
     // We found it on the list, but not at the head.  Unlink it:
@@ -247,7 +247,7 @@ void RTSPServer
 void RTSPServer::stopTCPStreamingOnSocket(int socketNum) {
   // Close any stream that is streaming over "socketNum" (using RTP/RTCP-over-TCP streaming):
   streamingOverTCPRecord* sotcp
-    = (streamingOverTCPRecord*)fTCPStreamingDatabase->Lookup((char const*)socketNum);
+    = (streamingOverTCPRecord*)fTCPStreamingDatabase->Lookup((char const*)(long)socketNum);
   if (sotcp != NULL) {
     do {
       RTSPClientSession* clientSession
@@ -261,7 +261,7 @@ void RTSPServer::stopTCPStreamingOnSocket(int socketNum) {
       delete sotcp;
       sotcp = sotcpNext;
     } while (sotcp != NULL);
-    fTCPStreamingDatabase->Remove((char const*)socketNum);
+    fTCPStreamingDatabase->Remove((char const*)(long)socketNum);
   }
 }
 

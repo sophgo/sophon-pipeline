@@ -191,12 +191,12 @@ OggTrackTable::~OggTrackTable() {
 
 void OggTrackTable::add(OggTrack* newTrack) {
   OggTrack* existingTrack
-    = (OggTrack*)fTable->Add((char const*)newTrack->trackNumber, newTrack);
+    = (OggTrack*)fTable->Add((char const*)(long)newTrack->trackNumber, newTrack);
   delete existingTrack; // if any
 }
 
 OggTrack* OggTrackTable::lookup(u_int32_t trackNumber) {
-  return (OggTrack*)fTable->Lookup((char const*)trackNumber);
+  return (OggTrack*)fTable->Lookup((char const*)(long)trackNumber);
 }
 
 unsigned OggTrackTable::numTracks() const { return fTable->numEntries(); }
@@ -248,7 +248,7 @@ FramedSource* OggDemux::newDemuxedTrack(u_int32_t& resultTrackNumber) {
 
   resultTrackNumber = nextTrack->trackNumber;
   FramedSource* trackSource = new OggDemuxedTrack(envir(), resultTrackNumber, *this);
-  fDemuxedTracksTable->Add((char const*)resultTrackNumber, trackSource);
+  fDemuxedTracksTable->Add((char const*)(long)resultTrackNumber, trackSource);
   return trackSource;
 }
 
@@ -256,12 +256,12 @@ FramedSource* OggDemux::newDemuxedTrackByTrackNumber(unsigned trackNumber) {
   if (trackNumber == 0) return NULL;
 
   FramedSource* trackSource = new OggDemuxedTrack(envir(), trackNumber, *this);
-  fDemuxedTracksTable->Add((char const*)trackNumber, trackSource);
+  fDemuxedTracksTable->Add((char const*)(long)trackNumber, trackSource);
   return trackSource;
 }
 
 OggDemuxedTrack* OggDemux::lookupDemuxedTrack(u_int32_t trackNumber) {
-  return (OggDemuxedTrack*)fDemuxedTracksTable->Lookup((char const*)trackNumber);
+  return (OggDemuxedTrack*)fDemuxedTracksTable->Lookup((char const*)(long)trackNumber);
 }
 
 OggDemux::OggDemux(OggFile& ourFile)
@@ -287,7 +287,7 @@ OggDemux::~OggDemux() {
 }
 
 void OggDemux::removeTrack(u_int32_t trackNumber) {
-  fDemuxedTracksTable->Remove((char const*)trackNumber);
+  fDemuxedTracksTable->Remove((char const*)(long)trackNumber);
   if (fDemuxedTracksTable->numEntries() == 0) {
     // We no longer have any demuxed tracks, so delete ourselves now:
     delete this;

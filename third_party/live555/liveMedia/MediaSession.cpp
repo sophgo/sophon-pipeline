@@ -762,7 +762,7 @@ Boolean MediaSubsession::initiate(int useSpecialRTPoffset) {
 	if ((fClientPortNum&1) != 0) { // it's odd
 	  // Record this socket in our table, and keep trying:
 	  unsigned key = (unsigned)fClientPortNum;
-	  Groupsock* existing = (Groupsock*)socketHashTable->Add((char const*)key, fRTPSocket);
+	  Groupsock* existing = (Groupsock*)socketHashTable->Add((char const*)(long)key, fRTPSocket);
 	  delete existing; // in case it wasn't NULL
 	  continue;
 	}
@@ -784,7 +784,7 @@ Boolean MediaSubsession::initiate(int useSpecialRTPoffset) {
 
 	  // Record the first socket in our table, and keep trying:
 	  unsigned key = (unsigned)fClientPortNum;
-	  Groupsock* existing = (Groupsock*)socketHashTable->Add((char const*)key, fRTPSocket);
+	  Groupsock* existing = (Groupsock*)socketHashTable->Add((char const*)(long)key, fRTPSocket);
 	  delete existing; // in case it wasn't NULL
 	  continue;
 	}

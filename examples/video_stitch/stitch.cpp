@@ -170,7 +170,7 @@ int VideoStitchImpl::stitch(std::vector<bm::FrameInfo>& frames, std::vector<bm::
         bm_image_destroy(frame_info.frames[i].original);
     }
     bm_image_destroy(stitch_image);
-
+    return 0;
 }
 
 void VideoStitchImpl::dataInput_(std::vector<bm::FrameInfo>& frames) {

@@ -162,7 +162,7 @@ void PassiveServerMediaSubsession
 
   // Make a record of this client's source - for RTCP RR handling:
   RTCPSourceRecord* source = new RTCPSourceRecord(clientAddress, clientRTCPPort);
-  fClientRTCPSourceRecords->Add((char const*)clientSessionId, source);
+  fClientRTCPSourceRecords->Add((char const*)(long)clientSessionId, source);
 }
 
 void PassiveServerMediaSubsession::startStream(unsigned clientSessionId,
@@ -189,7 +189,7 @@ void PassiveServerMediaSubsession::startStream(unsigned clientSessionId,
     fRTCPInstance->sendReport();
 
     // Set up the handler for incoming RTCP "RR" packets from this client:
-    RTCPSourceRecord* source = (RTCPSourceRecord*)(fClientRTCPSourceRecords->Lookup((char const*)clientSessionId));
+    RTCPSourceRecord* source = (RTCPSourceRecord*)(fClientRTCPSourceRecords->Lookup((char const*)(long)clientSessionId));
     if (source != NULL) {
       fRTCPInstance->setSpecificRRHandler(source->addr, source->port,
 					  rtcpRRHandler, rtcpRRHandlerClientData);
@@ -216,13 +216,13 @@ void PassiveServerMediaSubsession
 
 void PassiveServerMediaSubsession::deleteStream(unsigned clientSessionId, void*& /*streamToken*/) {
   // Lookup and remove the 'RTCPSourceRecord' for this client.  Also turn off RTCP "RR" handling:
-  RTCPSourceRecord* source = (RTCPSourceRecord*)(fClientRTCPSourceRecords->Lookup((char const*)clientSessionId));
+  RTCPSourceRecord* source = (RTCPSourceRecord*)(fClientRTCPSourceRecords->Lookup((char const*)(long)clientSessionId));
   if (source != NULL) {
     if (fRTCPInstance != NULL) {
       fRTCPInstance->unsetSpecificRRHandler(source->addr, source->port);
     }
 
-    fClientRTCPSourceRecords->Remove((char const*)clientSessionId);
+    fClientRTCPSourceRecords->Remove((char const*)(long)clientSessionId);
     delete source;
   }
 }

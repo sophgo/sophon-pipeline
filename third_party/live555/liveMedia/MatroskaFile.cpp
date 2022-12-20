@@ -636,13 +636,13 @@ MatroskaTrackTable::~MatroskaTrackTable() {
 } 
 
 void MatroskaTrackTable::add(MatroskaTrack* newTrack, unsigned trackNumber) {
-  if (newTrack != NULL && newTrack->trackNumber != 0) fTable->Remove((char const*)newTrack->trackNumber);
-  MatroskaTrack* existingTrack = (MatroskaTrack*)fTable->Add((char const*)trackNumber, newTrack);
+  if (newTrack != NULL && newTrack->trackNumber != 0) fTable->Remove((char const*)(long)newTrack->trackNumber);
+  MatroskaTrack* existingTrack = (MatroskaTrack*)fTable->Add((char const*)(long)trackNumber, newTrack);
   delete existingTrack; // in case it wasn't NULL
 }
 
 MatroskaTrack* MatroskaTrackTable::lookup(unsigned trackNumber) {
-  return (MatroskaTrack*)fTable->Lookup((char const*)trackNumber);
+  return (MatroskaTrack*)fTable->Lookup((char const*)(long)trackNumber);
 }
 
 unsigned MatroskaTrackTable::numTracks() const { return fTable->numEntries(); }
@@ -730,16 +730,16 @@ FramedSource* MatroskaDemux::newDemuxedTrackByTrackNumber(unsigned trackNumber) 
   if (trackNumber == 0) return NULL;
 
   FramedSource* trackSource = new MatroskaDemuxedTrack(envir(), trackNumber, *this);
-  fDemuxedTracksTable->Add((char const*)trackNumber, trackSource);
+  fDemuxedTracksTable->Add((char const*)(long)trackNumber, trackSource);
   return trackSource;
 }
 
 MatroskaDemuxedTrack* MatroskaDemux::lookupDemuxedTrack(unsigned trackNumber) {
-  return (MatroskaDemuxedTrack*)fDemuxedTracksTable->Lookup((char const*)trackNumber);
+  return (MatroskaDemuxedTrack*)fDemuxedTracksTable->Lookup((char const*)(long)trackNumber);
 }
 
 void MatroskaDemux::removeTrack(unsigned trackNumber) {
-  fDemuxedTracksTable->Remove((char const*)trackNumber);
+  fDemuxedTracksTable->Remove((char const*)(long)trackNumber);
   if (fDemuxedTracksTable->numEntries() == 0) {
     // We no longer have any demuxed tracks, so delete ourselves now:
     Medium::close(this);

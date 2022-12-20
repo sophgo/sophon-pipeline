@@ -182,7 +182,7 @@ FramedSource* MPEG2TransportFileServerMediaSubsession
     ClientTrickPlayState* client = lookupClient(clientSessionId);
     if (client == NULL) {
       client = newClientTrickPlayState();
-      fClientSessionHashTable->Add((char const*)clientSessionId, client);
+      fClientSessionHashTable->Add((char const*)(long)clientSessionId, client);
     }
     client->setSource(framer);
   }
@@ -216,7 +216,7 @@ float MPEG2TransportFileServerMediaSubsession::duration() const {
 
 ClientTrickPlayState* MPEG2TransportFileServerMediaSubsession
 ::lookupClient(unsigned clientSessionId) {
-  return (ClientTrickPlayState*)(fClientSessionHashTable->Lookup((char const*)clientSessionId));
+  return (ClientTrickPlayState*)(fClientSessionHashTable->Lookup((char const*)(long)clientSessionId));
 }
 
 
