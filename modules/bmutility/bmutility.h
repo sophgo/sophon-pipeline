@@ -145,6 +145,7 @@ namespace bm {
 
         std::vector<int> m_shape;
         int m_dtype {-1};
+        bool m_can_mmap {false};
 
         bool update_shape() {
             bool changed = false;
@@ -165,6 +166,7 @@ namespace bm {
                 m_tensor_elem_count = std::accumulate(m_shape.begin(), m_shape.end(), 1,
                                                  std::multiplies<int>());
             }
+            return changed;
         }
 
         void update_dtype() {
@@ -191,14 +193,21 @@ namespace bm {
                    bm_tensor_t *tensor) : m_handle(handle), m_name(name),
                                           m_cpu_data(nullptr), m_scale(scale),
                                           m_tensor(tensor)
-                                          {
-
-                                          }
+        {
+            struct bm_misc_info misc_info;
+            bm_status_t ret = bm_get_misc_info(handle, &misc_info);
+            assert(BM_SUCCESS == ret);
+            m_can_mmap = misc_info.pcie_soc_mode == 1;
+        }
 
         virtual ~BMNNTensor() {
-            if (m_cpu_data != NULL) {
+            if (m_cpu_data == nullptr) return;
+            if(m_can_mmap && BM_FLOAT32 == m_tensor->dtype) {
+                int tensor_size = bm_mem_get_device_size(m_tensor->device_mem);
+                bm_status_t ret = bm_mem_unmap_device_mem(m_handle, m_cpu_data, tensor_size);
+                assert(BM_SUCCESS == ret);
+            } else {
                 delete [] m_cpu_data;
-                m_cpu_data = NULL;
             }
         }
 
@@ -224,34 +233,66 @@ namespace bm {
         }
 
         float *get_cpu_data() {
-            if (m_cpu_data == NULL) {
-                bm_status_t ret;
-                float *pFP32 = nullptr;
-                int count = bmrt_shape_count(&m_tensor->shape);
+            if(m_cpu_data) return m_cpu_data;
+            bm_status_t ret;
+            float *pFP32 = nullptr;
+            int count = bmrt_shape_count(&m_tensor->shape);
+            // in SOC mode, device mem can be mapped to host memory, faster then using d2s
+            if(m_can_mmap) {
+                if (m_tensor->dtype == BM_FLOAT32) {
+                    unsigned long long  addr;
+                    ret = bm_mem_mmap_device_mem(m_handle, &m_tensor->device_mem, &addr);
+                    assert(BM_SUCCESS == ret);
+                    ret = bm_mem_invalidate_device_mem(m_handle, &m_tensor->device_mem);
+                    assert(BM_SUCCESS == ret);
+                    pFP32 = (float*)addr;
+                } else if (BM_INT8 == m_tensor->dtype) {
+                    int8_t * pI8 = nullptr;
+                    unsigned long long  addr;
+                    ret = bm_mem_mmap_device_mem(m_handle, &m_tensor->device_mem, &addr);
+                    assert(BM_SUCCESS == ret);
+                    ret = bm_mem_invalidate_device_mem(m_handle, &m_tensor->device_mem);
+                    assert(BM_SUCCESS == ret);
+                    pI8 = (int8_t*)addr;
+
+                    // dtype convert
+                    pFP32 = new float[count];
+                    assert(pFP32 != nullptr);
+                    for(int i = 0;i < count; ++ i) {
+                    pFP32[i] = pI8[i] * m_scale;
+                    }
+                    ret = bm_mem_unmap_device_mem(m_handle, pI8, bm_mem_get_device_size(m_tensor->device_mem));
+                    assert(BM_SUCCESS == ret);
+                } else{
+                    std::cout << "NOT support dtype=" << m_tensor->dtype << std::endl;
+                }
+            } else {
+                // the common method using d2s
                 if (m_tensor->dtype == BM_FLOAT32) {
                     pFP32 = new float[count];
                     assert(pFP32 != nullptr);
                     ret = bm_memcpy_d2s_partial(m_handle, pFP32, m_tensor->device_mem, count * sizeof(float));
                     assert(BM_SUCCESS ==ret);
-                }else if (BM_INT8 == m_tensor->dtype) {
+                } else if (BM_INT8 == m_tensor->dtype) {
+                    int8_t * pI8 = nullptr;
                     int tensor_size = bmrt_tensor_bytesize(m_tensor);
-                    int8_t *pU8 = new int8_t[tensor_size];
-                    assert(pU8 != nullptr);
+                    pI8 = new int8_t[tensor_size];
+                    assert(pI8 != nullptr);
+
+                    // dtype convert
                     pFP32 = new float[count];
                     assert(pFP32 != nullptr);
-                    ret = bm_memcpy_d2s_partial(m_handle, pU8, m_tensor->device_mem, tensor_size);
+                    ret = bm_memcpy_d2s_partial(m_handle, pI8, m_tensor->device_mem, tensor_size);
                     assert(BM_SUCCESS ==ret);
                     for(int i = 0;i < count; ++ i) {
-                        pFP32[i] = pU8[i] * m_scale;
+                    pFP32[i] = pI8[i] * m_scale;
                     }
-                    delete [] pU8;
-                }else{
+                    delete [] pI8;
+                } else{
                     std::cout << "NOT support dtype=" << m_tensor->dtype << std::endl;
                 }
-
-                m_cpu_data = pFP32;
             }
-
+            m_cpu_data = pFP32;
             return m_cpu_data;
         }
 
@@ -445,12 +486,13 @@ namespace bm {
                 return -1;
             }
 
-	    /* wait for inference done */
-	    bm_status_t res = (bm_status_t)bm_thread_sync (m_handle);
-	    if (res != BM_SUCCESS) {
-	        std::cout << "bm_thread_sync: Failed to sync: " << m_netinfo->name << " inference" << std::endl;
-	        return -1;
+            /* wait for inference done */
+            bm_status_t res = (bm_status_t)bm_thread_sync (m_handle);
+            if (res != BM_SUCCESS) {
+                std::cout << "bm_thread_sync: Failed to sync: " << m_netinfo->name << " inference" << std::endl;
+                return -1;
             }
+
 #if 0
             for(int i = 0;i < m_netinfo->output_num; ++i) {
                 auto tensor = m_outputTensors[i];
@@ -471,12 +513,12 @@ namespace bm {
                 return -1;
             }
 
-	    /* wait for inference done */
-	    bm_status_t res = (bm_status_t)bm_thread_sync (m_handle);
-	    if (res != BM_SUCCESS) {
-	        std::cout << "bm_thread_sync: Failed to sync: " << m_netinfo->name << " inference" << std::endl;
-	        return -1;
-	    }
+            /* wait for inference done */
+            bm_status_t res = (bm_status_t)bm_thread_sync (m_handle);
+            if (res != BM_SUCCESS) {
+                std::cout << "bm_thread_sync: Failed to sync: " << m_netinfo->name << " inference" << std::endl;
+                return -1;
+            }
 
             return 0;
         }
@@ -494,7 +536,7 @@ namespace bm {
                 return -1;
             }
 
-	    /* wait for inference done */
+            /* wait for inference done */
             bm_status_t res = (bm_status_t)bm_thread_sync (m_handle);
             if (res != BM_SUCCESS) {
                 std::cout << "bm_thread_sync: Failed to sync: " << m_netinfo->name << " inference" << std::endl;
