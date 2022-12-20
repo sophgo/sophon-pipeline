@@ -191,7 +191,9 @@ public:
         if (json_node.isMember(phrase)) {
             SConcurrencyConfig cfg(json_node[phrase]);
             m_concurrency.insert(std::make_pair(phrase, cfg));
-        }
+            return true;
+	}
+	return false;
     }
 
     bool get_phrase_config(const char* phrase, SConcurrencyConfig& cfg) {

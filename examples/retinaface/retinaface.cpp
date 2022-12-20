@@ -292,6 +292,7 @@ int Retinaface::preprocess(
     }
     impl_->resized_pool->free(resized_images.size(), resized_images.data());
     if (w_) w_->mark("preprocess");
+    return 0;
 }
 
 int Retinaface::forward(std::vector<bm::FrameInfo> &frame_infos)
@@ -315,6 +316,7 @@ int Retinaface::forward(std::vector<bm::FrameInfo> &frame_infos)
             frame_info.output_tensors.size());
     }
     if (w_) w_->mark("forward");
+    return 0;
 }
 
 int Retinaface::postprocess(std::vector<bm::FrameInfo> &frame_infos)
@@ -357,6 +359,7 @@ int Retinaface::postprocess(std::vector<bm::FrameInfo> &frame_infos)
 
     }
     if (w_) w_->mark("postprocess");
+    return 0;
 }
 
 bm::BMNNTensorPtr Retinaface::get_output_tensor(

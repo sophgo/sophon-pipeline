@@ -161,7 +161,7 @@ int YoloV5::preprocess(std::vector<bm::FrameBaseInfo>& frames, std::vector<bm::F
         frame_infos.push_back(finfo);
     }
 
-
+    return ret;
 }
 
 int YoloV5::forward(std::vector<bm::FrameInfo>& frame_infos)
@@ -182,7 +182,7 @@ int YoloV5::forward(std::vector<bm::FrameInfo>& frame_infos)
         assert(BM_SUCCESS == ret);
     }
 
-    return 0;
+    return ret;
 }
 
 int YoloV5::postprocess(std::vector<bm::FrameInfo> &frame_infos)
@@ -221,6 +221,7 @@ int YoloV5::postprocess(std::vector<bm::FrameInfo> &frame_infos)
         }
 
     }
+    return 0;
 }
 
 float YoloV5::sigmoid(float x)
