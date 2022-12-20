@@ -26,9 +26,13 @@ Play streams from this server using the URL
 
 **soc模式下无可视化界面**
 
-## 2 运行
+## 2 编译
 
-### 2.1 配置文件
+请参考[sophon-pipeline编译](../README.md#23-编译指令)
+
+## 3 运行
+
+### 3.1 配置文件
 
 运行请注意修改`${SOPHON_PIPELINE}/release/video_stitch_demo/cameras_video_stitch.json`配置：
 
@@ -80,7 +84,7 @@ Play streams from this server using the URL
 >
 > 线程数和队列长度可根据设备情况自行定义。原则上，预处理线程数和后处理线程数设置为设备的逻辑CPU的个数。推理线程数单个pipeline一般为1。
 
-### 2.2 运行方法
+### 3.2 运行方法
 
   > **NOTE**  
   > video_stitch_1684X模型NAS云盘下载地址：[yolov5s-640x384-int8-4b-1684x.bmodel](http://219.142.246.77:65000/sharing/eEe5HvnHQ)
@@ -101,7 +105,7 @@ Usage: video_stitch_demo [params]
         
 ```
 
-#### 2.2.1 x86 PCIe
+#### 3.2.1 x86 PCIe
 
 **以设置`cameras_video_stitch.json`的`chan_num=1`为例**测试示例如下：
 
@@ -135,7 +139,7 @@ cd ${SOPHON_PIPELINE}/release/video_stitch_demo
 ...
 ```
 
-#### 2.2.2 arm SoC
+#### 3.2.2 arm SoC
 
 交叉编译好的`${SOPHON_PIPELINE}/release/video_stitch_demo`文件夹下的`cameras_video_stitch.json`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_video_stitch.json的相应配置，运行：
 

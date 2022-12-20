@@ -7,10 +7,13 @@
 - 使用pipeline运行yolov5目标检测。
 - 当运行N路FPS为M的视频码流时，检测器`det`的FPS达到`N * M / (1 + [skip])`或者平均单路speed达到`M / (1 + [skip])`，其中`[skip]`为隔帧检测的跳帧数量。说明当前环境下，能够满足跳帧数为`[skip]`帧的N路FPS为M的视频码流的处理
 
+## 2 编译
 
-## 2 运行
+请参考[sophon-pipeline编译](../README.md#23-编译指令)
 
-### 2.1 配置文件
+## 3 运行
+
+### 3.1 配置文件
 
 运行请注意修改`${SOPHON_PIPELINE}/release/yolov5s_demo/cameras_yolov5.json`配置：
 
@@ -63,7 +66,7 @@
 > 
 > 线程数和队列长度可根据设备情况自行定义。原则上，预处理线程数和后处理线程数设置为设备的逻辑CPU的个数。推理线程数单个pipeline一般为1。
 
-### 2.2 运行方法
+### 3.2 运行方法
 
   > **NOTE**  
   > yolov5_1684模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684.bmodel](http://219.142.246.77:65000/sharing/0IAlz5YOk)
@@ -83,7 +86,7 @@ Usage: yolov5s_demo [params]
                 打印帮助信息
 ```
 
-#### 2.2.1 x86 PCIe
+#### 3.2.1 x86 PCIe
 
 **以设置`cameras_yolov5.json`的`chan_num=1`为例**测试示例如下：
 
@@ -112,7 +115,7 @@ cd ${SOPHON_PIPELINE}/release/yolov5s_demo
 ...
 ```
 
-#### 2.2.2 arm SoC
+#### 3.2.2 arm SoC
 
 将交叉编译好的`${SOPHON_PIPELINE}/release/yolov5s_demo`文件夹下的`cameras_yolov5.json`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_yolov5.json的相应配置，运行：
 
@@ -141,6 +144,6 @@ cd ${SOPHON_PIPELINE_YOLOV5}
 ...
 ```
 
-### 2.3 可视化
+### 3.3 可视化
 
 - 使用[pipeline_client](./pipeline_client_visualization.md)显示实时流和检测结果
