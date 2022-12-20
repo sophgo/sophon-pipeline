@@ -652,7 +652,7 @@ unsigned MPEG4VideoStreamParser::parseVideoObjectPlane() {
       setParseState(PARSING_VIDEO_OBJECT_PLANE);
     } else {
       usingSource()->envir() << "MPEG4VideoStreamParser::parseVideoObjectPlane(): Saw unexpected code "
-			     << (void*)next4Bytes << "\n";
+			     << (void*)(long)next4Bytes << "\n";
       setParseState(PARSING_VIDEO_OBJECT_PLANE); // the safest way to recover...
     }
     break;

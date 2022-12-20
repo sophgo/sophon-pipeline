@@ -39,7 +39,8 @@ public:
 
     int encode(std::vector<bm::FrameBaseInfo> &frames) override;
 
-    inline bool setHandle(bm_handle_t handle) { m_handle = handle; }
+    inline bool setHandle(bm_handle_t handle) { m_handle = handle; 
+    return 0;}
 private:
     int m_chan_start;
     int m_chan_count;

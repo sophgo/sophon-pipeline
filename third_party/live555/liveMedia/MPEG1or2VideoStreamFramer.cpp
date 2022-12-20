@@ -460,7 +460,7 @@ unsigned MPEG1or2VideoStreamParser::parseSlice() {
     }
     default: {
       usingSource()->envir() << "MPEG1or2VideoStreamParser::parseSlice(): Saw unexpected code "
-			    << (void*)next4Bytes << "\n";
+			    << (void*)(long)next4Bytes << "\n";
       setParseState(PARSING_SLICE); // the safest way to recover...
       break;
     }
