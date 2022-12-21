@@ -140,7 +140,7 @@ int OpenPose::preprocess(std::vector<bm::FrameBaseInfo>& frames, std::vector<bm:
         frame_infos.push_back(finfo);
     }
 
-
+    return ret;
 }
 
 int OpenPose::forward(std::vector<bm::FrameInfo>& frame_infos)
@@ -199,6 +199,7 @@ int OpenPose::postprocess(std::vector<bm::FrameInfo> &frame_infos) {
         }
 
     }
+    return 0;
 }
 
 bm::BMNNTensorPtr OpenPose::get_output_tensor(const std::string &name, bm::FrameInfo &frame_info, float scale) {

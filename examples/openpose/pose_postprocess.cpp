@@ -193,6 +193,7 @@ int OpenPosePostProcess::Nms(PoseBlobPtr bottom_blob, PoseBlobPtr top_blob, floa
             top_ptr += top_plane_offset;
         }
     }
+    return 0;
 }
 
 std::vector<unsigned int> OpenPosePostProcess::getPosePairs(bm::PoseKeyPoints::EModelType model_type) {
@@ -654,5 +655,6 @@ int OpenPosePostProcess::getKeyPoints(bm::BMNNTensorPtr outputTensorPtr, cv::Siz
         poseKeyPoints.modeltype = model_type;
         body_keypoints.push_back(poseKeyPoints);
     }
+    return 0;
 }
 
