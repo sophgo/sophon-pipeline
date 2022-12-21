@@ -275,6 +275,7 @@ int FaceDetector::postprocess(std::vector<bm::FrameInfo> &frames)
         }
 
     }
+    return 0;
 }
 
 bm::BMNNTensorPtr FaceDetector::get_output_tensor(const std::string &name, bm::FrameInfo& frame_info, float scale=1.0) {
