@@ -333,10 +333,11 @@ void YoloV5::extract_yolobox_cpu(bm::FrameInfo& frameInfo)
             for (int i = 0; i < box_num; i++) {
                 float *ptr = output_data + i * nout;
                 float score = ptr[4];
-                int class_id = argmax(&ptr[5], m_class_num);
-                float confidence = ptr[class_id + 5];
-                if (confidence * score >= m_obj_thres) {
-                    if (score >= m_cls_thres) {
+                if (score >= m_cls_thres) {
+                    int class_id = argmax(&ptr[5], m_class_num);
+                    float confidence = ptr[class_id + 5];
+
+                    if (confidence * score >= m_obj_thres) {
                         bm::NetOutputObject box;
                         box.score = confidence * score;
 
@@ -350,7 +351,6 @@ void YoloV5::extract_yolobox_cpu(bm::FrameInfo& frameInfo)
                         box.y2  = box.y1 + height;
                         box.class_id = class_id;
                         yolobox_vec.push_back(box);
-
                     }
                 }
             }
@@ -367,27 +367,27 @@ void YoloV5::extract_yolobox_cpu(bm::FrameInfo& frameInfo)
                     float *ptr = output_data + anchor_idx*feature_size;
                     for (int i = 0; i < area; i++) {
                         float score = sigmoid(ptr[4]);
-                        int class_id = argmax(&ptr[5], m_class_num);
-                        float confidence = sigmoid(ptr[class_id + 5]);
-                        if((confidence * score > m_obj_thres) && (score >= m_cls_thres))
-                        {
-                            float centerX = (sigmoid(ptr[0]) * 2 - 0.5 + i % feat_w) * m_net_w / feat_w;
-                            float centerY = (sigmoid(ptr[1]) * 2 - 0.5 + i / feat_w) * m_net_h / feat_h; //center_y
-                            centerX = (centerX - tx1)/ratio-1;
-                            centerY = (centerY - ty1)/ratio-1;
-                            float width   = pow((sigmoid(ptr[2]) * 2), 2) * m_anchors[tidx][anchor_idx][0] / ratio; //w
-                            float height  = pow((sigmoid(ptr[3]) * 2), 2) * m_anchors[tidx][anchor_idx][1] / ratio; //h
-                            bm::NetOutputObject box;
-                            box.x1  = int(centerX - width  / 2);
-                            box.y1  = int(centerY - height / 2);
-                            box.x2  = box.x1 + width;
-                            box.y2  = box.y1 + height;
-                            
-                            box.score = confidence * score;
-                            box.class_id = class_id;
+                        if (score >= m_cls_thres) {
+                            int class_id = argmax(&ptr[5], m_class_num);
+                            float confidence = sigmoid(ptr[class_id + 5]);
+                            if (confidence * score > m_obj_thres) {
+                                float centerX = (sigmoid(ptr[0]) * 2 - 0.5 + i % feat_w) * m_net_w / feat_w;
+                                float centerY = (sigmoid(ptr[1]) * 2 - 0.5 + i / feat_w) * m_net_h / feat_h; //center_y
+                                centerX = (centerX - tx1)/ratio-1;
+                                centerY = (centerY - ty1)/ratio-1;
+                                float width   = pow((sigmoid(ptr[2]) * 2), 2) * m_anchors[tidx][anchor_idx][0] / ratio; //w
+                                float height  = pow((sigmoid(ptr[3]) * 2), 2) * m_anchors[tidx][anchor_idx][1] / ratio; //h
+                                bm::NetOutputObject box;
+                                box.x1  = int(centerX - width  / 2);
+                                box.y1  = int(centerY - height / 2);
+                                box.x2  = box.x1 + width;
+                                box.y2  = box.y1 + height;
+                                
+                                box.score = confidence * score;
+                                box.class_id = class_id;
 
-                            yolobox_vec.push_back(box);
-                            
+                                yolobox_vec.push_back(box);
+                            }
                         }
                         ptr += (m_class_num + 5);
                     }
