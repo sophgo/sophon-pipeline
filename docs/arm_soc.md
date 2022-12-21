@@ -56,7 +56,7 @@ cd rootfs
 sudo qemu-debootstrap --arch=arm64 focal .
 sudo chroot . qemu-aarch64-static /bin/bash
 
-# 进入qemu 后，安装libeigen3-dev、libgflags-dev、libgoogle-glog-dev
+# 进入qemu 后，安装libgflags-dev、libgoogle-glog-dev
 apt-get install -y software-properties-common
 apt-add-repository universe
 apt-get update
