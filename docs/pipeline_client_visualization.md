@@ -40,13 +40,15 @@ sophon-pipeline配套客户端，用来显示实时流和检测结果。
 ### UDP
 
 1. 启动pipeline_client，填入当前设备的ip和端口：udp://123.45.67.89:9527
-2. 服务端配置`.json`的`output_path`参数为udp://123.45.67.89:9527，运行pipeline-sophon例程运行程序
+2. 服务端配置`.json`的`output_path`参数为udp://123.45.67.89:9527，运行sophon-pipeline例程运行程序
 3. 稍等片刻，pipeline_client可见画面
+
+> 注意：使用UDP方式，如果客户端和服务端处于不同的设备时，会存在丢帧或花屏属于正常现象
 
 ### TCP
 
 1. 必须先启动pipeline_client，填入本机的ip和端口：tcp://123.45.67.89:9527
-2. 服务端配置`.json`的`output_path`参数为tcp://123.45.67.89:9527，运行pipeline-sophon例程程序
+2. 服务端配置`.json`的`output_path`参数为tcp://123.45.67.89:9527，运行sophon-pipeline例程程序
 3. 稍等片刻，pipeline_client可见画面
 
 ### RTSP
