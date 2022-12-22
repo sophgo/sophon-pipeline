@@ -13,9 +13,10 @@ sophon-pipeline配套客户端，用来显示实时流和检测结果。
 
 ## 使用条件
 
-- 客户端(pipeline_client运行的设备)和服务端(sophon-pipeline例程程序运行的设备)必须网络连通：
+- 客户端(pipeline_client运行的设备)和服务端(sophon-pipeline例程程序运行的设备)必须网络连通，可参考以下方式测试网络连通性：
   1. 端口号配置为一个未被占用的端口(可使用netstat等命令查看)；
-  2. 在服务端输入telnet {ip} {port} 测试网络连通；
+  2. 输入 ping {ip}，测试网络的连通情况；
+  3. 输入telnet {ip} {port}，测试网络的连通情况；
 - 运行可用pipeline_client可视化的例程(video_stitch、multi不使用pipeline_client)
 
 ## 参数说明
