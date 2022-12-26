@@ -113,3 +113,7 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev libexiv2-dev
 - [multi](./docs/multi.md)
 
 - [face_recognition](./docs/face_recognition.md)
+
+## 4 FAQ
+
+请参考[sophon-pipeline常见问题及解答](./docs/FAQ.md)

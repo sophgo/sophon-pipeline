@@ -11,6 +11,11 @@ set(rtsp_srcs
     rtsp/H264QueMediaSubsession.cpp
 )
 set(src_files main.cpp worker.cpp yolov5s.cpp stitch.cpp encoder.cpp ${rtsp_srcs})
+
+if(USE_DEBUG)
+    add_definitions(-DUSE_DEBUG=1)
+endif()
+
 include_directories(
         ${TOP}/third_party/live555/liveMedia/include/
         ${TOP}/third_party/live555/groupsock/include/
