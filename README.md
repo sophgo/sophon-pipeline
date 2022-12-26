@@ -15,17 +15,17 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 
 **主要目录结构和模块说明：**
 
-| 目录                   | 模块                                    | 功能说明                                                     |
-| ---------------------- | --------------------------------------- | ------------------------------------------------------------ |
-| [modules](./modules)   | [bmgui](./modules/bmgui)                | 存放Sophon Pipeline用来GUI显示视频的模块                     |
-|                        | [bmgui-lite](./modules/bmgui-lite)      | 由于SDK自带的OpenCV没有显示功能，此模块提供bm::imshow来显示视频，作为补充。 |
-|                        | [bmutility](./modules/bmutility)        | 提供了基础库，字符串、定时器等                               |
-|                        | [tracker](./modules/tracker)            | 提供了CPU跟踪模块                                            |
-| [examples](./examples) | [cvs10](./examples/cvs10)               | 提供了算能一路的参考实现                                     |
-|                        | [cvs11](./examples/cvs11)               | 提供了算能一路的参考实现                                     |
-|                        | [yolov5](./examples/yolov5)             | yolov5s目标检测                                              |
-|                        | [video_stitch](./examples/video_stitch) | 4路yolov5s目标检测 + 拼接 + 编码 + RTSP服务                  |
-|                        | [retinaface](./examples/retinaface)     | retinaface人脸检测                                           |
+| 目录                   | 模块                                            | 功能说明                                                     |
+| ---------------------- | ----------------------------------------------- | ------------------------------------------------------------ |
+| [modules](./modules)   | [bmgui](./modules/bmgui)                        | 存放Sophon Pipeline用来GUI显示视频的模块                     |
+|                        | [bmgui-lite](./modules/bmgui-lite)              | 由于SDK自带的OpenCV没有显示功能，此模块提供bm::imshow来显示视频，作为补充。 |
+|                        | [bmutility](./modules/bmutility)                | 提供了基础库，字符串、定时器等                               |
+|                        | [tracker](./modules/tracker)                    | 提供了CPU跟踪模块                                            |
+| [examples](./examples) | [yolov5](./examples/yolov5)                     | yolov5s目标检测                                              |
+|                        | [video_stitch](./examples/video_stitch)         | 4路yolov5s目标检测 + 拼接 + 编码 + RTSP服务                  |
+|                        | [retinaface](./examples/retinaface)             | retinaface人脸检测                                           |
+|                        | [multi](./examples/multi)                       | 并联运行两个yolov5目标检测                                   |
+|                        | [face_recognition](./examples/face_recognition) | 串联运行人脸检测 + 人脸关键点 + 人脸特征提取                 |
 
 **Sophon Pipeline的主要结构设计如下图：** 
 
@@ -35,10 +35,9 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 
 | 版本  | 说明                                                         |
 | ----- | ------------------------------------------------------------ |
+| 0.3.0 | 添加multi、face_recognition例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC) |
 | 0.2.0 | 添加retinaface例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC) |
 | 0.1.2 | 添加yolov5、video_stitch例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC) |
-| 0.1.1 | cvs10、cvs11例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC) |
-| 0.1.0 | cvs10、cvs11例程，适配1684x(x86 PCIe)                        |
 
 ## 2 编译方法
 
@@ -58,10 +57,9 @@ sophon-pipeline主要依赖
 
 | sophon-pipeline版本 | 依赖的libsophon版本 | 依赖的sophon-ffmpeg版本 | 依赖的sophon-opencv版本 |
 | ------------------- | ------------------- | ----------------------- | ----------------------- |
+| 0.3.0               | >=0.4.3             | >=0.5.0                 | >=0.5.0                 |
 | 0.2.0               | >=0.4.2             | >=0.4.0                 | >=0.4.0                 |
 | 0.1.2               | >=0.4.1             | >=0.3.1                 | >=0.3.1                 |
-| 0.1.1               | >=0.3.0             | >=0.2.4                 | >=0.2.4                 |
-| 0.1.0               | >=0.2.3             | >=0.2.4                 | >=0.2.4                 |
 
 #### 2.2.1 x86 PCIe平台
 
@@ -106,13 +104,16 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev libexiv2-dev
 
 ## 3 运行方法
 
----
-- [cvs10](./docs/cvs10.md)
-
-- [cvs11](./docs/cvs11.md)
-
 - [yolov5](./docs/yolov5.md)
 
 - [video_stitch](./docs/video_stitch.md)
 
 - [retinaface](./docs/retinaface.md)
+
+- [multi](./docs/multi.md)
+
+- [face_recognition](./docs/face_recognition.md)
+
+## 4 FAQ
+
+请参考[sophon-pipeline常见问题及解答](./docs/FAQ.md)

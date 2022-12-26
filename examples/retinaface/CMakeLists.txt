@@ -3,6 +3,10 @@ add_compile_options(-Wno-deprecated-declarations)
 
 # find_package(exiv2 REQUIRED)
 
+if(USE_DEBUG)
+    add_definitions(-DUSE_DEBUG=1)
+endif()
+
 add_executable(retinaface_demo main.cpp worker.cpp retinaface.cpp)
 
 if (USE_QTGUI)
