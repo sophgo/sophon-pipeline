@@ -21,7 +21,7 @@
       "devid": 0,												# 设备id
       "cameras": [												# 若需要配置多个视频码流，可以在cameras下添加多组address和chan_num信息。若配置了多个address或多个cards，总的视频码流路数为所有的[chan_num]数量之和
         {
-          "address": "./elevator-1080p-25fps-4000kbps.h264",	# 需要测试视频码流的地址
+          "address": "./elevator-1080p-25fps-4000kbps.h264",	# 需要测试视频码流的地址，如果是本地文件，只支持h264/h265格式
           "chan_num": 1,										# 将内容为上述[address]的视频码流配置[chan_num]数量的路数。默认设置为1，会接入1路的内容为上述[address]的视频码流。
           "model_names": ["ex1"]								# 测试该[address]视频码流的模型名称，需要和此配置文件下面的[models]参数内的模型自定义名称[name]一致，表示使用该模型，多个模型的名字用逗号分开。
         }
@@ -48,7 +48,7 @@
       "name": "ex1",											# 对应于[path]的模型自定义名称
       "path": "your_bmodel_path.bmodel",	        			# 对应[name]的bmodel模型的路径
       "skip_frame_num": 0,										# 隔帧检测的跳帧数量。当设置为0时表示程序不跳帧检测，当设置为1时表示程序每间隔1帧做一次模型的pipeline。
-      "output_path": "output_path",                     		# 输出地址，只支持rtsp，tcp，udp 格式为protocol://ip:port/, 例如rtsp://192.168.0.1:8080/test ， tcp://172.28.1.1:5353。对于rtsp推流，地址为rtsp server配置的地址。对于tcp和udp，需要开放自己配置的端口。
+      "output_path": "output_path",                     		# 输出地址，只支持rtsp，tcp，udp 格式为protocol://ip:port/, 例如rtsp://192.168.0.1:8554/test ， tcp://172.28.1.1:5353。对于rtsp推流，地址为rtsp server配置的地址。对于tcp和udp，需要开放自己配置的端口。
       
       "obj_threshold": 0.05,										# 对应[path]的bmodel模型画框的置信度阈值
       "nms_threshold": 0.5										# 对应[path]的bmodel模型后处理的非极大值抑制阈值
