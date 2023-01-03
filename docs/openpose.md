@@ -21,7 +21,7 @@
       "devid": 0,												# 设备id
       "cameras": [												# 若需要配置多个视频码流，可以在cameras下添加多组address和chan_num信息。若配置了多个address或多个cards，总的视频码流路数为所有的[chan_num]数量之和
         {
-          "address": "./elevator-1080p-25fps-4000kbps.h264",	# 需要测试视频码流的地址
+          "address": "./elevator-1080p-25fps-4000kbps.h264",	# 需要测试视频码流的地址，如果是本地文件，只支持h264/h265格式
           "chan_num": 1,										# 将内容为上述[address]的视频码流配置[chan_num]数量的路数。默认设置为1，会接入1路的内容为上述[address]的视频码流。
           "model_names": ["ex1"]								# 测试该[address]视频码流的模型名称，需要和此配置文件下面的[models]参数内的模型自定义名称[name]一致，表示使用该模型，多个模型的名字用逗号分开。
         }
@@ -48,7 +48,7 @@
       "name": "ex1",											# 对应于[path]的模型自定义名称
       "path": "your_bmodel_path.bmodel",	        			# 对应[name]的bmodel模型的路径。模型必须与命令行参数[model_pose]配置模型一致。
       "skip_frame_num": 0,										# 隔帧检测的跳帧数量。当设置为0时表示程序不跳帧检测，当设置为1时表示程序每间隔1帧做一次模型的pipeline。
-      "output_path": "output_path",                     		# 输出地址，只支持rtsp，tcp，udp 格式为protocol://ip:port/, 例如rtsp://192.168.0.1:8080/test ， tcp://172.28.1.1:5353。对于rtsp推流，地址为rtsp server配置的地址。对于tcp和udp，需要开放自己配置的端口。
+      "output_path": "output_path",                     		# 输出地址，只支持rtsp，tcp 格式为protocol://ip:port/, 例如rtsp://192.168.0.1:8554/test ， tcp://172.28.1.1:5353。对于rtsp推流，地址为rtsp server配置的地址。对于tcp，需要开放自己配置的端口。
       
       "obj_threshold": 0.6,										# 对应[path]的bmodel模型后处理的置信度阈值
       "nms_threshold": 0.5										# 对应[path]的bmodel模型后处理的非极大值抑制阈值
@@ -64,9 +64,13 @@
 ### 2.2 运行方法
 
   > **NOTE**  
-  > openpose_1684模型NAS云盘下载地址：
+  > openpose_coco_18_1684模型NAS云盘下载地址：[openpose_coco_18_384w_216h_4b_1684.bmodel](http://219.142.246.77:65000/sharing/BneIxUbXN)
   >
-  > openpose_1684X模型NAS云盘下载地址：
+  > openpose_coco_18_1684X模型NAS云盘下载地址：[openpose_coco_18_384w_216h_4b_1684x.bmodel](http://219.142.246.77:65000/sharing/cTjMDzwvx)
+  >
+  > openpose_body_25_1684模型NAS云盘下载地址：[openpose_body_25_384w_216h_4b_1684.bmodel](http://219.142.246.77:65000/sharing/hhbgyyXsO)
+  >
+  > openpose_body_25_1684X模型NAS云盘下载地址：[openpose_body_25_384w_216h_4b_1684x.bmodel](http://219.142.246.77:65000/sharing/VDPaMSnxl)
   >
   > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
 
@@ -76,21 +80,10 @@
 Usage: openpose_demo [params]
 		--config (value:./cameras_openpose.json)
                 cameras_openpose.json配置文件的路径，默认路径为./cameras_openpose.json。
-        --custom_scale (value:false)
-                是否使用模型自定义scale。当模型为fp32模型，则无影响；当模型为int8模型时，如果设为true，那么将使用[input_scale]和[output_scale]作为模型的scale来影响输入输出；如果设为false，那么将使用模型默认的scale。默认值为false
         --help (value:true)
                 打印帮助信息
-        --input_scale (value:253.042)
-                模型自定义输入scale，模型推理时将模型原始输入乘以此参数值。默认为253.042
         --model_pose (value:coco_18)
                 选择使用的模型。body_25表示使用25 body parts模型，coco_18表示使用18 body parts模型。默认值为coco_18。此参数必须与json配置模型一致。
-        --output_scale (value:0.00788647)
-                模型自定义输出scale，模型推理时将模型原始输出乘以此参数值。默认为0.00788647
-                
-        --config (value:./cameras_openpose.json)
-                cameras_openpose.json配置文件的路径，默认路径为./cameras_openpose.json。
-        --help (value:true)
-                打印帮助信息
 ```
 
 #### 2.2.1 x86 PCIe
@@ -100,8 +93,8 @@ Usage: openpose_demo [params]
 ```bash
 cd ${SOPHON_PIPELINE}/release/openpose_demo
 # ./x86/openpose_demo --help 查看命行帮助信息
-# 以x86 pcie 1684x为例,将下载好的openpose模型拷贝到${SOPHON_PIPELINE}/release/openpose_demo目录下运行
-./x86/openpose_demo --config=./cameras_openpose.json
+# 以x86 pcie 1684x为例,将下载好的openpose模型拷贝到${SOPHON_PIPELINE}/release/openpose_demo目录下运行。当json文件配置使用的模型为coco_18模型时，需设置--model_pose参数为coco_18，当json文件配置使用的模型为body_25模型时，需设置--model_pose参数为body_25
+./x86/openpose_demo --config=./cameras_openpose.json --model_pose=coco_18
 ```
 
 执行会打印如下信息：
@@ -130,8 +123,8 @@ cd ${SOPHON_PIPELINE}/release/openpose_demo
 ```bash
 cd ${SOPHON_PIPELINE_OPENPOSE}
 # ./soc/openpose_demo --help 查看命行帮助信息
-# 以arm SoC 1684x为例
-./soc/openpose_demo --config=./cameras_openpose.json 
+# 以arm SoC 1684x coco_18模型为例。当json文件配置使用的模型为coco_18模型时，需设置--model_pose参数为coco_18，当json文件配置使用的模型为body_25模型时，需设置--model_pose参数为body_25
+./soc/openpose_demo --config=./cameras_openpose.json --model_pose=coco_18 
 ```
 
 执行会打印如下信息：
