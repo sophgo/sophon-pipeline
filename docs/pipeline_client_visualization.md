@@ -25,9 +25,9 @@ sophon-pipeline配套客户端，用来显示实时流和检测结果。
 
 | 参数            | 说明                                                         |
 | --------------- | ------------------------------------------------------------ |
-| `input url`     | 拉流地址。支持`udp`、`tcp`、`rtsp`                           |
+| `input url`     | 拉流地址。支持`tcp`、`rtsp`                                  |
 | `Channel Num`   | 拉流路数，默认为1                                            |
-| `Use Same URL`  | `pipeline_client`内部是否使用所填`input url`进行解析。默认为不使用。**不建议**使用此选项，如果需要使用此选项，需要对`pipeline_client`内部以及`udp`、`tcp`、`rtsp`解析规则有所了解。 |
+| `Use Same URL`  | `pipeline_client`内部是否使用所填`input url`进行解析。默认为不使用。**不建议**使用此选项，如果需要使用此选项，需要对`pipeline_client`内部以及`tcp`、`rtsp`解析规则有所了解。 |
 | `Stream Format` | 拉流的格式。默认为`h264`                                     |
 | `Pixel Format`  | 拉流的像素格式，默认为`yuv420p`                              |
 | `Width`         | 拉流视频的宽度，默认为1920                                   |
@@ -36,14 +36,6 @@ sophon-pipeline配套客户端，用来显示实时流和检测结果。
 ## 运行
 
 **假设运行pipeline_client所在的设备ip为123.45.67.89，端口9527未被占用**
-
-### UDP
-
-1. 启动pipeline_client，填入当前设备的ip和端口：udp://123.45.67.89:9527
-2. 服务端配置`.json`的`output_path`参数为udp://123.45.67.89:9527，运行sophon-pipeline例程运行程序
-3. 稍等片刻，pipeline_client可见画面
-
-> 注意：使用UDP方式，如果客户端和服务端处于不同的设备时，会存在丢帧或花屏属于正常现象
 
 ### TCP
 

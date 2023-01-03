@@ -51,7 +51,7 @@
       "name": "ex1",											# 对应于[path]的模型自定义名称
       "path": "your_bmodel_path.bmodel",	        			# 对应[name]的bmodel模型的路径
       "skip_frame_num": 0,										# 隔帧检测的跳帧数量。当设置为0时表示程序不跳帧检测，当设置为1时表示程序每间隔1帧做一次模型的pipeline。
-      "output_path": "output_path",                     		# 输出地址，只支持rtsp，tcp，udp 格式为protocol://ip:port/, 例如rtsp://192.168.0.1:8554/test ， tcp://172.28.1.1:5353。对于rtsp推流，地址为rtsp server配置的地址。对于tcp和udp，需要开放自己配置的端口。
+      "output_path": "output_path",                     		# 输出地址，只支持rtsp，tcp 格式为protocol://ip:port/, 例如rtsp://192.168.0.1:8554/test ， tcp://172.28.1.1:5353。对于rtsp推流，地址为rtsp server配置的地址。对于tcp，需要开放自己配置的端口。
       
       "obj_threshold": 0.05,									# 对应[path]的bmodel模型后处理的置信度阈值
       "nms_threshold": 0.3										# 对应[path]的bmodel模型后处理的非极大值抑制阈值
