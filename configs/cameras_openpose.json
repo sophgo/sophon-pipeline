@@ -31,12 +31,9 @@
       "path": "your_bmodel_path.bmodel",
       "skip_frame_num": 0,
       "output_path": "output_path",
-
-      "obj_threshold": 0.5,
-      "nms_threshold": 0.5,
-      "class_threshold": 0.5,
-      "class_num": 80
+      "nms_threshold": 0.05
 
     }
   ]
 }
+

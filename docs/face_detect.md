@@ -1,21 +1,18 @@
-# yolov5
+# face_detect
 
 ## 1 概述
 
 ### 1.1 定义
 
-- 使用pipeline运行yolov5目标检测。
+- 使用pipeline运行face_detect人脸检测。
 - 当运行N路FPS为M的视频码流时，检测器`det`的FPS达到`N * M / (1 + [skip])`或者平均单路speed达到`M / (1 + [skip])`，其中`[skip]`为隔帧检测的跳帧数量。说明当前环境下，能够满足跳帧数为`[skip]`帧的N路FPS为M的视频码流的处理
 
-## 2 编译
 
-请参考[sophon-pipeline编译](../README.md#23-编译指令)
+## 2 运行
 
-## 3 运行
+### 2.1 配置文件
 
-### 3.1 配置文件
-
-运行请注意修改`${SOPHON_PIPELINE}/release/yolov5s_demo/cameras_yolov5.json`配置：
+运行请注意修改`${SOPHON_PIPELINE}/release/facedetect_demo/cameras_face_detect.json`配置：
 
 ```bash
 {
@@ -49,14 +46,12 @@
   "models":[
     {
       "name": "ex1",											# 对应于[path]的模型自定义名称
-      "path": "/path_to_bmodel/test.bmodel",	        		# 对应[name]的bmodel模型的路径
+      "path": "your_bmodel_path.bmodel",	        			# 对应[name]的bmodel模型的路径
       "skip_frame_num": 0,										# 隔帧检测的跳帧数量。当设置为0时表示程序不跳帧检测，当设置为1时表示程序每间隔1帧做一次模型的pipeline。
-      "output_path": "output_path",                      		# 输出地址，只支持rtsp，tcp 格式为protocol://ip:port/, 例如rtsp://192.168.0.1:8554/test ， tcp://172.28.1.1:5353。对于rtsp推流，地址为rtsp server配置的地址。对于tcp，需要开放自己配置的端口。
+      "output_path": "output_path",                     		# 输出地址，只支持rtsp，tcp 格式为protocol://ip:port/, 例如rtsp://192.168.0.1:8554/test ， tcp://172.28.1.1:5353。对于rtsp推流，地址为rtsp server配置的地址。对于tcp，需要开放自己配置的端口。
       
-      "obj_threshold": 0.5,										# 对应[path]的bmodel模型后处理的物体置信度阈值
-      "nms_threshold": 0.5,										# 对应[path]的bmodel模型后处理的非极大值抑制阈值
-      "class_threshold": 0.5,									# 对应[path]的bmodel模型后处理的类别置信度阈值
-      "class_num": 80											# 对应[path]的bmodel模型的分类数量
+      "obj_threshold": 0.05,										# 对应[path]的bmodel模型画框的置信度阈值
+      "nms_threshold": 0.5										# 对应[path]的bmodel模型后处理的非极大值抑制阈值
     }
   ]
 }
@@ -66,35 +61,35 @@
 > 
 > 线程数和队列长度可根据设备情况自行定义。原则上，预处理线程数和后处理线程数设置为设备的逻辑CPU的个数。推理线程数单个pipeline一般为1。
 
-### 3.2 运行方法
+### 2.2 运行方法
 
   > **NOTE**  
-  > yolov5_1684模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684.bmodel](http://219.142.246.77:65000/sharing/0IAlz5YOk)
+  > face_detect_1684模型NAS云盘下载地址：[face_demo.bmodel](http://219.142.246.77:65000/sharing/oD4Jb0RVZ)
   >
-  > yolov5_1684X模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/EWfwFpkoD)
+  > face_detect_1684X模型NAS云盘下载地址：[face_demo_1684X.bmodel](http://219.142.246.77:65000/sharing/Yk3o6QdXD)
   >
   > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
 
 参数说明
 
 ```bash
-Usage: yolov5s_demo [params]
+Usage: face_detect_demo [params]
 
-        --config (value:./cameras_yolov5.json)
-                cameras_yolov5.json配置文件的路径，默认路径为./cameras_yolov5.json。
+        --config (value:./cameras_face_detect.json)
+                cameras_face_detect.json配置文件的路径，默认路径为./cameras_face_detect.json。
         --help (value:true)
                 打印帮助信息
 ```
 
-#### 3.2.1 x86 PCIe
+#### 2.2.1 x86 PCIe
 
-**以设置`cameras_yolov5.json`的`chan_num=1`为例**测试示例如下：
+**以设置`cameras_face_detect.json`的`chan_num=1`为例**测试示例如下：
 
 ```bash
-cd ${SOPHON_PIPELINE}/release/yolov5s_demo
-# ./x86/yolov5 --help 查看命行帮助信息
-# 以x86 pcie 1684x为例,将下载好的yolov5模型拷贝到${SOPHON_PIPELINE}/release/yolov5s_demo目录下运行
-./x86/yolov5s_demo --config=./cameras_yolov5.json
+cd ${SOPHON_PIPELINE}/release/facedetect_demo
+# ./x86/facedetect_demo --help 查看命行帮助信息
+# 以x86 pcie 1684x为例,将下载好的face_detect模型拷贝到${SOPHON_PIPELINE}/release/facedetect_demo目录下运行
+./x86/facedetect_demo --config=./cameras_face_detect.json
 ```
 
 执行会打印如下信息：
@@ -104,26 +99,28 @@ cd ${SOPHON_PIPELINE}/release/yolov5s_demo
 # 先打印出每路(1路)视频码流及对应芯片相关信息，再打印1路检测器det的总FPS和第0路视频码流处理对应的speed信息。其中，FPS和speed信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS和speed信息有一定波动属于正常现象。FPS和speed信息如下所示：
 
 ...
-[2022-10-13:16:01:21] total fps =-nan,ch=0: speed=-nan
-[2022-10-13:16:01:22] total fps =24.0,ch=0: speed=24.0
-[2022-10-13:16:01:23] total fps =25.3,ch=0: speed=25.3
-[2022-10-13:16:01:24] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:01:25] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:01:26] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:01:27] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:01:28] total fps =25.0,ch=0: speed=25.0
+[2022-11-16:19:48:26] total fps =nan,ch=0: speed=nan
+[2022-11-16:19:48:27] total fps =25.0,ch=0: speed=25.0
+[2022-11-16:19:48:28] total fps =25.0,ch=0: speed=25.0
+[2022-11-16:19:48:29] total fps =25.0,ch=0: speed=25.0
+[2022-11-16:19:48:30] total fps =25.0,ch=0: speed=25.0
+[2022-11-16:19:48:31] total fps =25.0,ch=0: speed=25.0
+[2022-11-16:19:48:32] total fps =25.0,ch=0: speed=25.0
+[2022-11-16:19:48:33] total fps =25.0,ch=0: speed=25.0
+[2022-11-16:19:48:34] total fps =25.0,ch=0: speed=25.0
+
 ...
 ```
 
-#### 3.2.2 arm SoC
+#### 2.2.2 arm SoC
 
-将交叉编译好的`${SOPHON_PIPELINE}/release/yolov5s_demo`文件夹下的`cameras_yolov5.json`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_yolov5.json的相应配置，运行：
+将交叉编译好的`${SOPHON_PIPELINE}/release/facedetect_demo`文件夹下的`cameras_face_detect.json`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_face_detect.json的相应配置，**以设置`cameras_face_detect.json`的`chan_num=1`为例**，运行：
 
 ```bash
-cd ${SOPHON_PIPELINE_YOLOV5}
-# ./soc/yolov5 --help 查看命行帮助信息
+cd ${SOPHON_PIPELINE_FACEDETECT}
+# ./soc/facedetect_demo --help 查看命行帮助信息
 # 以arm SoC 1684x为例
-./soc/yolov5s_demo --config=./cameras_yolov5.json 
+./soc/facedetect_demo --config=./cameras_face_detect.json 
 ```
 
 执行会打印如下信息：
@@ -133,17 +130,17 @@ cd ${SOPHON_PIPELINE_YOLOV5}
 # 先打印出每路(1路)视频码流及对应芯片相关信息，再打印1路检测器det的总FPS和第0路视频码流处理对应的speed信息。其中，FPS和speed信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS和speed信息有一定波动属于正常现象。FPS和speed信息如下所示：
 
 ...
-[2022-10-13:16:00:26] total fps =nan,ch=0: speed=nan
-[2022-10-13:16:00:27] total fps =24.0,ch=0: speed=24.0
-[2022-10-13:16:00:28] total fps =24.0,ch=0: speed=24.0
-[2022-10-13:16:00:29] total fps =25.4,ch=0: speed=25.4
-[2022-10-13:16:00:30] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:00:31] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:00:32] total fps =25.0,ch=0: speed=25.0
-[2022-10-13:16:00:33] total fps =25.0,ch=0: speed=25.0
+[2022-11-16:20:07:04] total fps =nan,ch=0: speed=nan
+[2022-11-16:20:07:05] total fps =24.0,ch=0: speed=24.0
+[2022-11-16:20:07:06] total fps =25.0,ch=0: speed=25.0
+[2022-11-16:20:07:07] total fps =25.0,ch=0: speed=25.0
+[2022-11-16:20:07:08] total fps =25.0,ch=0: speed=25.0
+[2022-11-16:20:07:09] total fps =25.0,ch=0: speed=25.0
+[2022-11-16:20:07:10] total fps =25.0,ch=0: speed=25.0
+[2022-11-16:20:07:11] total fps =25.0,ch=0: speed=25.0
+
 ...
 ```
 
-### 3.3 可视化
-
+### 2.3 可视化
 - 使用[pipeline_client](./pipeline_client_visualization.md)显示实时流和检测结果

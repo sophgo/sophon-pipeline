@@ -1,21 +1,18 @@
-# retinaface
+# openpose
 
 ## 1 概述
 
 ### 1.1 定义
 
-- 使用pipeline运行retinaface人脸检测。
+- 使用pipeline运行openpose人体关键点检测。
 - 当运行N路FPS为M的视频码流时，检测器`det`的FPS达到`N * M / (1 + [skip])`或者平均单路speed达到`M / (1 + [skip])`，其中`[skip]`为隔帧检测的跳帧数量。说明当前环境下，能够满足跳帧数为`[skip]`帧的N路FPS为M的视频码流的处理
 
-## 2 编译
 
-请参考[sophon-pipeline编译](../README.md#23-编译指令)
+## 2 运行
 
-## 3 运行
+### 2.1 配置文件
 
-### 3.1 配置文件
-
-运行请注意修改`${SOPHON_PIPELINE}/release/retinaface_demo/cameras_retinaface.json`配置：
+运行请注意修改`${SOPHON_PIPELINE}/release/openpose_demo/cameras_openpose.json`配置：
 
 ```bash
 {
@@ -49,7 +46,7 @@
   "models":[
     {
       "name": "ex1",											# 对应于[path]的模型自定义名称
-      "path": "your_bmodel_path.bmodel",	        			# 对应[name]的bmodel模型的路径
+      "path": "your_bmodel_path.bmodel",	        			# 对应[name]的bmodel模型的路径。模型必须与命令行参数[model_pose]配置模型一致。
       "skip_frame_num": 0,										# 隔帧检测的跳帧数量。当设置为0时表示程序不跳帧检测，当设置为1时表示程序每间隔1帧做一次模型的pipeline。
       "output_path": "output_path",                     		# 输出地址，只支持rtsp，tcp 格式为protocol://ip:port/, 例如rtsp://192.168.0.1:8554/test ， tcp://172.28.1.1:5353。对于rtsp推流，地址为rtsp server配置的地址。对于tcp，需要开放自己配置的端口。
       
@@ -64,35 +61,40 @@
 > 
 > 线程数和队列长度可根据设备情况自行定义。原则上，预处理线程数和后处理线程数设置为设备的逻辑CPU的个数。推理线程数单个pipeline一般为1。
 
-### 3.2 运行方法
+### 2.2 运行方法
 
   > **NOTE**  
-  > retinaface_1684模型NAS云盘下载地址：[retinaface_mobilenet0.25_640w_384h_BM1684_b4.bmodel](http://219.142.246.77:65000/sharing/1gVuM4Aya)
+  > openpose_coco_18_1684模型NAS云盘下载地址：[openpose_coco_18_384w_216h_4b_1684.bmodel](http://219.142.246.77:65000/sharing/BneIxUbXN)
   >
-  > retinaface_1684X模型NAS云盘下载地址：[retinaface_mobilenet0.25_640w_384h_BM1684X_b4.bmodel](http://219.142.246.77:65000/sharing/VQ9pr10id)
+  > openpose_coco_18_1684X模型NAS云盘下载地址：[openpose_coco_18_384w_216h_4b_1684x.bmodel](http://219.142.246.77:65000/sharing/cTjMDzwvx)
+  >
+  > openpose_body_25_1684模型NAS云盘下载地址：[openpose_body_25_384w_216h_4b_1684.bmodel](http://219.142.246.77:65000/sharing/hhbgyyXsO)
+  >
+  > openpose_body_25_1684X模型NAS云盘下载地址：[openpose_body_25_384w_216h_4b_1684x.bmodel](http://219.142.246.77:65000/sharing/VDPaMSnxl)
   >
   > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
 
 参数说明
 
 ```bash
-Usage: retinaface_demo [params]
-
-        --config (value:./cameras_retinaface.json)
-                cameras_retinaface.json配置文件的路径，默认路径为./cameras_retinaface.json。
+Usage: openpose_demo [params]
+		--config (value:./cameras_openpose.json)
+                cameras_openpose.json配置文件的路径，默认路径为./cameras_openpose.json。
         --help (value:true)
                 打印帮助信息
+        --model_pose (value:coco_18)
+                选择使用的模型。body_25表示使用25 body parts模型，coco_18表示使用18 body parts模型。默认值为coco_18。此参数必须与json配置模型一致。
 ```
 
-#### 3.2.1 x86 PCIe
+#### 2.2.1 x86 PCIe
 
-**以设置`cameras_retinaface.json`的`chan_num=1`为例**测试示例如下：
+**以设置`cameras_openpose.json`的`chan_num=1`为例**测试示例如下：
 
 ```bash
-cd ${SOPHON_PIPELINE}/release/retinaface_demo
-# ./x86/retinaface_demo --help 查看命行帮助信息
-# 以x86 pcie 1684x为例,将下载好的retinaface模型拷贝到${SOPHON_PIPELINE}/release/retinaface_demo目录下运行
-./x86/retinaface_demo --config=./cameras_retinaface.json
+cd ${SOPHON_PIPELINE}/release/openpose_demo
+# ./x86/openpose_demo --help 查看命行帮助信息
+# 以x86 pcie 1684x为例,将下载好的openpose模型拷贝到${SOPHON_PIPELINE}/release/openpose_demo目录下运行。当json文件配置使用的模型为coco_18模型时，需设置--model_pose参数为coco_18，当json文件配置使用的模型为body_25模型时，需设置--model_pose参数为body_25
+./x86/openpose_demo --config=./cameras_openpose.json --model_pose=coco_18
 ```
 
 执行会打印如下信息：
@@ -102,26 +104,27 @@ cd ${SOPHON_PIPELINE}/release/retinaface_demo
 # 先打印出每路(1路)视频码流及对应芯片相关信息，再打印1路检测器det的总FPS和第0路视频码流处理对应的speed信息。其中，FPS和speed信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS和speed信息有一定波动属于正常现象。FPS和speed信息如下所示：
 
 ...
-[2022-11-07:11:42:24] total fps =nan,ch=0: speed=nan
-[2022-11-07:11:42:25] total fps =24.0,ch=0: speed=24.0
-[2022-11-07:11:42:26] total fps =26.0,ch=0: speed=26.0
-[2022-11-07:11:42:27] total fps =25.3,ch=0: speed=25.3
-[2022-11-07:11:42:28] total fps =25.0,ch=0: speed=25.0
-[2022-11-07:11:42:29] total fps =25.0,ch=0: speed=25.0
-[2022-11-07:11:42:30] total fps =25.0,ch=0: speed=25.0
-[2022-11-07:11:42:31] total fps =25.0,ch=0: speed=25.0
+[2022-11-19:01:09:29] total fps =-nan,ch=0: speed=-nan
+[2022-11-19:01:09:30] total fps =24.0,ch=0: speed=24.0
+[2022-11-19:01:09:31] total fps =24.0,ch=0: speed=24.0
+[2022-11-19:01:09:32] total fps =24.0,ch=0: speed=24.0
+[2022-11-19:01:09:33] total fps =25.0,ch=0: speed=25.0
+[2022-11-19:01:09:34] total fps =25.0,ch=0: speed=25.0
+[2022-11-19:01:09:35] total fps =25.0,ch=0: speed=25.0
+[2022-11-19:01:09:36] total fps =25.0,ch=0: speed=25.0
+[2022-11-19:01:09:37] total fps =25.0,ch=0: speed=25.0
 ...
 ```
 
-#### 3.2.2 arm SoC
+#### 2.2.2 arm SoC
 
-将交叉编译好的`${SOPHON_PIPELINE}/release/retinaface_demo`文件夹下的`cameras_retinaface.json`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_retinaface.json的相应配置，**以设置`cameras_retinaface.json`的`chan_num=1`为例**，运行：
+将交叉编译好的`${SOPHON_PIPELINE}/release/openpose_demo`文件夹下的`cameras_openpose.json`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_openpose.json的相应配置，**以设置`cameras_openpose.json`的`chan_num=1`为例**，运行：
 
 ```bash
-cd ${SOPHON_PIPELINE_RETINAFACE}
-# ./soc/retinaface_demo --help 查看命行帮助信息
-# 以arm SoC 1684x为例
-./soc/retinaface_demo --config=./cameras_retinaface.json 
+cd ${SOPHON_PIPELINE_OPENPOSE}
+# ./soc/openpose_demo --help 查看命行帮助信息
+# 以arm SoC 1684x coco_18模型为例。当json文件配置使用的模型为coco_18模型时，需设置--model_pose参数为coco_18，当json文件配置使用的模型为body_25模型时，需设置--model_pose参数为body_25
+./soc/openpose_demo --config=./cameras_openpose.json --model_pose=coco_18 
 ```
 
 执行会打印如下信息：
@@ -131,16 +134,16 @@ cd ${SOPHON_PIPELINE_RETINAFACE}
 # 先打印出每路(1路)视频码流及对应芯片相关信息，再打印1路检测器det的总FPS和第0路视频码流处理对应的speed信息。其中，FPS和speed信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS和speed信息有一定波动属于正常现象。FPS和speed信息如下所示：
 
 ...
-[2022-11-07:11:32:43] total fps =nan,ch=0: speed=nan
-[2022-11-07:11:32:44] total fps =24.0,ch=0: speed=24.0
-[2022-11-07:11:32:45] total fps =24.0,ch=0: speed=24.0
-[2022-11-07:11:32:46] total fps =25.3,ch=0: speed=25.3
-[2022-11-07:11:32:47] total fps =25.0,ch=0: speed=25.0
-[2022-11-07:11:32:48] total fps =25.0,ch=0: speed=25.0
-[2022-11-07:11:32:49] total fps =25.0,ch=0: speed=25.0
-[2022-11-07:11:32:50] total fps =25.0,ch=0: speed=25.0
+[2022-11-19:01:08:39] total fps =-nan,ch=0: speed=-nan
+[2022-11-19:01:08:40] total fps =24.0,ch=0: speed=24.0
+[2022-11-19:01:08:41] total fps =24.0,ch=0: speed=24.0
+[2022-11-19:01:08:42] total fps =24.0,ch=0: speed=24.0
+[2022-11-19:01:08:43] total fps =25.0,ch=0: speed=25.0
+[2022-11-19:01:08:44] total fps =25.0,ch=0: speed=25.0
+[2022-11-19:01:08:45] total fps =25.0,ch=0: speed=25.0
+[2022-11-19:01:08:46] total fps =25.0,ch=0: speed=25.0
 ...
 ```
 
-### 3.3 可视化
+### 2.3 可视化
 - 使用[pipeline_client](./pipeline_client_visualization.md)显示实时流和检测结果

@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef INFERENCE_FRAMEWORK_INFERENCE3_H
-#define INFERENCE_FRAMEWORK_INFERENCE3_H
+#ifndef SOPHON_PIPELINE_INFERENCE3_H
+#define SOPHON_PIPELINE_INFERENCE3_H
 
 #include "bmutility.h"
 #include "thread_queue.h"
@@ -280,4 +280,4 @@ namespace bm {
 } // end namespace bm
 
 
-#endif //INFERENCE_FRAMEWORK_INFERENCE3_H
+#endif 

@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef INFERENCE_FRAMEWORK_CONFIGURATION_H
-#define INFERENCE_FRAMEWORK_CONFIGURATION_H
+#ifndef SOPHON_PIPELINE_CONFIGURATION_H
+#define SOPHON_PIPELINE_CONFIGURATION_H
 
 #include <fstream>
 #include <unordered_map>
@@ -250,4 +250,4 @@ struct AppStatis {
 
 
 
-#endif //INFERENCE_FRAMEWORK_CONFIGURATION_H
+#endif
