@@ -59,7 +59,7 @@ int OpenPose::preprocess(std::vector<bm::FrameBaseInfo>& frames, std::vector<bm:
         bm::FrameInfo finfo;
         //1. Resize
         bm_image resized_imgs[MAX_BATCH];
-        ret = bm::BMImage::create_batch(handle, m_net_h, m_net_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, resized_imgs, num, 64);
+        ret = bm::BMImage::create_batch(handle, m_net_h, m_net_w, FORMAT_BGR_PLANAR, DATA_TYPE_EXT_1N_BYTE, resized_imgs, num, 64);
         assert(BM_SUCCESS == ret);
 
         for(int i = 0;i < num; ++i) {
@@ -109,7 +109,7 @@ int OpenPose::preprocess(std::vector<bm::FrameBaseInfo>& frames, std::vector<bm:
             img_type = DATA_TYPE_EXT_FLOAT32;
         }
 
-        ret = bm::BMImage::create_batch(handle, m_net_h, m_net_w, FORMAT_RGB_PLANAR, img_type, convertto_imgs, num, 1, false, true);
+        ret = bm::BMImage::create_batch(handle, m_net_h, m_net_w, FORMAT_BGR_PLANAR, img_type, convertto_imgs, num, 1, false, true);
         assert(BM_SUCCESS == ret);
 
         bm_tensor_t input_tensor = *tensor->bm_tensor();
