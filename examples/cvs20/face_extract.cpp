@@ -128,6 +128,7 @@ int FaceExtract::preprocess(std::vector<bm::FeatureFrame> &frames, std::vector<b
 
         of.push_back(finfo);
     }
+    return ret;
 }
 
 int FaceExtract::forward(std::vector<bm::FeatureFrameInfo> &frame_infos)
@@ -143,6 +144,7 @@ int FaceExtract::forward(std::vector<bm::FeatureFrameInfo> &frame_infos)
                               frame_infos[b].output_tensors.data(), frame_infos[b].output_tensors.size());
         assert(BM_SUCCESS == ret);
     }
+    return ret;
 }
 
 int FaceExtract::postprocess(std::vector<bm::FeatureFrameInfo> &frameinfos)
@@ -168,6 +170,7 @@ int FaceExtract::postprocess(std::vector<bm::FeatureFrameInfo> &frameinfos)
             bm_free_device(m_bmctx->handle(), tensor.device_mem);
         }
     }
+    return 0;
 }
 
 void FaceExtract::extract_facefeature_cpu(bm::FeatureFrameInfo &frame_info) {

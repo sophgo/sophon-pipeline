@@ -105,6 +105,30 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             num = left;
         }
 
+# if 1 // resize 1/3 for cvs20 test forcely
+        int pre_width = 1920;
+        int pre_height = 1080;
+        pre_width /= 3;
+        pre_height /= 3;
+
+        bm_image cvs20_resized_imgs[MAX_BATCH];
+        ret = bm::BMImage::create_batch(handle, pre_height, pre_width, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, cvs20_resized_imgs, num, 64);
+        assert(BM_SUCCESS == ret);
+
+        for(int i = 0;i < num; ++i) {
+            bm_image cvs20_image1;
+            bm::BMImage::from_avframe(handle, frames[start_idx + i].avframe, cvs20_image1, true);
+
+            ret = bmcv_image_vpp_convert(handle, 1, cvs20_image1, &cvs20_resized_imgs[i]);
+            assert(BM_SUCCESS == ret);
+
+            bm_image_destroy(cvs20_image1);
+        }
+
+        bm::BMImage::destroy_batch(cvs20_resized_imgs, num);
+
+#endif
+
         bm::cvs10FrameInfo finfo;
         //1. Resize
         bm_image resized_imgs[MAX_BATCH];
@@ -281,6 +305,7 @@ int FaceDetector::postprocess(std::vector<bm::cvs10FrameInfo> &frames)
         }
 
     }
+    return 0;
 }
 
 bm::BMNNTensorPtr FaceDetector::get_output_tensor(const std::string &name, bm::cvs10FrameInfo& frame_info, float scale=1.0) {

@@ -132,6 +132,7 @@ int Resnet::preprocess(std::vector<bm::cvs10FrameBaseInfo> &frames, std::vector<
 
         of.push_back(finfo);
     }
+    return ret;
 }
 
 int Resnet::forward(std::vector<bm::cvs10FrameInfo> &frame_infos)
@@ -147,6 +148,7 @@ int Resnet::forward(std::vector<bm::cvs10FrameInfo> &frame_infos)
                                frame_infos[b].output_tensors.data(), frame_infos[b].output_tensors.size());
         assert(BM_SUCCESS == ret);
     }
+    return ret;
 }
 
 int Resnet::postprocess(std::vector<bm::cvs10FrameInfo> &frameinfos)
@@ -172,6 +174,7 @@ int Resnet::postprocess(std::vector<bm::cvs10FrameInfo> &frameinfos)
             bm_free_device(m_bmctx->handle(), tensor.device_mem);
         }
     }
+    return 0;
 }
 
 void Resnet::extract_feature_cpu(bm::cvs10FrameInfo &frame_info) {

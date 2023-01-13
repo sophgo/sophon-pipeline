@@ -27,6 +27,7 @@ int main(int argc, char *argv[])
                           "{feat_delay | 500 | feature delay in msec}"
                           "{feat_num | 10 | feature num per channel}"
                           "{num | 1 | number of channel to infer}"
+                          "{skip_frame_num | 1 | skip N frames to detect}"
                           "{display_num | 1 | display number of channel in QT}"
                           "{stop_frame_num | 1 | frame number early stop}"
                           "{save_num | 0 | number of channel to save .flv}"
@@ -48,6 +49,7 @@ int main(int argc, char *argv[])
     int feature_delay = parser.get<int>("feat_delay");
     int feature_num = parser.get<int>("feat_num");
     int num = parser.get<int>("num");
+    int skip_frame_num = parser.get<int>("skip_frame_num");
     int stop_frame_num = parser.get<int>("stop_frame_num");
     int save_num = parser.get<int>("save_num");
     int display_num = parser.get<int>("display_num");
@@ -62,8 +64,6 @@ int main(int argc, char *argv[])
 
     int total_num = num;
     AppStatis appStatis(total_num);
-
-    auto modelConfig = cfg.getModelConfig();
 
     int card_num = cfg.cardNums();
     int channel_num_per_card = total_num/card_num;
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
     std::vector<OneCardInferAppPtr> apps;
     for(int card_idx = 0; card_idx < card_num; ++card_idx) {
         int dev_id = cfg.cardDevId(card_idx);
-        std::set<std::string> distinct_models = cfg.getDistinctModels(card_idx);
+
         // load balance
         int channel_num = 0;
         if (card_idx < last_channel_num) {
@@ -91,11 +91,8 @@ int main(int argc, char *argv[])
             channel_num = channel_num_per_card;
         }
 
-        std::string model_name = (*distinct_models.begin());
-        auto& model_cfg = modelConfig[model_name];
-
         bm::BMNNHandlePtr handle = std::make_shared<bm::BMNNHandle>(dev_id);
-        bm::BMNNContextPtr contextPtr = std::make_shared<bm::BMNNContext>(handle, model_cfg.path);
+        bm::BMNNContextPtr contextPtr = std::make_shared<bm::BMNNContext>(handle, cfg.get_model_path());
 
         std::shared_ptr<bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo>> detector;
         if (MODEL_FACE_DETECT == model_type) {
@@ -106,7 +103,7 @@ int main(int argc, char *argv[])
 
         std::cout << "start_chan_index=" << start_chan_index << ", channel_num=" << channel_num << std::endl;
         OneCardInferAppPtr appPtr = std::make_shared<OneCardInferApp>(appStatis, gui,
-                tqp, contextPtr, output_url, start_chan_index, channel_num, model_cfg.skip_frame, feature_delay, feature_num,
+                tqp, contextPtr, output_url, start_chan_index, channel_num, skip_frame_num, feature_delay, feature_num,
                 enable_l2_ddrr, stop_frame_num, save_num, display_num);
         start_chan_index += channel_num;
 

@@ -69,8 +69,8 @@ struct SModelConfig {
 
 class Config {
     std::vector<CardConfig> m_cards;
-    std::unordered_map<std::string, SModelConfig>       m_models;
     std::unordered_map<std::string, SConcurrencyConfig> m_concurrency;
+    std::string path;
 
     void load_cameras(const char* config_file = "cameras.json") {
 
@@ -92,34 +92,19 @@ class Config {
             in.close();
             return;
         }
-
+        path =json_root["models"]["path"].asString();
         int card_num = json_root["cards"].size();
         for(int card_index = 0; card_index < card_num; ++card_index) {
             Json::Value jsonCard = json_root["cards"][card_index];
             CardConfig card_config;
+
             card_config.devid = jsonCard["devid"].asInt();
             int camera_num = jsonCard["cameras"].size();
             Json::Value jsonCameras = jsonCard["cameras"];
             for(int i = 0;i < camera_num; ++i) {
                 auto json_url_info = jsonCameras[i];
-                std::vector<std::string> candidate_models;
-                if (json_url_info.isMember("model_names")) {
-                    for (Json::ValueIterator itr = json_url_info["model_names"].begin(); itr != json_url_info["model_names"].end(); itr++) {
-                        candidate_models.push_back(itr->asString());
-                    }
-                }
-                int chan_num = json_url_info["chan_num"].asInt();
-                int loop = candidate_models.size() > 0 ? candidate_models.size() : 1;
-                for (int l = 0; l < loop; ++l) {
-                    for(int j = 0; j < chan_num; ++j) {
-                        auto url = json_url_info["address"].asString();
-                        card_config.urls.push_back(url);
-                        if (candidate_models.size() > 0) {
-                            card_config.models.push_back(candidate_models[l]);
-                        }
-                    }
-                }
-                
+                auto url = json_url_info["address"].asString();
+                card_config.urls.push_back(url);
             }
 
             m_cards.push_back(card_config);
@@ -131,20 +116,7 @@ class Config {
             maybe_load_concurrency_cfg(pipeline_config, "inference");
             maybe_load_concurrency_cfg(pipeline_config, "postprocess");
         }
-        // load model info
-        if (json_root.isMember("models")) {
-            int model_num = json_root["models"].size();
-            for(int i = 0;i < model_num; ++i) {
-                auto model = json_root["models"][i];
-                std::string model_name = model["name"].asString();
-                if (m_models.count(model_name) != 0) {
-                    std::cerr << "ERROR!!! duplicated model config, name: " << model_name << std::endl;
-                    continue;
-                }
-                SModelConfig cfg(model);
-                m_models.insert(std::make_pair(model_name, cfg));
-            }
-        }
+
         in.close();
 
     }
@@ -192,7 +164,9 @@ public:
         if (json_node.isMember(phrase)) {
             SConcurrencyConfig cfg(json_node[phrase]);
             m_concurrency.insert(std::make_pair(phrase, cfg));
+            return true;
         }
+        return false;
     }
 
     bool get_phrase_config(const char* phrase, SConcurrencyConfig& cfg) {
@@ -203,14 +177,18 @@ public:
         return false;
     }
 
-    const std::unordered_map<std::string, SModelConfig> &getModelConfig() {
-        return m_models;
+    std::string get_model_path(){
+        return path;
     }
 
-    std::set<std::string> getDistinctModels(int devid) {
+    /*const std::unordered_map<std::string, SModelConfig> &getModelConfig() {
+        return m_models;
+    }*/
+
+    /*std::set<std::string> getDistinctModels(int devid) {
         std::set<std::string> st_models(m_cards[devid].models.begin(), m_cards[devid].models.end());
         return std::move(st_models);
-    }
+    }*/
 };
 
 
