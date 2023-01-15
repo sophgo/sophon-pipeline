@@ -28,7 +28,8 @@ int main(int argc, char *argv[])
                           "{feat_num | 10 | feature num per channel}"
                           "{num | 1 | number of channel to infer}"
                           "{skip_frame_num | 1 | skip N frames to detect}"
-                          "{display_num | 1 | display number of channel in QT}"
+                          "{display_num | 0 | display number of channel in QT}"
+                          "{resize_num | 0 | resize number of channel in hardware emulation}"
                           "{stop_frame_num | 1 | frame number early stop}"
                           "{save_num | 0 | number of channel to save .flv}"
                           "{output | None | Output stream URL}"
@@ -53,6 +54,7 @@ int main(int argc, char *argv[])
     int stop_frame_num = parser.get<int>("stop_frame_num");
     int save_num = parser.get<int>("save_num");
     int display_num = parser.get<int>("display_num");
+    int resize_num = parser.get<int>("resize_num");
 
     int enable_l2_ddrr = 0;
 
@@ -96,7 +98,7 @@ int main(int argc, char *argv[])
 
         std::shared_ptr<bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo>> detector;
         if (MODEL_FACE_DETECT == model_type) {
-            detector = std::make_shared<FaceDetector>(contextPtr);
+            detector = std::make_shared<FaceDetector>(contextPtr, resize_num);
         }else if (MODEL_RESNET50 == model_type) {
             detector = std::make_shared<Resnet>(contextPtr);
         }

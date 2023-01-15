@@ -89,7 +89,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 av_packet_unref(&sei_pkt);
 
                 m_frame_count += 1;
-                if (m_frame_count >= m_stop_frame_num){
+                if ((m_frame_count >= m_stop_frame_num) && (m_stop_frame_num >= 0)){
                     std::cout <<  "-=-=-=-======exit==============>>> " << m_frame_count << std::endl;
                     m_chans[ch]->outputer->CloseOutputStream();
                     exit(-1);
@@ -145,7 +145,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             pchan->create_video_decoder(m_dev_id, ifmt);
             // todo create DDR reduction for optimization
 
-            if (pchan->outputer && pchan->channel_id < m_save_num) {
+            if (pchan->outputer && ((pchan->channel_id < m_save_num) || (m_save_num == -1))) {
                 // std::string connect = "_";
                 // std::string prefix_url = "cvs10_save";
                 // std::string postfix_url = ".flv";

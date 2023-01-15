@@ -18,7 +18,7 @@ static inline bool compareBBox(const bm::NetOutputObject &a, const bm::NetOutput
     return a.score > b.score;
 }
 
-FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx)
+FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num)
 {
     auto net_name = bmctx->network_name(0);
 
@@ -41,6 +41,7 @@ FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx)
 
     MAX_BATCH = tensor->get_shape()->dims[0];
 
+    resize_num_ = resize_num;
 }
 
 FaceDetector::~FaceDetector()
@@ -106,6 +107,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
         }
 
 # if 1 // resize 1/3 for cvs20 test forcely
+        
         int pre_width = 1920;
         int pre_height = 1080;
         pre_width /= 3;
@@ -116,13 +118,14 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
         assert(BM_SUCCESS == ret);
 
         for(int i = 0;i < num; ++i) {
-            bm_image cvs20_image1;
-            bm::BMImage::from_avframe(handle, frames[start_idx + i].avframe, cvs20_image1, true);
+            if ((frames[start_idx + i].chan_id < resize_num_) || (resize_num_ == -1)){
+                bm_image cvs20_image1;
+                bm::BMImage::from_avframe(handle, frames[start_idx + i].avframe, cvs20_image1, true);
+                ret = bmcv_image_vpp_convert(handle, 1, cvs20_image1, &cvs20_resized_imgs[i]);
+                assert(BM_SUCCESS == ret);
 
-            ret = bmcv_image_vpp_convert(handle, 1, cvs20_image1, &cvs20_resized_imgs[i]);
-            assert(BM_SUCCESS == ret);
-
-            bm_image_destroy(cvs20_image1);
+                bm_image_destroy(cvs20_image1);
+            }
         }
 
         bm::BMImage::destroy_batch(cvs20_resized_imgs, num);

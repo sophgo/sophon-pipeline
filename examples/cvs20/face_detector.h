@@ -38,8 +38,11 @@ class FaceDetector : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs
     double             img_y_scale_;
     int  m_net_h, m_net_w;
     int MAX_BATCH;
+
+    int resize_num_;
+
 public:
-    FaceDetector(bm::BMNNContextPtr bmctx);
+    FaceDetector(bm::BMNNContextPtr bmctx, int resize_num);
     ~FaceDetector();
 
     virtual int preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::vector<bm::cvs10FrameInfo>& frame_info) override ;
