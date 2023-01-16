@@ -110,7 +110,7 @@ Usage: video_stitch_demo [params]
 **以设置`cameras_video_stitch.json`的`chan_num=1`为例**测试示例如下：
 
 ```bash
-# ./x86/video_stitch_demo --help 查看命行帮助信息
+# ./x86/video_stitch_demo --help 查看命令行帮助信息
 cd ${SOPHON_PIPELINE}/release/video_stitch_demo
 # x86模式下,将下载好的video_stitch模型拷贝到${SOPHON_PIPELINE}/release/video_stitch_demo目录下运行
 ./x86/video_stitch_demo --config=./cameras_video_stitch.json
@@ -145,7 +145,7 @@ cd ${SOPHON_PIPELINE}/release/video_stitch_demo
 
 ```bash
 cd ${SOPHON_PIPELINE_VIDEO_STITCH}
-# ./soc/video_stitch_demo --help 查看命行帮助信息
+# ./soc/video_stitch_demo --help 查看命令行帮助信息
 # 以arm SoC 1684为例
 ./soc/video_stitch_demo  --config=./cameras_video_stitch.json
 ```
@@ -157,6 +157,7 @@ cd ${SOPHON_PIPELINE_VIDEO_STITCH}
 # 先打印出每路(4路)视频码流及对应芯片相关信息，再打印4路的总FPS信息。其中，FPS信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS信息有一定波动或vlc显示偶尔卡顿属于正常现象。FPS信息如下所示：
 
 ...
+[2022-10-19:10:41:58] encode fps =nan
 [2022-10-19:10:41:59] encode fps =1.0
 [2022-10-19:10:42:00] encode fps =3.2
 [2022-10-19:10:42:01] encode fps =4.0
