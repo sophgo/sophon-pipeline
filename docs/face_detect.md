@@ -87,7 +87,7 @@ Usage: face_detect_demo [params]
 
 ```bash
 cd ${SOPHON_PIPELINE}/release/facedetect_demo
-# ./x86/facedetect_demo --help 查看命行帮助信息
+# ./x86/facedetect_demo --help 查看命令行帮助信息
 # 以x86 pcie 1684x为例,将下载好的face_detect模型拷贝到${SOPHON_PIPELINE}/release/facedetect_demo目录下运行
 ./x86/facedetect_demo --config=./cameras_face_detect.json
 ```
@@ -99,7 +99,7 @@ cd ${SOPHON_PIPELINE}/release/facedetect_demo
 # 先打印出每路(1路)视频码流及对应芯片相关信息，再打印1路检测器det的总FPS和第0路视频码流处理对应的speed信息。其中，FPS和speed信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS和speed信息有一定波动属于正常现象。FPS和speed信息如下所示：
 
 ...
-[2022-11-16:19:48:26] total fps =nan,ch=0: speed=nan
+[2022-11-16:19:48:26] total fps =-nan,ch=0: speed=-nan
 [2022-11-16:19:48:27] total fps =25.0,ch=0: speed=25.0
 [2022-11-16:19:48:28] total fps =25.0,ch=0: speed=25.0
 [2022-11-16:19:48:29] total fps =25.0,ch=0: speed=25.0
@@ -118,7 +118,7 @@ cd ${SOPHON_PIPELINE}/release/facedetect_demo
 
 ```bash
 cd ${SOPHON_PIPELINE_FACEDETECT}
-# ./soc/facedetect_demo --help 查看命行帮助信息
+# ./soc/facedetect_demo --help 查看命令行帮助信息
 # 以arm SoC 1684x为例
 ./soc/facedetect_demo --config=./cameras_face_detect.json 
 ```

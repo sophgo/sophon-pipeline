@@ -92,7 +92,7 @@ Usage: openpose_demo [params]
 
 ```bash
 cd ${SOPHON_PIPELINE}/release/openpose_demo
-# ./x86/openpose_demo --help 查看命行帮助信息
+# ./x86/openpose_demo --help 查看命令行帮助信息
 # 以x86 pcie 1684x为例,将下载好的openpose模型拷贝到${SOPHON_PIPELINE}/release/openpose_demo目录下运行。当json文件配置使用的模型为coco_18模型时，需设置--model_pose参数为coco_18，当json文件配置使用的模型为body_25模型时，需设置--model_pose参数为body_25
 ./x86/openpose_demo --config=./cameras_openpose.json --model_pose=coco_18
 ```
@@ -122,7 +122,7 @@ cd ${SOPHON_PIPELINE}/release/openpose_demo
 
 ```bash
 cd ${SOPHON_PIPELINE_OPENPOSE}
-# ./soc/openpose_demo --help 查看命行帮助信息
+# ./soc/openpose_demo --help 查看命令行帮助信息
 # 以arm SoC 1684x coco_18模型为例。当json文件配置使用的模型为coco_18模型时，需设置--model_pose参数为coco_18，当json文件配置使用的模型为body_25模型时，需设置--model_pose参数为body_25
 ./soc/openpose_demo --config=./cameras_openpose.json --model_pose=coco_18 
 ```
@@ -134,7 +134,7 @@ cd ${SOPHON_PIPELINE_OPENPOSE}
 # 先打印出每路(1路)视频码流及对应芯片相关信息，再打印1路检测器det的总FPS和第0路视频码流处理对应的speed信息。其中，FPS和speed信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS和speed信息有一定波动属于正常现象。FPS和speed信息如下所示：
 
 ...
-[2022-11-19:01:08:39] total fps =-nan,ch=0: speed=-nan
+[2022-11-19:01:08:39] total fps =nan,ch=0: speed=nan
 [2022-11-19:01:08:40] total fps =24.0,ch=0: speed=24.0
 [2022-11-19:01:08:41] total fps =24.0,ch=0: speed=24.0
 [2022-11-19:01:08:42] total fps =24.0,ch=0: speed=24.0
