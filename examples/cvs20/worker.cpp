@@ -28,7 +28,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             m_appStatis.m_statis_lock.unlock();
 #if USE_DEBUG
             std::ostringstream oss;
-            oss << " detect " << frameInfo.out_datums[frame_idx].obj_rects.size() << " objs.";
+            oss << " frame index: " << frameInfo.frames[frame_idx].seq << ", detect " << frameInfo.out_datums[frame_idx].obj_rects.size() << " objs.";
             for (int i = 0; i < frameInfo.out_datums[frame_idx].obj_rects.size(); i++) {
                 oss << " object " << i << ": ["
                     << " x1:" << frameInfo.out_datums[frame_idx].obj_rects[i].x1
@@ -88,13 +88,17 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 m_chans[ch]->outputer->InputPacket(frameInfo.frames[frame_idx].avpkt);
                 av_packet_unref(&sei_pkt);
 
-                m_frame_count += 1;
-                if ((m_frame_count >= m_stop_frame_num) && (m_stop_frame_num >= 0)){
-                    std::cout <<  "-=-=-=-======exit==============>>> " << m_frame_count << std::endl;
+                                
+            }
+
+            m_frame_count += 1;
+            if ((m_frame_count >= m_stop_frame_num*m_channel_num/(1+m_skipN)) && (m_stop_frame_num*m_channel_num/(1+m_skipN) >= 0)){
+                std::cout <<  "-=-=-=-======exit==============>>> " << std::endl;
+                if (enable_outputer && ((ch < m_save_num) || (m_save_num == -1))){
                     m_chans[ch]->outputer->CloseOutputStream();
-                    exit(-1);
                 }
-                
+                exit(-1);
+                   
             }
         }
     });
@@ -146,10 +150,6 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             // todo create DDR reduction for optimization
 
             if (pchan->outputer && ((pchan->channel_id < m_save_num) || (m_save_num == -1))) {
-                // std::string connect = "_";
-                // std::string prefix_url = "cvs10_save";
-                // std::string postfix_url = ".flv";
-                // std::string url = bm::format("%s%s%d%s", prefix_url.c_str(), connect.c_str(), pchan->channel_id, postfix_url.c_str()); // "/home/frotms/hdd/liuchenxi/repo/cvs20/test_save/sophon-pipeline/release/cvs10/sav/cvs10_save.flv";
                 
                 std::string url;
                 if (bm::start_with(m_output_url, "rtsp://")) {
