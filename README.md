@@ -18,7 +18,7 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 | 目录                   | 模块                                            | 功能说明                                                     |
 | ---------------------- | ----------------------------------------------- | ------------------------------------------------------------ |
 | [modules](./modules)   | [bmgui](./modules/bmgui)                        | 存放Sophon Pipeline用来GUI显示视频的模块                     |
-|                        | [bmgui-lite](./modules/bmgui-lite)              | 由于SDK自带的OpenCV没有显示功能，此模块提供bm::imshow来显示视频，作为运行openpose人体关键点检测补充。 |
+|                        | [bmgui-lite](./modules/bmgui-lite)              | 由于SDK自带的OpenCV没有显示功能，此模块提供bm::imshow来显示视频 |
 |                        | [bmutility](./modules/bmutility)                | 提供了基础库，字符串、定时器等                               |
 |                        | [tracker](./modules/tracker)                    | 提供了CPU跟踪模块                                            |
 | [examples](./examples) | [yolov5](./examples/yolov5)                     | yolov5s目标检测                                              |
@@ -27,7 +27,7 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 |                        | [multi](./examples/multi)                       | 并联运行两个yolov5目标检测                                   |
 |                        | [face_recognition](./examples/face_recognition) | 串联运行人脸检测 + 人脸关键点 + 人脸特征提取                 |
 |                        | [openpose](./examples/openpose) |openpose人体关键点检测               |
-|                        | [face_detect](./examples/face_detect) | face_detect人脸检测  |
+|                        | [face_detect](./examples/face_detect) | ssh_squeezenet人脸检测  |
 
 **Sophon Pipeline的主要结构设计如下图：** 
 
@@ -104,7 +104,7 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev libexiv2-dev
 ./tools/compile.sh soc ${soc-sdk} 
 ```
 
-编译完成后，demo程序将保存在`${SOPHON_PIPELINE}/release/${APP}/${PLATFORM}`文件夹下，将编译后的demo程序拷贝到soc机器上运行。
+编译完成后，demo程序将保存在`${SOPHON_PIPELINE}/release/${APP}/${PLATFORM}`文件夹下，若您是使用SoC平台，还需要将编译后的demo程序拷贝到SoC机器上运行。
 
 ## 3 运行方法
 
