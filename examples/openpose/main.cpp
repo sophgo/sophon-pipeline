@@ -16,10 +16,7 @@
 
 const char *APP_ARG_STRING =
         "{config | ./cameras_openpose.json | path to cameras_openpose.json}"
-        "{model_pose | coco_18 | body_25 for 25 body parts, coco_18 for 18 body parts }"
-        "{custom_scale | false | Use custom scale}"
-        "{input_scale | 253.042 | INT8 input scale}"
-        "{output_scale | 0.00788647 | INT8 output scale}";
+        "{model_pose | coco_18 | body_25 for 25 body parts, coco_18 for 18 body parts }";
 
 
 int main(int argc, char *argv[])
