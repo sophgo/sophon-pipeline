@@ -74,11 +74,6 @@ int main(int argc, char *argv[])
         bmlib_log_set_level(BMLIB_LOG_VERBOSE);
 
         std::shared_ptr<OpenPose> detector = std::make_shared<OpenPose>(contextPtr, model_pose);
-        if (parser.get<bool>("custom_scale")) {
-            float input_scale = parser.get<float>("input_scale");
-            float output_scale = parser.get<float>("output_scale");
-            detector->setParams(true, input_scale, output_scale);
-        }
 
         OneCardInferAppPtr appPtr = std::make_shared<OneCardInferApp>(appStatis, gui,
                 tqp, contextPtr, model_cfg.output_path, start_chan_index, channel_num, model_cfg.skip_frame);
