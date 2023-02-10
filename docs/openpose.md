@@ -84,14 +84,10 @@
 Usage: openpose_demo [params]
 		--config (value:./cameras_openpose.json)
                 cameras_openpose.json配置文件的路径，默认路径为./cameras_openpose.json。
-        --custom_scale (value:false)
-        		使用custom scale
         --help (value:true)
                 打印帮助信息
         --model_pose (value:coco_18)
                 选择使用的模型。body_25表示使用25 body parts模型，coco_18表示使用18 body parts模型。默认值为coco_18。此参数必须与json配置模型一致。
-        --output_scale (value:0.00788647)
-        		INT8输出scale
 ```
 
 #### 2.2.1 x86 PCIe
