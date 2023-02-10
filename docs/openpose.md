@@ -66,11 +66,15 @@
   > **NOTE**  
   > openpose_coco_18_1684模型NAS云盘下载地址：[openpose_coco_18_384w_216h_4b_1684.bmodel](http://219.142.246.77:65000/sharing/BneIxUbXN)
   >
-  > openpose_coco_18_1684X模型NAS云盘下载地址：[openpose_coco_18_384w_216h_4b_1684x.bmodel](http://219.142.246.77:65000/sharing/cTjMDzwvx)
+  > openpose_coco_18_1684X_int8模型NAS云盘下载地址：[openpose_coco_18_384w_216h_4b_1684x.bmodel](http://219.142.246.77:65000/sharing/cTjMDzwvx)
+  >
+  >openpose_coco_18_1684X_fp16模型NAS云盘下载地址：[openpose_coco_18_384w_216h_4b_1684x.bmodel](http://219.142.246.77:65000/sharing/NixAwUF4p)
   >
   > openpose_body_25_1684模型NAS云盘下载地址：[openpose_body_25_384w_216h_4b_1684.bmodel](http://219.142.246.77:65000/sharing/hhbgyyXsO)
   >
-  > openpose_body_25_1684X模型NAS云盘下载地址：[openpose_body_25_384w_216h_4b_1684x.bmodel](http://219.142.246.77:65000/sharing/VDPaMSnxl)
+  > openpose_body_25_1684X_int8模型NAS云盘下载地址：[openpose_body_25_384w_216h_4b_1684x.bmodel](http://219.142.246.77:65000/sharing/VDPaMSnxl)
+  >
+  >openpose_body_25_1684X_fp16模型NAS云盘下载地址：[openpose_body_25_384w_216h_4b_1684x.bmodel](http://219.142.246.77:65000/sharing/sOFgwM6W2)
   >
   > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
 
@@ -80,10 +84,14 @@
 Usage: openpose_demo [params]
 		--config (value:./cameras_openpose.json)
                 cameras_openpose.json配置文件的路径，默认路径为./cameras_openpose.json。
+        --custom_scale (value:false)
+        		使用custom scale
         --help (value:true)
                 打印帮助信息
         --model_pose (value:coco_18)
                 选择使用的模型。body_25表示使用25 body parts模型，coco_18表示使用18 body parts模型。默认值为coco_18。此参数必须与json配置模型一致。
+        --output_scale (value:0.00788647)
+        		INT8输出scale
 ```
 
 #### 2.2.1 x86 PCIe
