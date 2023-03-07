@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.2)
 project(bmtracker)
 
 set(TRACKER_TOP ${COMMON_TOP}/tracker)
-include_directories(${common_inc_dirs} ${libsophon_inc_dirs} ${sophon_ffmpeg_inc_dirs} ${sophon_opencv_inc_dirs} /usr/include/eigen3)
+include_directories(${common_inc_dirs} ${libsophon_inc_dirs} ${sophon_ffmpeg_inc_dirs} ${sophon_opencv_inc_dirs} ${libsophon_inc_dirs}/eigen3)
 
 add_library(bmtracker bm_tracker.cpp
         ${TRACKER_TOP}/KalmanFilter/kalmanfilter.cpp
