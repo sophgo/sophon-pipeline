@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
         bm::BMNNContextPtr contextPtr = std::make_shared<bm::BMNNContext>(handle, model_cfg.path);
         bmlib_log_set_level(BMLIB_LOG_VERBOSE);
 
-        std::shared_ptr<YoloV5> detector = std::make_shared<YoloV5>(contextPtr, model_cfg.class_num);
+        std::shared_ptr<YoloV5> detector = std::make_shared<YoloV5>(contextPtr, model_cfg.model_type);
         // model thresholds
         detector->set_cls(model_cfg.class_threshold);
         detector->set_obj(model_cfg.obj_threshold);

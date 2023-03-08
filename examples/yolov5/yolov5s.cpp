@@ -8,11 +8,12 @@
 //===----------------------------------------------------------------------===//
 
 #include "yolov5s.h"
+#include <algorithm>
 #define USE_ASPECT_RATIO 1
 #define USE_MULTICLASS_NMS 1
 
 
-YoloV5::YoloV5(bm::BMNNContextPtr bmctx, int class_num):m_bmctx(bmctx), m_class_num(class_num)
+YoloV5::YoloV5(bm::BMNNContextPtr bmctx, std::string model_type):m_bmctx(bmctx)
 {
     // the bmodel has only one yolo network.
     auto net_name = m_bmctx->network_name(0);
@@ -27,10 +28,66 @@ YoloV5::YoloV5(bm::BMNNContextPtr bmctx, int class_num):m_bmctx(bmctx), m_class_
 
     MAX_BATCH = tensor->get_shape()->dims[0];
 
+    init_yolo(model_type);
 }
 
 YoloV5::~YoloV5()
 {
+
+}
+
+// init anchors by .json for yolov[X]
+int YoloV5::init_yolo(std::string model_type = "yolov5s"){
+    int ret = 0;
+
+    std::transform( model_type.begin(), model_type.end(), model_type.begin(), ::tolower );
+
+    if (
+        (bm::start_with(model_type, "yolov5")) || ((bm::start_with(model_type, "yolov7")))
+        || (bm::start_with(model_type, "yolov6"))
+    ){
+        m_model_type = 0;
+    }
+    else if (bm::start_with(model_type, "yolov8")){
+        // anchor free
+        m_model_type = 1;
+    }
+    else{
+        // add your self-define model_type here
+        // and add implementation of post-processing, such as yolov3, yolov4
+    }
+
+    // yolov5s is the default 
+    // "yolov5n", "yolov5s", "yolov5m", "yolov5l", "yolo5x"
+    // "yolov7-tiny", "yolov7-tiny-silu"
+    std::vector<std::vector<std::vector<float>>> anchors{{{10, 13}, {16, 30}, {33, 23}},
+                                                         {{30, 61}, {62, 45}, {59, 119}},
+                                                         {{116, 90}, {156, 198}, {373, 326}}};
+
+    if ((model_type == "yolov7") || (model_type == "yolov7x")){
+        anchors = {{{12, 16}, {19, 36}, {40, 28}},
+                   {{36, 75}, {76, 55}, {72, 146}},
+                   {{142, 110}, {192, 243}, {459, 401}}};
+
+    }
+    else if (model_type == "yolov7-w6"){
+        // without test: 
+        // "yolov7-E6", "yolov7-D6", "yolov7-E6E"
+        // "yolov5n6", "yolov5s6", "yolov5m6", "yolov5l6", "yolov5x6"
+
+        anchors = {{{19, 27}, {44, 40}, {38, 94}},
+                   {{96, 68}, {86, 152}, {180, 137}},
+                   {{140, 301}, {303, 264}, {238, 542}},
+                   {{436, 615}, {739, 380}, {925, 792}}};
+
+    }
+    else{
+        // add your self-define anchors here
+    }
+                                                         
+    m_anchors = anchors;
+
+    return ret;
 
 }
 
@@ -309,9 +366,10 @@ void YoloV5::extract_yolobox_cpu(bm::FrameInfo& frameInfo)
     {
         yolobox_vec.clear();
         auto& frame = images[batch_idx];
-        int frame_width = frame.width;
-        int frame_height = frame.height;
+        float ratio_x = (float)m_net_w / frame.width;
+        float ratio_y = (float)m_net_h / frame.height;
         int tx1 = 0, ty1 = 0;
+        
 #if USE_ASPECT_RATIO
         bool isAlignWidth = false;
         float ratio = get_aspect_scaled_ratio(frame.width, frame.height, m_net_w, m_net_h, &isAlignWidth);
@@ -321,81 +379,128 @@ void YoloV5::extract_yolobox_cpu(bm::FrameInfo& frameInfo)
         }else{
             tx1 = (int)((m_net_w - (int)(frame.width*ratio)) / 2);
         }
+        ratio_x = ratio_y = ratio;
 #endif
 
         int output_num = m_bmnet->outputTensorNum();
-        int nout = m_class_num + 5;
 
-        if (output_num == 1) {
-            bm::BMNNTensor output_tensor(m_bmctx->handle(), "", m_bmnet->get_output_scale(0), &frameInfo.output_tensors[0]);
-            int box_num = output_tensor.get_shape()->dims[1];
-            float *output_data = (float*)output_tensor.get_cpu_data() + batch_idx*box_num*nout;
-            for (int i = 0; i < box_num; i++) {
-                float *ptr = output_data + i * nout;
-                float score = ptr[4];
-                if (score >= m_cls_thres) {
-                    int class_id = argmax(&ptr[5], m_class_num);
-                    float confidence = ptr[class_id + 5];
 
-                    if (confidence * score >= m_obj_thres) {
-                        bm::NetOutputObject box;
-                        box.score = confidence * score;
+        if (m_model_type == 0){
+            if (output_num == 1) {
+                // 1 output: [bs, box_num, num_classes + 5]
+                bm::BMNNTensor output_tensor(m_bmctx->handle(), "", m_bmnet->get_output_scale(0), &frameInfo.output_tensors[0]);
+                int box_num = output_tensor.get_shape()->dims[1];
+                int nout = output_tensor.get_shape()->dims[2];
+                m_class_num = nout - 5;
+                float *output_data = (float*)output_tensor.get_cpu_data() + batch_idx*box_num*nout;
+                for (int i = 0; i < box_num; i++) {
+                    float *ptr = output_data + i * nout;
+                    float score = ptr[4];
+                    if (score >= m_cls_thres) {
+                        int class_id = argmax(&ptr[5], m_class_num);
+                        float confidence = ptr[class_id + 5];
 
-                        float centerX = (ptr[0]+1 - tx1)/ratio -1;
-                        float centerY = (ptr[1]+1 - ty1)/ratio -1;
-                        float width = (ptr[2]+0.5) /ratio;
-                        float height = (ptr[3]+0.5) /ratio;
-                        box.x1  = int(centerX - width  / 2);
-                        box.y1  = int(centerY - height / 2);
-                        box.x2  = box.x1 + width;
-                        box.y2  = box.y1 + height;
-                        box.class_id = class_id;
-                        yolobox_vec.push_back(box);
+                        if (confidence * score >= m_obj_thres) {
+                            bm::NetOutputObject box;
+                            box.score = confidence * score;
+
+                            float centerX = (ptr[0]+1 - tx1)/ratio_x -1;
+                            float centerY = (ptr[1]+1 - ty1)/ratio_y -1;
+                            float width = (ptr[2]+0.5) /ratio_x;
+                            float height = (ptr[3]+0.5) /ratio_y;
+                            box.x1  = int(centerX - width  / 2);
+                            box.y1  = int(centerY - height / 2);
+                            box.x2  = box.x1 + width;
+                            box.y2  = box.y1 + height;
+                            box.class_id = class_id;
+                            yolobox_vec.push_back(box);
+                        }
                     }
+                }
+            } else if ((output_num > 1) && (output_num <= 4)){
+                // 3 output: [bs, num_out, num_feats, num_feats, num_classes + 5]
+                for(int tidx = 0; tidx < output_num; ++tidx) {
+                    bm::BMNNTensor output_tensor(m_bmctx->handle(), "", m_bmnet->get_output_scale(tidx), &frameInfo.output_tensors[tidx]);
+                    int feat_h = output_tensor.get_shape()->dims[2];
+                    int feat_w = output_tensor.get_shape()->dims[3];
+                    int nout = output_tensor.get_shape()->dims[4];
+                    m_class_num = nout - 5;
+                    int area = feat_h * feat_w;
+                    float *output_data = (float*)output_tensor.get_cpu_data() + batch_idx*3*area*nout;
+                    for (int anchor_idx = 0; anchor_idx < m_anchors[tidx].size(); anchor_idx++)
+                    {
+                        int feature_size = feat_h*feat_w*nout;
+                        float *ptr = output_data + anchor_idx*feature_size;
+                        for (int i = 0; i < area; i++) {
+                            float score = sigmoid(ptr[4]);
+                            if (score >= m_cls_thres) {
+                                int class_id = argmax(&ptr[5], m_class_num);
+                                float confidence = sigmoid(ptr[class_id + 5]);
+                                if (confidence * score > m_obj_thres) {
+                                    float centerX = (sigmoid(ptr[0]) * 2 - 0.5 + i % feat_w) * m_net_w / feat_w;
+                                    float centerY = (sigmoid(ptr[1]) * 2 - 0.5 + i / feat_w) * m_net_h / feat_h; //center_y
+                                    centerX = (centerX - tx1)/ratio_x-1;
+                                    centerY = (centerY - ty1)/ratio_y-1;
+                                    float width   = pow((sigmoid(ptr[2]) * 2), 2) * m_anchors[tidx][anchor_idx][0] / ratio_x; //w
+                                    float height  = pow((sigmoid(ptr[3]) * 2), 2) * m_anchors[tidx][anchor_idx][1] / ratio_y; //h
+                                    bm::NetOutputObject box;
+                                    box.x1  = int(centerX - width  / 2);
+                                    box.y1  = int(centerY - height / 2);
+                                    box.x2  = box.x1 + width;
+                                    box.y2  = box.y1 + height;
+                                    
+                                    box.score = confidence * score;
+                                    box.class_id = class_id;
+
+                                    yolobox_vec.push_back(box);
+                                }
+                            }
+                            ptr += nout;
+                        }
+                    }
+                } // end of tidx
+            } else {
+                std::cerr << "Unsupported yolo ouput layer num: " << output_num << std::endl;
+                assert(output_num <= 4);
+            }
+        }
+        else{
+            // yolov8, 1 output: [bs, num_classes + 4, box_num]
+            bm::BMNNTensor output_tensor(m_bmctx->handle(), "", m_bmnet->get_output_scale(0), &frameInfo.output_tensors[0]);
+            int nout = output_tensor.get_shape()->dims[1];
+            int box_num = output_tensor.get_shape()->dims[2];
+            m_class_num = nout - 4;
+            float *output_data = (float*)output_tensor.get_cpu_data() + batch_idx*box_num*nout;
+            float *cls_conf = output_data + 4*box_num;
+            for (int i = 0; i < box_num; i++) {
+                    
+                float max_value = 0.0;
+                int max_index = 0;
+                for (int j = 0; j < m_class_num; j++){
+                    float cur_value = cls_conf[i + j*box_num];
+                    if (cur_value > max_value) {
+                        max_value = cur_value;
+                        max_index = j;
+                    }
+                }
+                
+                if (max_value >= m_obj_thres){
+                    bm::NetOutputObject box;
+                    box.score = max_value;
+                    // todo here
+                    float centerX = (output_data[i + 0*box_num] + 1 - tx1) / ratio_x - 1;
+                    float centerY = (output_data[i + 1*box_num] + 1 - ty1) / ratio_y - 1;
+                    float width = (output_data[i + 2*box_num] + 0.5) /ratio_x;
+                    float height = (output_data[i + 3*box_num] + 0.5) /ratio_y;
+
+                    box.x1  = int(centerX - width  / 2);
+                    box.y1  = int(centerY - height / 2);
+                    box.x2  = box.x1 + width;
+                    box.y2  = box.y1 + height;
+                    box.class_id = max_index;
+                    yolobox_vec.push_back(box);
                 }
             }
-        } else if (output_num == 3){
-            for(int tidx = 0; tidx < output_num; ++tidx) {
-                bm::BMNNTensor output_tensor(m_bmctx->handle(), "", m_bmnet->get_output_scale(tidx), &frameInfo.output_tensors[tidx]);
-                int feat_h = output_tensor.get_shape()->dims[2];
-                int feat_w = output_tensor.get_shape()->dims[3];
-                int area = feat_h * feat_w;
-                float *output_data = (float*)output_tensor.get_cpu_data() + batch_idx*3*area*nout;
-                for (int anchor_idx = 0; anchor_idx < m_anchor_num; anchor_idx++)
-                {
-                    int feature_size = feat_h*feat_w*nout;
-                    float *ptr = output_data + anchor_idx*feature_size;
-                    for (int i = 0; i < area; i++) {
-                        float score = sigmoid(ptr[4]);
-                        if (score >= m_cls_thres) {
-                            int class_id = argmax(&ptr[5], m_class_num);
-                            float confidence = sigmoid(ptr[class_id + 5]);
-                            if (confidence * score > m_obj_thres) {
-                                float centerX = (sigmoid(ptr[0]) * 2 - 0.5 + i % feat_w) * m_net_w / feat_w;
-                                float centerY = (sigmoid(ptr[1]) * 2 - 0.5 + i / feat_w) * m_net_h / feat_h; //center_y
-                                centerX = (centerX - tx1)/ratio-1;
-                                centerY = (centerY - ty1)/ratio-1;
-                                float width   = pow((sigmoid(ptr[2]) * 2), 2) * m_anchors[tidx][anchor_idx][0] / ratio; //w
-                                float height  = pow((sigmoid(ptr[3]) * 2), 2) * m_anchors[tidx][anchor_idx][1] / ratio; //h
-                                bm::NetOutputObject box;
-                                box.x1  = int(centerX - width  / 2);
-                                box.y1  = int(centerY - height / 2);
-                                box.x2  = box.x1 + width;
-                                box.y2  = box.y1 + height;
-                                
-                                box.score = confidence * score;
-                                box.class_id = class_id;
-
-                                yolobox_vec.push_back(box);
-                            }
-                        }
-                        ptr += (m_class_num + 5);
-                    }
-                }
-            } // end of tidx
-        } else {
-            std::cerr << "Unsupported yolo ouput layer num: " << output_num << std::endl;
-            assert(output_num == 1 || output_num == 3);
         }
 
 #if USE_MULTICLASS_NMS

@@ -43,8 +43,9 @@ struct SModelConfig {
     std::string name;
     std::string path;
     std::string output_path;
+    std::string model_type;
     int   skip_frame;
-    int    class_num;
+    int   class_num;
     float class_threshold;
     float obj_threshold;
     float nms_threshold;
@@ -58,12 +59,17 @@ struct SModelConfig {
     void load(Json::Value& value) {
         name            = value["name"].asString();
         path            = value["path"].asString();
-        skip_frame      = value["skip_frame_num"].asInt();
         output_path     = value["output_path"].asString();
+        model_type      = value["model_type"].asString();
+        
+        skip_frame      = value["skip_frame_num"].asInt();
+        class_num       = value["class_num"].asInt();
+        
         class_threshold = value["class_threshold"].asFloat();
         obj_threshold   = value["obj_threshold"].asFloat();
         nms_threshold   = value["nms_threshold"].asFloat();
-        class_num      = value["class_num"].asInt();
+        
+        
     }
 };
 

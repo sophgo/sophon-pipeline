@@ -12,6 +12,7 @@ if [ $# -gt 2 ]; then
     echo "usage: "
     echo "x86: ./compile.sh x86"
     echo "soc: ./compile.sh soc sdk_dir"
+    echo "arm64: ./compile.sh arm64"
     return 1
 fi
 
@@ -28,6 +29,7 @@ if [ "$verify" == "false" ];then
     echo "usage: "
     echo "x86: ./compile.sh x86"
     echo "soc: ./compile.sh soc sdk_dir"
+    echo "arm64: ./compile.sh arm64"
     exit
 fi
 
@@ -52,7 +54,7 @@ function build_app()
     
     cmake_params="-DTARGET_ARCH=$target_arch -DUSE_QTGUI=OFF"
     
-    if [ "$target_arch" == "arm64" -o "$target_arch" == "soc" ]; then
+    if [ "$target_arch" == "soc" ]; then
         cmake_params="$cmake_params -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-aarch64-linux.cmake -DSDK_PATH=${sdk_path}"
     elif [ "$target_arch" == "mips64" ];then
         cmake_params="$cmake_params -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-mips64-linux.cmake"

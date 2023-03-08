@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.2)
-project(sophon-pipeline_v0.3.1)
+project(sophon-pipeline_v0.3.4)
 
 if (NOT DEFINED TARGET_ARCH)
     set(TARGET_ARCH x86)
 endif()
 
-if (${TARGET_ARCH} STREQUAL "x86")
+if ((${TARGET_ARCH} STREQUAL "x86") OR (${TARGET_ARCH} STREQUAL "arm64"))
     set(CMAKE_CXX_STANDARD 11)
 elseif (${TARGET_ARCH} STREQUAL "soc")
     set(CMAKE_C_COMPILER /usr/bin/aarch64-linux-gnu-gcc)
@@ -52,13 +52,15 @@ if (${TARGET_ARCH} STREQUAL "x86")
         set(LIBSOPHON_TOP /opt/sophon)
     endif()
 elseif (${TARGET_ARCH} STREQUAL "soc")
-    set(LIBSOPHON_TOP ${SDK_PATH})  
+    set(LIBSOPHON_TOP ${SDK_PATH})
+elseif (${TARGET_ARCH} STREQUAL "arm64")
+    set(LIBSOPHON_TOP /opt/sophon)  
 else() 
     message( FATAL_ERROR "${TARGET_ARCH} is not supported yet." )
 endif()
 
 
-if (${TARGET_ARCH} STREQUAL "x86")
+if ((${TARGET_ARCH} STREQUAL "x86") OR (${TARGET_ARCH} STREQUAL "arm64"))
     find_package(libsophon)
     if(libsophon_FOUND)
         message(STATUS "libsophon include dirs:" ${LIBSOPHON_INCLUDE_DIRS})
@@ -105,7 +107,7 @@ else()
   set(libsophon_link_libs bmrt bmcv bmvideo bmjpuapi bmjpulite bmlib gflags glog pthread CACHE INTERNAL "")
 endif()
 
-if (${TARGET_ARCH} STREQUAL "x86")
+if ((${TARGET_ARCH} STREQUAL "x86") OR (${TARGET_ARCH} STREQUAL "arm64"))
     if (libsophon_FOUND)
         set(libsophon_link_dirs ${LIBSOPHON_LIB_DIRS})
 
@@ -120,14 +122,6 @@ if (${TARGET_ARCH} STREQUAL "x86")
         set(sophon_opencv_link_dirs ${LIBSOPHON_TOP}/lib/opencv/pcie)
         set(libsophon_link_dirs ${LIBSOPHON_TOP}/lib/bmnn/pcie)
     endif(libsophon_FOUND)
-
-elseif (${TARGET_ARCH} STREQUAL "arm64")
-    # arm-pcie
-    set(sophon_ffmpeg_link_dirs ${LIBSOPHON_TOP}/lib/ffmpeg/arm_pcie ${LIBSOPHON_TOP}/lib/decode/arm_pcie
-            ${LIBSOPHON_TOP}/lib/bmnn/arm_pcie
-            ${LIBSOPHON_TOP}/lib/thirdparty/soc)
-    set(sophon_opencv_link_dirs ${LIBSOPHON_TOP}/lib/opencv/arm_pcie)
-    set(libsophon_link_dirs ${LIBSOPHON_TOP}/lib/bmnn/arm_pcie)
 
 elseif (${TARGET_ARCH} STREQUAL "soc")
     set(sophon_ffmpeg_link_dirs ${LIBSOPHON_TOP}/lib)

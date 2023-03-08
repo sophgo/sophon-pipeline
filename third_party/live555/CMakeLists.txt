@@ -15,6 +15,8 @@ if (${TARGET_ARCH} STREQUAL "x86")
     add_definitions(-DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64)
 elseif (${TARGET_ARCH} STREQUAL "soc")
     add_definitions(-DSOCKLEN_T=socklen_t -DNO_SSTREAM=1 -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64)
+elseif (${TARGET_ARCH} STREQUAL "arm64")
+    add_definitions(-DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64)
 endif()
 
 #add_custom_target(live555_LIB ALL)

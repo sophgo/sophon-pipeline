@@ -21,13 +21,13 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 |                        | [bmgui-lite](./modules/bmgui-lite)              | 由于SDK自带的OpenCV没有显示功能，此模块提供bm::imshow来显示视频 |
 |                        | [bmutility](./modules/bmutility)                | 提供了基础库，字符串、定时器等                               |
 |                        | [tracker](./modules/tracker)                    | 提供了CPU跟踪模块                                            |
-| [examples](./examples) | [yolov5](./examples/yolov5)                     | yolov5s目标检测                                              |
+| [examples](./examples) | [yolov5/v6/v7/v8](./examples/yolov5)            | yolo系列目标检测，支持yolov5、yolov6、yolov7、yolov8系列模型 |
 |                        | [video_stitch](./examples/video_stitch)         | 4路yolov5s目标检测 + 拼接 + 编码 + RTSP服务                  |
 |                        | [retinaface](./examples/retinaface)             | retinaface人脸检测                                           |
 |                        | [multi](./examples/multi)                       | 并联运行两个yolov5目标检测                                   |
 |                        | [face_recognition](./examples/face_recognition) | 串联运行人脸检测 + 人脸关键点 + 人脸特征提取                 |
-|                        | [openpose](./examples/openpose) |openpose人体关键点检测               |
-|                        | [face_detect](./examples/face_detect) | ssh_squeezenet人脸检测  |
+|                        | [openpose](./examples/openpose)                 | openpose人体关键点检测                                       |
+|                        | [face_detect](./examples/face_detect)           | ssh_squeezenet人脸检测                                       |
 
 **Sophon Pipeline的主要结构设计如下图：** 
 
@@ -37,6 +37,7 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 
 | 版本  | 说明                                                         |
 | ----- | ------------------------------------------------------------ |
+| 0.3.4 | 添加yolov6、yolov7、yolov8例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC)；添加1684x fp16模型；所有例程适配1684 arm PCIe(银河麒麟V10) |
 | 0.3.1 | 添加openpose、face_detect例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC) |
 | 0.3.0 | 添加multi、face_recognition例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC) |
 | 0.2.0 | 添加retinaface例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC) |
@@ -60,6 +61,7 @@ sophon-pipeline主要依赖
 
 | sophon-pipeline版本 | 依赖的libsophon版本 | 依赖的sophon-ffmpeg版本 | 依赖的sophon-opencv版本 |
 | ------------------- | ------------------- | ----------------------- | ----------------------- |
+| 0.3.4 | >=0.4.4 | >=0.5.1 | >=0.5.1 |
 | 0.3.1              | >=0.4.4             | >=0.5.1                 | >=0.5.1                 |
 | 0.3.0               | >=0.4.3             | >=0.5.0                 | >=0.5.0                 |
 | 0.2.0               | >=0.4.2             | >=0.4.0                 | >=0.4.0                 |
@@ -93,6 +95,10 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev libexiv2-dev
 
 > 如果遇到其他交叉编译问题，请参考《LIBSOPHON使用手册.pdf》的**4.2.2节 x86 交叉编译程序**章节。
 
+#### 2.2.3 arm PCIe平台
+
+对于arm PCIe平台，环境和相关依赖环境的准备步骤详见：[arm_pcie平台编译准备](./docs/arm_pcie.md)。
+
 ### 2.3 编译指令
 
 #### 2.3.1 各个平台编译
@@ -102,13 +108,15 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev libexiv2-dev
 ./tools/compile.sh x86 
 # 若编译需要SoC平台上运行的程序，需要先根据2.2.2节准备好相关依赖，再运行下述命令进行编译：
 ./tools/compile.sh soc ${soc-sdk} 
+# 若编译需要arm64平台上运行的程序
+./tools/compile.sh arm64
 ```
 
 编译完成后，demo程序将保存在`${SOPHON_PIPELINE}/release/${APP}/${PLATFORM}`文件夹下，若您是使用SoC平台，还需要将编译后的demo程序拷贝到SoC机器上运行。
 
 ## 3 运行方法
 
-- [yolov5](./docs/yolov5.md)
+- [yolov5/v6/v7/v8](./docs/yolov5.md)
 
 - [video_stitch](./docs/video_stitch.md)
 

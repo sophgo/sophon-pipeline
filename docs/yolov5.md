@@ -4,7 +4,7 @@
 
 ### 1.1 定义
 
-- 使用pipeline运行yolov5目标检测。
+- 使用pipeline运行yolo目标检测。
 - 当运行N路FPS为M的视频码流时，检测器`det`的FPS达到`N * M / (1 + [skip])`或者平均单路speed达到`M / (1 + [skip])`，其中`[skip]`为隔帧检测的跳帧数量。说明当前环境下，能够满足跳帧数为`[skip]`帧的N路FPS为M的视频码流的处理
 
 ## 2 编译
@@ -50,13 +50,14 @@
     {
       "name": "ex1",											# 对应于[path]的模型自定义名称
       "path": "/path_to_bmodel/test.bmodel",	        		# 对应[name]的bmodel模型的路径
+      "model_type": "yolov5s",									# 所选bmodel的模型类型，支持：yolo系(yolov5、yolov6、yolov7、yolov8系列)模型，填上模型对应网络名称，本例程提供模型类型为：yolov5s、yolov6s、yolov7、yolov8s。
       "skip_frame_num": 0,										# 隔帧检测的跳帧数量。当设置为0时表示程序不跳帧检测，当设置为1时表示程序每间隔1帧做一次模型的pipeline。
       "output_path": "output_path",                      		# 输出地址，只支持rtsp，tcp 格式为protocol://ip:port/, 例如rtsp://192.168.0.1:8554/test ， tcp://172.28.1.1:5353。对于rtsp推流，地址为rtsp server配置的地址。对于tcp，需要开放自己配置的端口。
       
       "obj_threshold": 0.5,										# 对应[path]的bmodel模型后处理的物体置信度阈值
       "nms_threshold": 0.5,										# 对应[path]的bmodel模型后处理的非极大值抑制阈值
       "class_threshold": 0.5,									# 对应[path]的bmodel模型后处理的类别置信度阈值
-      "class_num": 80											# 对应[path]的bmodel模型的分类数量
+      
     }
   ]
 }
@@ -69,11 +70,17 @@
 ### 3.2 运行方法
 
   > **NOTE**  
-  > yolov5_1684模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684.bmodel](http://219.142.246.77:65000/sharing/0IAlz5YOk)
-  >
-  > yolov5_1684X模型NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/EWfwFpkoD)
   >
   > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
+
+YOLO系列模型列表及NAS云盘下载地址
+
+| 模型类型 | BM1684 int8模型                                              | BM1684X int8模型                                             | BM1684X fp16模型                                             |
+| -------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| yolov5s  | [yolov5s_3output_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/XN0Xjko3l) | [yolov5s_3output_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/4KXV0r0bV) | [yolov5s_3output_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/9Rchhp0rl) |
+| yolov6s  | [yolov6s_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/lHh7Xc70U) | [yolov6s_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/gtpPKFDSG) | [yolov6s_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/FsRFOU1Ng) |
+| yolov7   | [yolov7_3output_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/RFT8S9b4Y) | [yolov7_3output_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/CH139AIZF) | [yolov7_3output_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/CJ7ph33Ys) |
+| yolov8s  | [yolov8s_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/QUw9Ols79) | [yolov8s_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/FdGTy4VEA) | [yolov8s_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/Tn1Jtev8e) |
 
 参数说明
 
@@ -93,14 +100,14 @@ Usage: yolov5s_demo [params]
 ```bash
 cd ${SOPHON_PIPELINE}/release/yolov5s_demo
 # ./x86/yolov5 --help 查看命令行帮助信息
-# 以x86 pcie 1684x为例,将下载好的yolov5模型拷贝到${SOPHON_PIPELINE}/release/yolov5s_demo目录下运行
+# 以x86 pcie 1684x yolov5s模型为例,将下载好的yolov5模型拷贝到${SOPHON_PIPELINE}/release/yolov5s_demo目录下运行
 ./x86/yolov5s_demo --config=./cameras_yolov5.json
 ```
 
 执行会打印如下信息：
 
 ```bash
-# 以x86 pcie 1684x为例
+# 以x86 pcie 1684x yolov5s模型为例
 # 先打印出每路(1路)视频码流及对应芯片相关信息，再打印1路检测器det的总FPS和第0路视频码流处理对应的speed信息。其中，FPS和speed信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS和speed信息有一定波动属于正常现象。FPS和speed信息如下所示：
 
 ...
@@ -122,14 +129,14 @@ cd ${SOPHON_PIPELINE}/release/yolov5s_demo
 ```bash
 cd ${SOPHON_PIPELINE_YOLOV5}
 # ./soc/yolov5 --help 查看命令行帮助信息
-# 以arm SoC 1684x为例
+# 以arm SoC 1684x yolov5s模型为例
 ./soc/yolov5s_demo --config=./cameras_yolov5.json 
 ```
 
 执行会打印如下信息：
 
 ```bash
-# 以arm SoC 1684x为例
+# 以arm SoC 1684x yolov5s模型为例
 # 先打印出每路(1路)视频码流及对应芯片相关信息，再打印1路检测器det的总FPS和第0路视频码流处理对应的speed信息。其中，FPS和speed信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS和speed信息有一定波动属于正常现象。FPS和speed信息如下所示：
 
 ...
