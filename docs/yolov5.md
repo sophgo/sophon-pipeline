@@ -80,7 +80,7 @@ YOLO系列模型列表及NAS云盘下载地址
 | yolov5s  | [yolov5s_3output_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/XN0Xjko3l) | [yolov5s_3output_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/4KXV0r0bV) | [yolov5s_3output_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/9Rchhp0rl) |
 | yolov6s  | [yolov6s_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/lHh7Xc70U) | [yolov6s_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/gtpPKFDSG) | [yolov6s_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/FsRFOU1Ng) |
 | yolov7   | [yolov7_3output_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/RFT8S9b4Y) | [yolov7_3output_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/CH139AIZF) | [yolov7_3output_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/CJ7ph33Ys) |
-| yolov8s  | [yolov8s_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/QUw9Ols79) | [yolov8s_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/FdGTy4VEA) | [yolov8s_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/Tn1Jtev8e) |
+| yolov8s  | [yolov8s_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/LqcrsJzz6) | [yolov8s_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/FdGTy4VEA) | [yolov8s_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/Tn1Jtev8e) |
 
 参数说明
 
