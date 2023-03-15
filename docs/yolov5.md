@@ -99,7 +99,7 @@ Usage: yolov5s_demo [params]
 
 ```bash
 cd ${SOPHON_PIPELINE}/release/yolov5s_demo
-# ./x86/yolov5 --help 查看命令行帮助信息
+# ./x86/yolov5_demo --help 查看命令行帮助信息
 # 以x86 pcie 1684x yolov5s模型为例,将下载好的yolov5模型拷贝到${SOPHON_PIPELINE}/release/yolov5s_demo目录下运行
 ./x86/yolov5s_demo --config=./cameras_yolov5.json
 ```
@@ -128,7 +128,7 @@ cd ${SOPHON_PIPELINE}/release/yolov5s_demo
 
 ```bash
 cd ${SOPHON_PIPELINE_YOLOV5}
-# ./soc/yolov5 --help 查看命令行帮助信息
+# ./soc/yolov5_demo --help 查看命令行帮助信息
 # 以arm SoC 1684x yolov5s模型为例
 ./soc/yolov5s_demo --config=./cameras_yolov5.json 
 ```

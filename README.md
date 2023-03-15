@@ -37,7 +37,7 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 
 | 版本  | 说明                                                         |
 | ----- | ------------------------------------------------------------ |
-| 0.3.4 | 添加yolov6、yolov7、yolov8例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC)；添加1684x fp16模型；所有例程适配1684 arm PCIe(银河麒麟V10) |
+| 0.3.4 | 添加yolov6、yolov7、yolov8例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC)；添加1684x fp16模型；所有例程适配1684/1684X arm PCIe(银河麒麟V10) |
 | 0.3.1 | 添加openpose、face_detect例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC) |
 | 0.3.0 | 添加multi、face_recognition例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC) |
 | 0.2.0 | 添加retinaface例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC) |
@@ -104,11 +104,11 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev libexiv2-dev
 #### 2.3.1 各个平台编译
 
 ``` bash
-# 若编译需要x86平台上运行的程序：
+# 若编译需要x86平台上运行的程序，在x86平台机器上编译：
 ./tools/compile.sh x86 
-# 若编译需要SoC平台上运行的程序，需要先根据2.2.2节准备好相关依赖，再运行下述命令进行编译：
+# 若编译需要SoC平台上运行的程序，需要先根据2.2.2节准备好相关依赖，在x86平台机器上运行下述命令进行编译：
 ./tools/compile.sh soc ${soc-sdk} 
-# 若编译需要arm64平台上运行的程序
+# 若编译需要arm64平台上运行的程序，在arm64平台机器上编译：
 ./tools/compile.sh arm64
 ```
 
