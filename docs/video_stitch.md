@@ -175,3 +175,37 @@ cd ${SOPHON_PIPELINE_VIDEO_STITCH}
 [2022-10-19:10:42:13] encode fps =8.0
 ...
 ```
+
+#### 3.2.3 arm PCIe
+
+**以设置`cameras_video_stitch.json`的`chan_num=1`为例**测试示例如下：
+
+```bash
+# ./arm64/video_stitch_demo --help 查看命令行帮助信息
+cd ${SOPHON_PIPELINE}/release/video_stitch_demo
+# arm pcie模式下,将下载好的video_stitch模型拷贝到${SOPHON_PIPELINE}/release/video_stitch_demo目录下运行
+./arm64/video_stitch_demo --config=./cameras_video_stitch.json
+```
+
+执行命令后会打印如下信息：
+
+```bash
+# arm pcie 1684x为例
+# # 先打印出每路(4路)视频码流及对应芯片相关信息，再打印4路的总FPS信息。其中，FPS信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS信息有一定波动或vlc偶尔出现卡顿属于正常现象。
+# FPS信息如下所示：
+
+...
+[2023-03-22:19:17:10] encode fps =-nan
+[2023-03-22:19:17:11] encode fps =12.0
+[2023-03-22:19:17:12] encode fps =12.0
+[2023-03-22:19:17:13] encode fps =12.3
+[2023-03-22:19:17:14] encode fps =12.5
+[2023-03-22:19:17:15] encode fps =12.8
+[2023-03-22:19:17:16] encode fps =12.5
+[2023-03-22:19:17:17] encode fps =12.5
+[2023-03-22:19:17:18] encode fps =12.5
+[2023-03-22:19:17:19] encode fps =12.2
+[2023-03-22:19:17:20] encode fps =12.8
+[2023-03-22:19:17:21] encode fps =12.5
+...
+```

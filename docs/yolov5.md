@@ -153,6 +153,35 @@ cd ${SOPHON_PIPELINE_YOLOV5}
 ...
 ```
 
+#### 3.2.3 arm PCIe
+
+**以设置`cameras_yolov5.json`的`chan_num=1`为例**测试示例如下：
+
+```bash
+cd ${SOPHON_PIPELINE}/release/yolov5s_demo
+# ./arm64/yolov5_demo --help 查看命令行帮助信息
+# 以arm pcie 1684x yolov5s模型为例,将下载好的yolov5模型拷贝到${SOPHON_PIPELINE}/release/yolov5s_demo目录下运行
+./arm64/yolov5s_demo --config=./cameras_yolov5.json
+```
+
+执行会打印如下信息：
+
+```bash
+# 以arm pcie 1684x yolov5s模型为例
+# 先打印出每路(1路)视频码流及对应芯片相关信息，再打印1路检测器det的总FPS和第0路视频码流处理对应的speed信息。其中，FPS和speed信息与当前运行设备的硬件配置相关，不同设备运行结果不同属正常现象，且同一设备运行程序过程中FPS和speed信息有一定波动属于正常现象。FPS和speed信息如下所示：
+
+...
+[2023-03-22:19:01:21] total fps =-nan,ch=0: speed=-nan
+[2023-03-22:19:01:22] total fps =24.0,ch=0: speed=24.0
+[2023-03-22:19:01:23] total fps =25.3,ch=0: speed=25.3
+[2023-03-22:19:01:24] total fps =25.0,ch=0: speed=25.0
+[2023-03-22:19:01:25] total fps =25.0,ch=0: speed=25.0
+[2023-03-22:19:01:26] total fps =25.0,ch=0: speed=25.0
+[2023-03-22:19:01:27] total fps =25.0,ch=0: speed=25.0
+[2023-03-22:19:01:28] total fps =25.0,ch=0: speed=25.0
+...
+```
+
 ### 3.3 可视化
 
 - 使用[pipeline_client](./pipeline_client_visualization.md)显示实时流和检测结果
