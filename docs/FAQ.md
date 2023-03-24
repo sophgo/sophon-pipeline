@@ -4,7 +4,7 @@ sophon-pipeline常见问题及解答
 
 ## 1 常见问题
 
-**Q**: 当运行推理路数较多时，遇到`bm_malloc_device_byte_heap error`或`bm::BMImage::create_batch Assertion BM_SUCCESS==ret failed`等内存分配错误的问题
+**Q: 当运行推理路数较多时，遇到`bm_malloc_device_byte_heap error`或`bm::BMImage::create_batch Assertion BM_SUCCESS==ret failed`等内存分配错误的问题**
 
 **A**: 
 
@@ -71,4 +71,26 @@ ulimit -HSn 20480
 > 注意：如果上述方法没有解决问题，请先通过 ps 命令获取业务进程 ID，然后 cat /proc/$pid/limits， 检查“Max open files”那一行是否为 20480，如果不是的话，请在直接启动您业务程序的 shell 脚本（比如上面 log 示例里的 run.sh）开头添加“ulimit -n 20480”。重新运行业务，通过 cat /proc/$pid/limits 复核是否修改成功。 如果以上方法都检查了没问题，那可能您的确申请了太多 buf，可以通过上述方法继续增大 max open files 数量。但最大也不应超过 cat /proc/sys/fs/file-max 显示的数量。
 
 
+
+**Q: 使用pipeline_client可视化时，pipeline_client报错：.BMvidDecCreateW get chip info failed!!! error sending a packet for decoding. decode failed!**
+
+<img src="./pics/faq/pipeline_client_rtsp_decode_failed.png" style="zoom:50%">
+
+**A:**
+
+由于在安装SophonSDK后，ffmpeg会链接到sophon-mw-ffmpeg的依赖库，若使用`ldd /usr/bin/ffmpeg`命令可见很多依赖链接到了`/opt/sophon/sophon-ffmpeg-latest/lib/*`下。
+
+解决方法：
+
+需要链接回公版ffmpeg的库上，可使用命令：
+
+```bash
+export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:$PATH
+```
+
+此时再次使用`ldd /usr/bin/ffmpeg`命令可见依赖链接回到`/lib/x86_64-linux-gnu/*`。
+
+同理，若出现pipeline_client占用了sophon的tpu，也用同样方法解决。
+
+<img src="./pics/faq/pipeline_clinet_bmffmpeg.jpg" style="zoom:50%">
 
