@@ -4,7 +4,7 @@
 
 sophon-pipeline配套客户端，用来显示实时流和检测结果。
 
-![](./pics/pipeline_client_ui.jpg)
+![](../pics/pipeline_client_ui.jpg)
 
 ## 下载安装
 

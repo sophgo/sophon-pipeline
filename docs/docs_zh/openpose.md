@@ -7,10 +7,13 @@
 - 使用pipeline运行openpose人体关键点检测。
 - 当运行N路FPS为M的视频码流时，检测器`det`的FPS达到`N * M / (1 + [skip])`或者平均单路speed达到`M / (1 + [skip])`，其中`[skip]`为隔帧检测的跳帧数量。说明当前环境下，能够满足跳帧数为`[skip]`帧的N路FPS为M的视频码流的处理
 
+## 2 编译
 
-## 2 运行
+请参考[sophon-pipeline编译](../../README.md#23-编译指令)
 
-### 2.1 配置文件
+## 3 运行
+
+### 3.1 配置文件
 
 运行请注意修改`${SOPHON_PIPELINE}/release/openpose_demo/cameras_openpose.json`配置：
 
@@ -61,17 +64,17 @@
 > 
 > 线程数和队列长度可根据设备情况自行定义。原则上，预处理线程数和后处理线程数设置为设备的逻辑CPU的个数。推理线程数单个pipeline一般为1。
 
-### 2.2 运行方法
+### 3.2 运行方法
 
   > **NOTE**  
-  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
+  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://disk-sophgo-vip.quickconnect.cn/sharing/tU6pYuuau)
 
 模型列表及NAS云盘下载地址
 
 | 模型    | BM1684 int8模型                                              | BM1684X int8模型                                             | BM1684X fp16模型                                             |
 | ------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| coco_18 | [openpose_coco_18_384w_216h_4b_1684.bmodel](http://219.142.246.77:65000/sharing/BneIxUbXN) | [openpose_coco_18_384w_216h_4b_1684x.bmodel](http://219.142.246.77:65000/sharing/cTjMDzwvx) | [openpose_coco_18_384w_216h_4b_1684x_fp16.bmodel](http://219.142.246.77:65000/sharing/NixAwUF4p) |
-| body_25 | [openpose_body_25_384w_216h_4b_1684.bmodel](http://219.142.246.77:65000/sharing/hhbgyyXsO) | [openpose_body_25_384w_216h_4b_1684x.bmodel](http://219.142.246.77:65000/sharing/VDPaMSnxl) | [openpose_body_25_384w_216h_4b_1684x_fp16.bmodel](http://219.142.246.77:65000/sharing/sOFgwM6W2) |
+| coco_18 | [openpose_coco_18_384w_216h_4b_1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/BneIxUbXN) | [openpose_coco_18_384w_216h_4b_1684x.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/cTjMDzwvx) | [openpose_coco_18_384w_216h_4b_1684x_fp16.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/NixAwUF4p) |
+| body_25 | [openpose_body_25_384w_216h_4b_1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/hhbgyyXsO) | [openpose_body_25_384w_216h_4b_1684x.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/VDPaMSnxl) | [openpose_body_25_384w_216h_4b_1684x_fp16.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/sOFgwM6W2) |
 
 参数说明
 
@@ -85,7 +88,7 @@ Usage: openpose_demo [params]
                 选择使用的模型。body_25表示使用25 body parts模型，coco_18表示使用18 body parts模型。默认值为coco_18。此参数必须与json配置模型一致。
 ```
 
-#### 2.2.1 x86 PCIe
+#### 3.2.1 x86 PCIe
 
 **以设置`cameras_openpose.json`的`chan_num=1`为例**测试示例如下：
 
@@ -115,7 +118,7 @@ cd ${SOPHON_PIPELINE}/release/openpose_demo
 ...
 ```
 
-#### 2.2.2 arm SoC
+#### 3.2.2 arm SoC
 
 将交叉编译好的`${SOPHON_PIPELINE}/release/openpose_demo`文件夹下的`cameras_openpose.json`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_openpose.json的相应配置，**以设置`cameras_openpose.json`的`chan_num=1`为例**，运行：
 
@@ -144,7 +147,7 @@ cd ${SOPHON_PIPELINE_OPENPOSE}
 ...
 ```
 
-#### 2.2.3 arm PCIe
+#### 3.2.3 arm PCIe
 
 **以设置`cameras_openpose.json`的`chan_num=1`为例**测试示例如下：
 
@@ -174,6 +177,6 @@ cd ${SOPHON_PIPELINE}/release/openpose_demo
 ...
 ```
 
-### 2.3 可视化
+### 3.3 可视化
 
 - 使用[pipeline_client](./pipeline_client_visualization.md)显示实时流和检测结果

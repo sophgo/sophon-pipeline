@@ -28,7 +28,7 @@ Play streams from this server using the URL
 
 ## 2 编译
 
-请参考[sophon-pipeline编译](../README.md#23-编译指令)
+请参考[sophon-pipeline编译](../../README.md#23-编译指令)
 
 ## 3 运行
 
@@ -87,11 +87,11 @@ Play streams from this server using the URL
 ### 3.2 运行方法
 
   > **NOTE**  
-  > video_stitch_1684X模型NAS云盘下载地址：[yolov5s_3output_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/4KXV0r0bV)
+  > video_stitch_1684X模型NAS云盘下载地址：[yolov5s_3output_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/4KXV0r0bV)
   >
-  > video_stitch_1684模型NAS云盘下载地址：[yolov5s_3output_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/XN0Xjko3l)
+  > video_stitch_1684模型NAS云盘下载地址：[yolov5s_3output_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/XN0Xjko3l)
   >
-  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
+  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://disk-sophgo-vip.quickconnect.cn/sharing/tU6pYuuau)
 
 参数说明
 

@@ -74,7 +74,7 @@ ulimit -HSn 20480
 
 **Q: 使用pipeline_client可视化时，pipeline_client报错：.BMvidDecCreateW get chip info failed!!! error sending a packet for decoding. decode failed!**
 
-<img src="./pics/faq/pipeline_client_rtsp_decode_failed.png" style="zoom:50%">
+<img src="../pics/faq/pipeline_client_rtsp_decode_failed.png" style="zoom:50%">
 
 **A:**
 
@@ -92,5 +92,5 @@ export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:$PATH
 
 同理，若出现pipeline_client占用了sophon的tpu，也用同样方法解决。
 
-<img src="./pics/faq/pipeline_clinet_bmffmpeg.jpg" style="zoom:50%">
+<img src="../pics/faq/pipeline_client_bmffmpeg.jpg" style="zoom:50%">
 

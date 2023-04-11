@@ -9,7 +9,7 @@
 
 ## 2 编译
 
-请参考[sophon-pipeline编译](../README.md#23-编译指令)
+请参考[sophon-pipeline编译](../../README.md#23-编译指令)
 
 ## 3 运行
 
@@ -81,15 +81,15 @@
 
   > **NOTE**  
   >
-  > yolov5_1684模型1的NAS云盘下载地址：[yolov5s_3output_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/XN0Xjko3l)
+  > yolov5_1684模型1的NAS云盘下载地址：[yolov5s_3output_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/XN0Xjko3l)
   >
-  > yolov5_1684模型2的NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684.bmodel](http://219.142.246.77:65000/sharing/0IAlz5YOk)
+  > yolov5_1684模型2的NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/0IAlz5YOk)
   >
-  > yolov5_1684X模型1的NAS云盘下载地址：[yolov5s_3output_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/4KXV0r0bV)
+  > yolov5_1684X模型1的NAS云盘下载地址：[yolov5s_3output_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/4KXV0r0bV)
   >
-  > yolov5_1684X模型2的NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/EWfwFpkoD)
+  > yolov5_1684X模型2的NAS云盘下载地址：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/EWfwFpkoD)
   >
-  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
+  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://disk-sophgo-vip.quickconnect.cn/sharing/tU6pYuuau)
 
 参数说明
 

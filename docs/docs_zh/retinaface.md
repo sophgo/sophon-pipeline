@@ -9,7 +9,7 @@
 
 ## 2 编译
 
-请参考[sophon-pipeline编译](../README.md#23-编译指令)
+请参考[sophon-pipeline编译](../../README.md#23-编译指令)
 
 ## 3 运行
 
@@ -67,13 +67,13 @@
 ### 3.2 运行方法
 
   > **NOTE**  
-  > retinaface_1684 int8模型NAS云盘下载地址：[retinaface_mobilenet0.25_640w_384h_BM1684_b4.bmodel](http://219.142.246.77:65000/sharing/1gVuM4Aya)
+  > retinaface_1684 int8模型NAS云盘下载地址：[retinaface_mobilenet0.25_640w_384h_BM1684_b4.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/1gVuM4Aya)
   >
-  > retinaface_1684X int8模型NAS云盘下载地址：[retinaface_mobilenet0.25_640w_384h_BM1684X_b4.bmodel](http://219.142.246.77:65000/sharing/VQ9pr10id)
+  > retinaface_1684X int8模型NAS云盘下载地址：[retinaface_mobilenet0.25_640w_384h_BM1684X_b4.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/VQ9pr10id)
   >
-  > retinaface_1684X fp16模型NAS云盘下载地址：[retinaface_mobilenet0.25_640w_384h_BM1684X_fp16_b4.bmodel](http://219.142.246.77:65000/sharing/EcgerXMty)
+  > retinaface_1684X fp16模型NAS云盘下载地址：[retinaface_mobilenet0.25_640w_384h_BM1684X_fp16_b4.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/EcgerXMty)
   >
-  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
+  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://disk-sophgo-vip.quickconnect.cn/sharing/tU6pYuuau)
 
 参数说明
 

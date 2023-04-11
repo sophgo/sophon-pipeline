@@ -45,7 +45,7 @@ make -j4
 sudo make install	
 # libraries have been installed in: /usr/local/lib
 # create a symbolic link
-# 以下操作为解决不同环境下找不到glog库的问题，用ls /usr查看是否存在lib64目录，如果存在，则执行一下步骤；如果不存在，则跳过以下步骤
+# 以下操作为解决不同环境下找不到glog库的问题，用ls /usr查看是否存在lib64目录，如果存在，则执行以下步骤；如果不存在，则跳过以下步骤
 sudo ln -s /usr/local/lib/libglog.so.0 /usr/lib64/libglog.so.0
 ```
 

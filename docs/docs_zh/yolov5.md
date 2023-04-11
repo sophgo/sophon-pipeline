@@ -9,7 +9,7 @@
 
 ## 2 编译
 
-请参考[sophon-pipeline编译](../README.md#23-编译指令)
+请参考[sophon-pipeline编译](../../README.md#23-编译指令)
 
 ## 3 运行
 
@@ -49,7 +49,7 @@
   "models":[
     {
       "name": "ex1",											# 对应于[path]的模型自定义名称
-      "path": "/path_to_bmodel/test.bmodel",	        		# 对应[name]的bmodel模型的路径
+      "path": "your_bmodel_path.bmodel",	        		# 对应[name]的bmodel模型的路径
       "model_type": "yolov5s",									# 所选bmodel的模型类型，需要根据使用的bmodel选择对应的模型类型，否则可能会影响检测精度。支持：yolo系(yolov5、yolov6、yolov7、yolov8系列)模型，填上模型对应网络名称，本例程提供模型类型为：yolov5s、yolov6s、yolov7、yolov8s。默认为yolov5s。
       "skip_frame_num": 0,										# 隔帧检测的跳帧数量。当设置为0时表示程序不跳帧检测，当设置为1时表示程序每间隔1帧做一次模型的pipeline。
       "output_path": "output_path",                      		# 输出地址，只支持rtsp，tcp 格式为protocol://ip:port/, 例如rtsp://192.168.0.1:8554/test ， tcp://172.28.1.1:5353。对于rtsp推流，地址为rtsp server配置的地址。对于tcp，需要开放自己配置的端口。
@@ -71,16 +71,16 @@
 
   > **NOTE**  
   >
-  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
+  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://disk-sophgo-vip.quickconnect.cn/sharing/tU6pYuuau)
 
 YOLO系列模型列表及NAS云盘下载地址
 
 | model_type | BM1684 int8模型                                              | BM1684X int8模型                                             | BM1684X fp16模型                                             |
 | ---------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| yolov5s    | [yolov5s_3output_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/XN0Xjko3l) | [yolov5s_3output_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/4KXV0r0bV) | [yolov5s_3output_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/9Rchhp0rl) |
-| yolov6s    | [yolov6s_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/lHh7Xc70U) | [yolov6s_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/gtpPKFDSG) | [yolov6s_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/FsRFOU1Ng) |
-| yolov7     | [yolov7_3output_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/RFT8S9b4Y) | [yolov7_3output_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/CH139AIZF) | [yolov7_3output_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/CJ7ph33Ys) |
-| yolov8s    | [yolov8s_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/LqcrsJzz6) | [yolov8s_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/FdGTy4VEA) | [yolov8s_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/Tn1Jtev8e) |
+| yolov5s    | [yolov5s_3output_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/XN0Xjko3l) | [yolov5s_3output_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/4KXV0r0bV) | [yolov5s_3output_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/9Rchhp0rl) |
+| yolov6s    | [yolov6s_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/lHh7Xc70U) | [yolov6s_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/gtpPKFDSG) | [yolov6s_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/FsRFOU1Ng) |
+| yolov7     | [yolov7_3output_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/RFT8S9b4Y) | [yolov7_3output_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/CH139AIZF) | [yolov7_3output_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/CJ7ph33Ys) |
+| yolov8s    | [yolov8s_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/LqcrsJzz6) | [yolov8s_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/FdGTy4VEA) | [yolov8s_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/Tn1Jtev8e) |
 
 > 注意：在json配置中需选择使用模型对应的model_type，否则可能会影响检测精度。
 
@@ -101,7 +101,7 @@ Usage: yolov5s_demo [params]
 
 ```bash
 cd ${SOPHON_PIPELINE}/release/yolov5s_demo
-# ./x86/yolov5_demo --help 查看命令行帮助信息
+# ./x86/yolov5s_demo --help 查看命令行帮助信息
 # 以x86 pcie 1684x yolov5s模型为例,将下载好的yolov5模型拷贝到${SOPHON_PIPELINE}/release/yolov5s_demo目录下运行
 ./x86/yolov5s_demo --config=./cameras_yolov5.json
 ```
@@ -130,7 +130,7 @@ cd ${SOPHON_PIPELINE}/release/yolov5s_demo
 
 ```bash
 cd ${SOPHON_PIPELINE_YOLOV5}
-# ./soc/yolov5_demo --help 查看命令行帮助信息
+# ./soc/yolov5s_demo --help 查看命令行帮助信息
 # 以arm SoC 1684x yolov5s模型为例
 ./soc/yolov5s_demo --config=./cameras_yolov5.json 
 ```
@@ -159,7 +159,7 @@ cd ${SOPHON_PIPELINE_YOLOV5}
 
 ```bash
 cd ${SOPHON_PIPELINE}/release/yolov5s_demo
-# ./arm64/yolov5_demo --help 查看命令行帮助信息
+# ./arm64/yolov5s_demo --help 查看命令行帮助信息
 # 以arm pcie 1684x yolov5s模型为例,将下载好的yolov5模型拷贝到${SOPHON_PIPELINE}/release/yolov5s_demo目录下运行
 ./arm64/yolov5s_demo --config=./cameras_yolov5.json
 ```
