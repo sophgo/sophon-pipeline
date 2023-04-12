@@ -148,21 +148,21 @@ After compilation, the demo program will be stored in `${SOPHON_PIPELINE}/releas
 
 
 
-| Model | int8 inference(ms) | int8(FPS) | fp16 inference(ms) | fp16(FPS) |
-|:---------: |:-----------:|:-------------------------:|:-------------------------:|:-------------------------:|
-| **yolov5s** | 3.29 | 182 | 6.27 | 129 |
-| **yolov6s** | 3.03 | 108 | 4.42 | 105 |
-| **yolov7** | 8.93 | 98 | 22.5 | 40 |
-| **yolov8s** | 3.69 | 157 | 7.00 | 130 |
-| **ppyoloe_s** | 5.39 | 167 | 8.46 | 115 |
-| **ppyoloe_plus_s** | 5.10 | 160 | 7.86 | 115 |
-| **openpose_coco_18** | 5.38 | 40 | 11.26 | 37 |
-| **openpose_body_25** | 3.43 | 29 | 7.00 | 28 |
-| **retinaface_mobilenet0.25** | 0.67 | ≥500 | 0.81 | ≥500 |
-| **face_detect** | 1.16 | ≥500 | 1.45 | ≥500 |
-| **face_recognition** | - | - | - | - |
-| **multi** | - | - | - | - |
-| **video_stitch** | - |     -     | - | - |
+|             Model            | int8 inference(ms) | int8(FPS) | fp16 inference(ms) | fp16(FPS) |
+|:---------------------------: |:------------------:|:---------:|:------------------:|:---------:|
+|          **yolov5s**         |        3.29        |    182    |        6.27        |    129    |
+|          **yolov6s**         |        3.03        |    108    |        4.42        |    105    |
+|          **yolov7**          |        8.93        |     98    |        22.5        |     40    |
+|          **yolov8s**         |        3.69        |    157    |        7.00        |    130    |
+|         **ppyoloe_s**        |        5.39        |    167    |        8.46        |    115    |
+|      **ppyoloe_plus_s**      |        5.10        |    160    |        7.86        |    115    |
+|     **openpose_coco_18**     |        5.38        |     40    |       11.26        |     37    |
+|     **openpose_body_25**     |        3.43        |     29    |        7.00        |     28    |
+| **retinaface_mobilenet0.25** |        0.67        |   ≥500    |        0.81        |   ≥500    |
+|        **face_detect**       |        1.16        |   ≥500    |        1.45        |   ≥500    |
+|     **face_recognition**     |          -         |     -     |          -         |     -     |
+|           **multi**          |          -         |     -     |          -         |     -     |
+|       **video_stitch**       |          -         |     -     |          -         |     -     |
 
 **Clarification：**
 
