@@ -49,7 +49,7 @@ Please note to modify the`${SOPHON_PIPELINE}/release/ppyoloe_demo/cameras_ppyolo
     {
       "name": "ex1",											# Custom name of the model corresponding to [path]
       "path": "your_bmodel_path.bmodel",	        			# The path to the bmodel model corresponding to [name]. The model must be the same as the command line parameter [model_pose] to configure the model.
-      "model_type": "ppyoloe",									# Model type for bmodel. Model_type supports series of ppyoloe models: ppyoloe and ppyoloe_plus. We provide ppyoloe_s which model_type is ppyoloe, and ppyoloe_plus_s which model_type is ppyoloe_plus_s. 
+      "model_type": "ppyoloe",									# Model type for bmodel. It is necessary to choose the corresponding model_type according to the bmodel, otherwise the accuracy may be affected. Model_type supports series of ppyoloe models: ppyoloe and ppyoloe_plus. We provide ppyoloe_s which model_type is ppyoloe, and ppyoloe_plus_s which model_type is ppyoloe_plus_s. 
       "skip_frame_num": 0,										# The number of frames to be skipped for inter-frame detection. When set to 0, the program does not skip frames, when set to 1, the program does a model pipeline every 1 frames.
       "output_path": "output_path",                     		#Output address, only support rtsp, tcp format is protocol://ip:port/, for example rtsp://192.168.0.1:8554/test, tcp://172.28.1.1:5353. for rtsp push stream, the address is the address configured by rtsp server. For tcp, you need to open the port you configured.
       

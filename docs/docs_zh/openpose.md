@@ -67,14 +67,14 @@
 ### 3.2 运行方法
 
   > **NOTE**  
-  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://disk-sophgo-vip.quickconnect.cn/sharing/tU6pYuuau)
+  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
 
 模型列表及NAS云盘下载地址
 
 | 模型    | BM1684 int8模型                                              | BM1684X int8模型                                             | BM1684X fp16模型                                             |
 | ------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| coco_18 | [openpose_coco_18_384w_216h_4b_1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/BneIxUbXN) | [openpose_coco_18_384w_216h_4b_1684x.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/cTjMDzwvx) | [openpose_coco_18_384w_216h_4b_1684x_fp16.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/NixAwUF4p) |
-| body_25 | [openpose_body_25_384w_216h_4b_1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/hhbgyyXsO) | [openpose_body_25_384w_216h_4b_1684x.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/VDPaMSnxl) | [openpose_body_25_384w_216h_4b_1684x_fp16.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/sOFgwM6W2) |
+| coco_18 | [openpose_coco_18_384w_216h_4b_1684.bmodel](http://219.142.246.77:65000/sharing/BneIxUbXN) | [openpose_coco_18_384w_216h_4b_1684x.bmodel](http://219.142.246.77:65000/sharing/cTjMDzwvx) | [openpose_coco_18_384w_216h_4b_1684x_fp16.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/NixAwUF4p) |
+| body_25 | [openpose_body_25_384w_216h_4b_1684.bmodel](http://219.142.246.77:65000/sharing/hhbgyyXsO) | [openpose_body_25_384w_216h_4b_1684x.bmodel](http://219.142.246.77:65000/sharing/VDPaMSnxl) | [openpose_body_25_384w_216h_4b_1684x_fp16.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/sOFgwM6W2) |
 
 参数说明
 

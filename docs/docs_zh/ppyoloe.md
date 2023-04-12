@@ -49,7 +49,7 @@
     {
       "name": "ex1",											# 对应于[path]的模型自定义名称
       "path": "/path_to_bmodel/test.bmodel",	        		# 对应[name]的bmodel模型的路径
-      "model_type": "ppyoloe",									# 所选bmodel的模型类型，支持：ppyolo系(ppyoloe、ppyoloe_plus系列)模型，填上模型对应网络名称，本例程提供模型类型为：ppyoloe_s(model_type为ppyoloe)、ppyoloe_plus_s(model_type为ppyoloe_plus)。
+      "model_type": "ppyoloe",									# 所选bmodel的模型类型，需要根据使用的bmodel选择对应的模型类型，否则可能会影响检测精度。支持：ppyolo系(ppyoloe、ppyoloe_plus系列)模型，本例程提供模型类型为：ppyoloe_s(model_type为ppyoloe)、ppyoloe_plus_s(model_type为ppyoloe_plus)。
       "skip_frame_num": 0,										# 隔帧检测的跳帧数量。当设置为0时表示程序不跳帧检测，当设置为1时表示程序每间隔1帧做一次模型的pipeline。
       "output_path": "output_path",                      		# 输出地址，只支持rtsp，tcp 格式为protocol://ip:port/, 例如rtsp://192.168.0.1:8554/test ， tcp://172.28.1.1:5353。对于rtsp推流，地址为rtsp server配置的地址。对于tcp，需要开放自己配置的端口。
       
@@ -69,14 +69,14 @@
 
   > **NOTE**  
   >
-  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://disk-sophgo-vip.quickconnect.cn/sharing/tU6pYuuau)
+  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
 
 PP-YOLO系列模型列表及NAS云盘下载地址
 
 | 模型类型       | BM1684 int8模型                                              | BM1684X int8模型                                             | BM1684X fp16模型                                             |
 | -------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| ppyoloe_s      | [ppyoloe_s_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/rH1C0Htqp) | [ppyoloe_s_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/9JO3A4vhw) | [ppyoloe_s_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/4m6mPbanQ) |
-| ppyoloe_plus_s | [ppyoloe_plus_s_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/p3V402J73) | [ppyoloe_plus_s_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/xEj8GatV2) | [ppyoloe_plus_s_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/WEWsAtkuJ) |
+| ppyoloe_s      | [ppyoloe_s_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/rH1C0Htqp) | [ppyoloe_s_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/9JO3A4vhw) | [ppyoloe_s_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/4m6mPbanQ) |
+| ppyoloe_plus_s | [ppyoloe_plus_s_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/p3V402J73) | [ppyoloe_plus_s_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/xEj8GatV2) | [ppyoloe_plus_s_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/WEWsAtkuJ) |
 
 参数说明
 
