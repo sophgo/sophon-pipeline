@@ -56,7 +56,7 @@ class Track
     enum TrackState {Tentative = 1, Confirmed, Deleted};
 
 public:
-    Track(KAL_MEAN& mean, KAL_COVA& covariance, int track_id,
+    Track(KAL_MEAN& mean, KAL_COVA& covariance, int track_id, int class_id,
           int n_init, int max_age, const FEATURE& feature);
     void predit(KalmanFilter *kf);
     void update(KalmanFilter * const kf, const DETECTION_ROW &detection);
@@ -67,6 +67,7 @@ public:
     DETECTBOX to_tlwh();
     int time_since_update;
     int track_id;
+    int class_id;
     FEATURESS features;
     KAL_MEAN mean;
     KAL_COVA covariance;

@@ -24,6 +24,7 @@ namespace bm {
                 DETECTION_ROW row;
                 row.tlwh = DETECTBOX(rc.x1, rc.y1, rc.width(), rc.height());
                 row.feature.setZero();
+                row.class_id = rc.class_id;
                 detections.push_back(row);
             }
 
@@ -35,6 +36,7 @@ namespace bm {
                 auto tmpbox = track.to_tlwh();
                 bm::NetOutputObject dst_rc(tmpbox(0), tmpbox(1), tmpbox(2), tmpbox(3));
                 dst_rc.track_id = track.track_id;
+                dst_rc.class_id = track.class_id;
                 results.push_back(dst_rc);
             }
         }

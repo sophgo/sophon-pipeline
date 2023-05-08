@@ -14,6 +14,7 @@ public:
     DETECTBOX tlwh;
     float confidence;
     FEATURE feature;
+    int class_id;
     DETECTBOX to_xyah() const;
     DETECTBOX to_tlbr() const;
 };

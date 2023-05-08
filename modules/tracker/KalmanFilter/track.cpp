@@ -1,10 +1,11 @@
 #include "track.h"
 
-Track::Track(KAL_MEAN& mean, KAL_COVA& covariance, int track_id, int n_init, int max_age, const FEATURE& feature)
+Track::Track(KAL_MEAN& mean, KAL_COVA& covariance, int track_id, int class_id, int n_init, int max_age, const FEATURE& feature)
 {
     this->mean = mean;
     this->covariance = covariance;
     this->track_id = track_id;
+    this->class_id = class_id;
     this->hits = 1;
     this->age = 1;
     this->time_since_update = 0;
