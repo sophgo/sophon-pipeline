@@ -101,15 +101,17 @@ int YoloV5::init_yolo(std::string model_type = "yolov5s"){
     }else if(m_bmnet->outputTensor(0)->get_shape()->num_dims == 3 || m_bmnet->outputTensor(0)->get_shape()->num_dims == 5){
         std::cout << "Using cpu yolo postprocession." << std::endl;
     }else if(BM1686_CHIPID_BIT_MASK != misc_info.chipid_bit_mask && m_bmnet->outputTensor(0)->get_shape()->num_dims == 4){
-        std::cout << "tpu_kernel yolo postprocession only support BM1684X!" << std::endl;
+        std::cerr << "tpu_kernel yolo postprocession only support BM1684X!" << std::endl;
         exit(1);
     }else{
-        std::cout << "Invalid BModel Format!" << std::endl;
+        std::cerr << "Invalid BModel Format!" << std::endl;
         exit(1);
     }
 #else // USE_TPUKERNEL undefined in cmakelist
     if (m_bmnet->outputTensor(0)->get_shape()->num_dims == 4){
-        std::cerr << "SDK verson must >= 23.03.01." << std::endl;
+        std::cerr << "It seems you are using the tpukernel format bmodel, but you should follow these steps first." << std::endl
+                  << "1. Please turn on the USE_TPU_KERNEL option in sophon-pipeline/CMakeLists.txt." << std::endl
+                  << "2. Install libsophon with version >= 0.4.6 on your environment." << std::endl;
         exit(1);
     }
 #endif
