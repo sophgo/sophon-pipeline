@@ -83,10 +83,10 @@ YOLO series model list and NAS cloud disk download address
 | yolov6s    | [yolov6s_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/lHh7Xc70U) | [yolov6s_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/gtpPKFDSG) | [yolov6s_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/FsRFOU1Ng) |
 | yolov7     | [yolov7_3output_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/RFT8S9b4Y) | [yolov7_3output_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/CH139AIZF) | [yolov7_3output_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/CJ7ph33Ys) |
 | yolov8s    | [yolov8s_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/LqcrsJzz6) | [yolov8s_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/FdGTy4VEA) | [yolov8s_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/Tn1Jtev8e) |
-| yolov5s🚀| - |[yolov5s_tpukernel_int8_4b.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/3p9xqqe39) | - |
-| yolov7🚀| - |[yolov7_tpukernel_int8_4b.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/6XkwiGLuA) | - |
+| yolov5s_opt🚀 | - |[yolov5s_tpukernel_int8_4b.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/3p9xqqe39) | [yolov5s_tpukernel_fp16_4b.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/thyCbllqf) |
+| yolov7_opt🚀 | - |[yolov7_tpukernel_int8_4b.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/6XkwiGLuA) | [yolov7_tpukernel_fp16_4b.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/yy7uPazv7) |
 
-> **NOTE**:  In the JSON configuration, you need to select the model_type corresponding to the model, otherwise the detection accuracy may be affected. 
+> **NOTE*:  In the JSON configuration, you need to select the model_type corresponding to the model, otherwise the detection accuracy may be affected. 
 >
 > 🚀 tagged models are supported on BM1684X(x86 PCIe, arm SoC). If you would like to use  🚀 tagged models, modify ${SOPHON-PIPELINE}/CMakeLists.txt on Line 11, set USE_TPU_KERNEL to ON, then recompile the program, and download the libbm1684x_kernel_module.so for supporting use. To obtain 🚀 tagged models, please refer to [sophon-demo/sample/YOLOv5_opt](https://github.com/sophgo/sophon-demo/tree/release/sample/YOLOv5_opt).
 
