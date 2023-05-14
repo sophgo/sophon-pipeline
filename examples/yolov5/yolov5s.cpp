@@ -11,9 +11,11 @@
 #include <algorithm>
 #define USE_ASPECT_RATIO 1
 #define USE_MULTICLASS_NMS 1
+#define BM1684_CHIPID_BIT_MASK (0X1 << 1)
+#define BM1686_CHIPID_BIT_MASK (0X1 << 2)
 
-
-YoloV5::YoloV5(bm::BMNNContextPtr bmctx, std::string model_type):m_bmctx(bmctx)
+YoloV5::YoloV5(bm::BMNNContextPtr bmctx, std::string tpu_kernel_module_path, 
+               std::string model_type):m_bmctx(bmctx), tpu_kernel_module_path(tpu_kernel_module_path)
 {
     // the bmodel has only one yolo network.
     auto net_name = m_bmctx->network_name(0);
@@ -87,8 +89,32 @@ int YoloV5::init_yolo(std::string model_type = "yolov5s"){
                                                          
     m_anchors = anchors;
 
-    return ret;
+#if USE_TPUKERNEL
+    // 6.tpukernel postprocess
+    bm_misc_info misc_info;
+    bm_get_misc_info(m_bmctx->handle(), &misc_info);
+    if(BM1686_CHIPID_BIT_MASK == misc_info.chipid_bit_mask && m_bmnet->outputTensor(0)->get_shape()->num_dims == 4){
+        tpu_kernel_module_t tpu_module;
+        tpu_module = tpu_kernel_load_module_file(m_bmctx->handle(), tpu_kernel_module_path.c_str());  
+        func_id = tpu_kernel_get_function(m_bmctx->handle(), tpu_module, "tpu_kernel_api_yolov5_detect_out");
+        std::cout << "Using tpu_kernel yolo postprocession, kernel funtion id: " << func_id << std::endl;
+    }else if(m_bmnet->outputTensor(0)->get_shape()->num_dims == 3 || m_bmnet->outputTensor(0)->get_shape()->num_dims == 5){
+        std::cout << "Using cpu yolo postprocession." << std::endl;
+    }else if(BM1686_CHIPID_BIT_MASK != misc_info.chipid_bit_mask && m_bmnet->outputTensor(0)->get_shape()->num_dims == 4){
+        std::cout << "tpu_kernel yolo postprocession only support BM1684X!" << std::endl;
+        exit(1);
+    }else{
+        std::cout << "Invalid BModel Format!" << std::endl;
+        exit(1);
+    }
+#else // USE_TPUKERNEL undefined in cmakelist
+    if (m_bmnet->outputTensor(0)->get_shape()->num_dims == 4){
+        std::cerr << "SDK verson must >= 23.03.01." << std::endl;
+        exit(1);
+    }
+#endif
 
+    return ret;
 }
 
 int YoloV5::get_Batch(){
@@ -250,7 +276,15 @@ int YoloV5::postprocess(std::vector<bm::FrameInfo> &frame_infos)
         auto frame_info = frame_infos[i];
 
         // extract face detection
+    #if USE_TPUKERNEL
+        if(func_id != -1){
+            extract_yolobox_tpukernel(frame_info);
+        }else{
+            extract_yolobox_cpu(frame_info);
+        }
+    #else
         extract_yolobox_cpu(frame_info);
+    #endif
 
         if (m_pfnDetectFinish != nullptr) {
             m_pfnDetectFinish(frame_info);
@@ -523,3 +557,117 @@ void YoloV5::extract_yolobox_cpu(bm::FrameInfo& frameInfo)
     }
 
 }
+
+#if USE_TPUKERNEL
+void YoloV5::extract_yolobox_tpukernel(bm::FrameInfo& frameInfo){
+    std::vector<bm::NetOutputObject> yolobox_vec;
+    std::vector<cv::Rect> bbox_vec;
+    auto& images = frameInfo.frames;
+
+    int output_num = m_bmnet->outputTensorNum();
+    if(output_num != 3){
+        std::cout << "output_num must be 3 !" << std::endl;
+    }
+    // init tpu_kernel args    
+    tpu_kernel_api_yolov5NMS_t api[(int)images.size()];
+
+    // allocate device memory
+    bm_handle_t handle = m_bmctx->handle();
+    bm_device_mem_t in_dev_mem[output_num];
+    for(int i = 0; i < output_num; i++){
+        in_dev_mem[i] = frameInfo.output_tensors[i].device_mem;
+    }
+    bm_device_mem_t out_dev_mem[(int)images.size()];
+    bm_device_mem_t detect_num_mem[(int)images.size()];
+    float* output_tensor[(int)images.size()];
+    int32_t detect_num[(int)images.size()];
+    int out_len_max = 200 * 7;
+    int batch_num = 1; // 4b has bug, now only for 1b.
+    for(int i = 0; i < (int)images.size(); i++){
+        output_tensor[i] = new float[out_len_max];
+        for (int j = 0; j < output_num; j++) {
+            api[i].bottom_addr[j] = bm_mem_get_device_addr(in_dev_mem[j]) + i * in_dev_mem[j].size / MAX_BATCH;
+        }
+        auto ret = bm_malloc_device_byte(handle, &out_dev_mem[i], out_len_max * sizeof(float));
+        assert(BM_SUCCESS == ret);
+        ret = bm_malloc_device_byte(handle, &detect_num_mem[i], batch_num * sizeof(int32_t));
+        assert(BM_SUCCESS == ret);
+        api[i].top_addr = bm_mem_get_device_addr(out_dev_mem[i]);
+        api[i].detected_num_addr = bm_mem_get_device_addr(detect_num_mem[i]);
+
+        // config
+        api[i].input_num = output_num;
+        api[i].batch_num = batch_num;
+        for (int j = 0; j < output_num; ++j) {
+            api[i].hw_shape[j][0] = frameInfo.output_tensors[j].shape.dims[2];
+            api[i].hw_shape[j][1] = frameInfo.output_tensors[j].shape.dims[3];
+        }
+        api[i].num_classes = frameInfo.output_tensors[0].shape.dims[1] / output_num - 5;
+        api[i].num_boxes = m_anchors[0].size();
+        api[i].keep_top_k = 200;
+        api[i].nms_threshold = MAX(0.1, m_nms_thres);
+        api[i].confidence_threshold = MAX(0.1, m_obj_thres);
+        auto it=api[i].bias;
+        for (const auto& subvector2 : m_anchors) {
+            for (const auto& subvector1 : subvector2) {
+                it = copy(subvector1.begin(), subvector1.end(), it);
+            }
+        }
+        for (int j = 0; j < output_num; j++) 
+            api[i].anchor_scale[j] = m_net_h / frameInfo.output_tensors[j].shape.dims[2];
+        api[i].clip_box = 1;
+    }
+
+    for(int i = 0; i < (int)images.size(); ++ i)
+    {
+        yolobox_vec.clear();
+        auto& frame = images[i];
+        float ratio_x = (float)m_net_w / frame.width;
+        float ratio_y = (float)m_net_h / frame.height;
+        int tx1 = 0, ty1 = 0;
+        
+    #if USE_ASPECT_RATIO
+        bool isAlignWidth = false;
+        float ratio = get_aspect_scaled_ratio(frame.width, frame.height, m_net_w, m_net_h, &isAlignWidth);
+
+        if (isAlignWidth) {
+            ty1 = (int)((m_net_h - (int)(frame.height*ratio)) / 2);
+        }else{
+            tx1 = (int)((m_net_w - (int)(frame.width*ratio)) / 2);
+        }
+        ratio_x = ratio_y = ratio;
+    #endif
+        tpu_kernel_launch(m_bmctx->handle(), func_id, &api[i], sizeof(api[i]));
+        bm_thread_sync(m_bmctx->handle());
+        bm_memcpy_d2s_partial_offset(m_bmctx->handle(), (void*)(detect_num + i), detect_num_mem[i], api[i].batch_num * sizeof(int32_t), 0);
+        bm_memcpy_d2s_partial_offset(m_bmctx->handle(), (void*)output_tensor[i], out_dev_mem[i], detect_num[i] * 7 * sizeof(float),
+                                    0);  
+        for (int bid = 0; bid < detect_num[i]; bid++) {
+            bm::NetOutputObject temp_bbox;
+            temp_bbox.class_id = *(output_tensor[i] + 7 * bid + 1);
+            if (temp_bbox.class_id == -1) {
+                continue;
+            }
+            temp_bbox.score = *(output_tensor[i] + 7 * bid + 2);
+            float centerX = (*(output_tensor[i] + 7 * bid + 3) + 1 - tx1) / ratio - 1;
+            float centerY = (*(output_tensor[i] + 7 * bid + 4) + 1 - ty1) / ratio - 1;
+            auto width = (*(output_tensor[i] + 7 * bid + 5) + 0.5) / ratio;
+            auto height = (*(output_tensor[i] + 7 * bid + 6) + 0.5) / ratio;
+
+            temp_bbox.x1  = int(centerX - width  / 2);
+            temp_bbox.y1  = int(centerY - height / 2);
+            temp_bbox.x2  = temp_bbox.x1 + width;
+            temp_bbox.y2  = temp_bbox.y1 + height;                                   
+            
+            yolobox_vec.push_back(temp_bbox);  // 0
+        }
+        bm::NetOutputDatum datum(yolobox_vec);
+        frameInfo.out_datums.push_back(datum);
+
+        delete [] output_tensor[i];
+        bm_free_device(m_bmctx->handle(), out_dev_mem[i]);
+        bm_free_device(m_bmctx->handle(), detect_num_mem[i]);
+    }
+
+}
+#endif

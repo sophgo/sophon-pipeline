@@ -19,8 +19,7 @@ int main(int argc, char *argv[])
 {
     const char *base_keys=
                          "{help | 0 | Print help information.}"
-                         "{config | ./cameras_yolov5.json | path to cameras_yolov5.json}"
-                         "{tpu_kernel_module_path | ./libbm1684x_kernel_module.so | Path to tpu_kernel_module_path}";
+                         "{config | ./cameras_yolact.json | path to cameras_yolact.json}";
 
     std::string keys;
     keys = base_keys;
@@ -29,7 +28,7 @@ int main(int argc, char *argv[])
         parser.printMessage();
         return 0;
     }
-    std::string tpu_kernel_module_path = parser.get<std::string>("tpu_kernel_module_path");
+
     std::string config_file = parser.get<std::string>("config");
 
     Config cfg(config_file.c_str());
@@ -71,9 +70,8 @@ int main(int argc, char *argv[])
         bm::BMNNContextPtr contextPtr = std::make_shared<bm::BMNNContext>(handle, model_cfg.path);
         bmlib_log_set_level(BMLIB_LOG_VERBOSE);
 
-        std::shared_ptr<YoloV5> detector = std::make_shared<YoloV5>(contextPtr, tpu_kernel_module_path, model_cfg.model_type);
+        std::shared_ptr<YOLACT> detector = std::make_shared<YOLACT>(contextPtr, model_cfg.model_type);
         // model thresholds
-        detector->set_cls(model_cfg.class_threshold);
         detector->set_obj(model_cfg.obj_threshold);
         detector->set_nms(model_cfg.nms_threshold);
         OneCardInferAppPtr appPtr = std::make_shared<OneCardInferApp>(appStatis, gui,

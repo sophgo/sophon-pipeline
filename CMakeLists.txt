@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2)
-project(sophon-pipeline_v0.3.5)
+project(sophon-pipeline_v0.3.7)
 
 if (NOT DEFINED TARGET_ARCH)
     set(TARGET_ARCH x86)
@@ -8,6 +8,7 @@ endif()
 option(HAVE_TRACKER "Enable tracker" ON)
 option(USE_SOPHON_FFMPEG "Use sophon-ffmpeg" ON)
 option(USE_SOPHON_OPENCV "Use sophon-opencv" ON)
+option(USE_TPU_KERNEL "Use tpu-kernel" OFF)
 option(USE_QTGUI "Whether has GUI support" OFF)
 option(CMODEL_MODE "Run in cmodel mode" OFF)
 option(USE_DEBUG "use debug to print result" OFF)
@@ -179,7 +180,6 @@ else()
     set(opencv_link_libs ${OpenCV_LIBS})
 endif()
 
-
 message(STATUS "ffmpeg_inc = ${ffmpeg_inc_dirs}")
 message(STATUS "ffmpeg_link_dirs = ${ffmpeg_link_dirs}")
 message(STATUS "opencv_inc = ${opencv_inc_dirs}")
@@ -193,6 +193,19 @@ add_subdirectory(modules)
 add_subdirectory(third_party/jsoncpp)
 add_subdirectory(third_party/live555)
 
-add_subdirectory(examples)
+if (USE_TPU_KERNEL)
+    # Check SDK version by new macro defined in bmlib_runtime.h.
+    include(CheckCXXSymbolExists) 
+    set(CMAKE_REQUIRED_INCLUDES ${libsophon_inc_dirs})
+    check_cxx_symbol_exists(FUNC_MAX_NAME_LEN "bmlib_runtime.h" TPUKERNEL) #check a macro, if exists return 1
+    if (TPUKERNEL)
+        option(USE_TPUKERNEL "Enable tpukernel postprocess" ON)
+    else()
+        option(USE_TPUKERNEL "Enable tpukernel postprocess" OFF)
+    endif()
+else()
+    option(USE_TPUKERNEL "Enable tpukernel postprocess" OFF)
+endif()
 
+add_subdirectory(examples)
 

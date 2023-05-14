@@ -72,6 +72,8 @@
   > **NOTE**  
   >
   > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
+  >
+  > tpukernel动态库下载地址：[libbm1684x_kernel_module.so](http://219.142.246.77:65000/sharing/IANenG525)
 
 YOLO系列模型列表及NAS云盘下载地址
 
@@ -81,8 +83,12 @@ YOLO系列模型列表及NAS云盘下载地址
 | yolov6s    | [yolov6s_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/lHh7Xc70U) | [yolov6s_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/gtpPKFDSG) | [yolov6s_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/FsRFOU1Ng) |
 | yolov7     | [yolov7_3output_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/RFT8S9b4Y) | [yolov7_3output_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/CH139AIZF) | [yolov7_3output_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/CJ7ph33Ys) |
 | yolov8s    | [yolov8s_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/LqcrsJzz6) | [yolov8s_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/FdGTy4VEA) | [yolov8s_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/Tn1Jtev8e) |
+| yolov5s🚀| - |[yolov5s_tpukernel_int8_4b.bmodel](http://219.142.246.77:65000/sharing/3p9xqqe39) | - |
+| yolov7🚀| - |[yolov7_tpukernel_int8_4b.bmodel](http://219.142.246.77:65000/sharing/6XkwiGLuA) | - |
 
 > 注意：在json配置中需选择使用模型对应的model_type，否则可能会影响检测精度。
+>
+> **🚀模型支持BM1684X(x86 PCIe、arm SoC)**。如果需要使用🚀模型，需要修改${SOPHON-PIPELINE}/CMakeLists.txt第十一行，将USE_TPU_KERNEL设为ON，并重新编译程序，并下载tpukernel动态库配套使用。🚀模型的获取方法请参考[sophon-demo/sample/YOLOv5_opt](https://github.com/sophgo/sophon-demo/tree/release/sample/YOLOv5_opt)
 
 参数说明
 
@@ -93,6 +99,8 @@ Usage: yolov5s_demo [params]
                 cameras_yolov5.json配置文件的路径，默认路径为./cameras_yolov5.json。
         --help (value:true)
                 打印帮助信息
+        --tpu_kernel_module_path (value:./libbm1684x_kernel_module.so)
+                tpu_kernel_module动态库的路径。若使用BM1684或编译时USE_TPU_KERNEL未设置为ON时，无须设置此参数
 ```
 
 #### 3.2.1 x86 PCIe
@@ -102,7 +110,7 @@ Usage: yolov5s_demo [params]
 ```bash
 cd ${SOPHON_PIPELINE}/release/yolov5s_demo
 # ./x86/yolov5s_demo --help 查看命令行帮助信息
-# 以x86 pcie 1684x yolov5s模型为例,将下载好的yolov5模型拷贝到${SOPHON_PIPELINE}/release/yolov5s_demo目录下运行
+# 以x86 pcie 1684x yolov5s模型为例,将下载好的yolov5模型拷贝到${SOPHON_PIPELINE}/release/yolov5s_demo目录下运行。若需要使用🚀模型，则需要将libbm1684x_kernel_module.so一并拷贝到yolov5s_demo目录下，并设置参数：--tpu_kernel_module_path=./libbm1684x_kernel_module.so
 ./x86/yolov5s_demo --config=./cameras_yolov5.json
 ```
 
@@ -126,13 +134,13 @@ cd ${SOPHON_PIPELINE}/release/yolov5s_demo
 
 #### 3.2.2 arm SoC
 
-将交叉编译好的`${SOPHON_PIPELINE}/release/yolov5s_demo`文件夹下的`cameras_yolov5.json`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下，并修改好cameras_yolov5.json的相应配置，运行：
+将交叉编译好的`${SOPHON_PIPELINE}/release/yolov5s_demo`文件夹下的`cameras_yolov5.json`、`soc`文件夹以及对应的模型、测试视频一起拷贝到arm SoC运行设备的同一目录下。若需要使用🚀模型，则需要将`libbm1684x_kernel_module.so`拷贝到yolov5s_demo目录下。修改好cameras_yolov5.json的相应配置，运行：
 
 ```bash
 cd ${SOPHON_PIPELINE_YOLOV5}
 # ./soc/yolov5s_demo --help 查看命令行帮助信息
-# 以arm SoC 1684x yolov5s模型为例
-./soc/yolov5s_demo --config=./cameras_yolov5.json 
+# 以arm SoC 1684x yolov5s模型为例。若需要使用🚀模型，需要设置参数：--tpu_kernel_module_path=./libbm1684x_kernel_module.so
+./soc/yolov5s_demo --config=./cameras_yolov5.json
 ```
 
 执行会打印如下信息：

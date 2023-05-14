@@ -34,6 +34,7 @@ Sophon Pipeline provides a simple high-performance acceleration framework based 
 |                        | [face_recognition](./examples/face_recognition) | Tandem run face detection + face keypoints + face feature extraction |
 |                        | [openpose](./examples/openpose)                 | OpenPose which is a real-time multi-person human pose detection model |
 |                        | [face_detect](./examples/face_detect)           | Single stage headless face detector used Squeezenet as backbone |
+|                        | [yolact](./examples/yolact)                     | YOLACT detection                                             |
 
 **The main structural design of Sophon Pipeline：** 
 
@@ -46,6 +47,7 @@ Sophon Pipeline provides a simple high-performance acceleration framework based 
 
 |  Versions  | **instruction**                                              |
 | :--------: | ------------------------------------------------------------ |
+| **v0.3.7** | Add yolact demo program for 1684x(x86 PCIe, SoC, arm PCIe), 1684(x86 PCIe, SoC, arm PCIe). Add yolov5_opt and yolov7_opt models |
 | **v0.3.5** | Add ppyoloe demo program for 1684x(x86 PCIe, SoC, arm PCIe), 1684(x86 PCIe, SoC, arm PCIe) |
 | **v0.3.4** | Add yolov6, yolov7, yolov8 demo program for 1684x(x86 PCIe, SoC), 1684(x86 PCIe, SoC). Add FP16 model for 1684x for all demos. Add Kylins V10 for arm PCIe mode(1684, 1684x). |
 | **v0.3.1** | Add openpose, face_detect demo program for 1684x(x86 PCIe, SoC), 1684(x86 PCIe, SoC) |
@@ -77,6 +79,7 @@ If you install a PCIe AI accelerator card on the x86 platform, the development e
 
 | sophon-pipeline's version | libsophon version of dependency | sophon-ffmpeg version of dependency | sophon-opencv version of dependency |
 | :-----------------------: | :-----------------------------: | :---------------------------------: | :---------------------------------: |
+|        **v0.3.7**         |             >=0.4.7             |               >=0.6.2               |               >=0.6.2               |
 |        **v0.3.5**         |             >=0.4.6             |               >=0.6.0               |               >=0.6.0               |
 |        **v0.3.4**         |             >=0.4.4             |               >=0.5.1               |               >=0.5.1               |
 |        **v0.3.1**         |             >=0.4.4             |               >=0.5.1               |               >=0.5.1               |
@@ -140,6 +143,7 @@ After compilation, the demo program will be stored in `${SOPHON_PIPELINE}/releas
 - [face_recognition](./docs/docs_en/face_recognition_en.md)
 - [openpose](./docs/docs_en/openpose_en.md)
 - [face_detect](./docs/docs_en/face_detect_en.md)
+- [yolact](./docs/docs_en/yolact_en.md)
 
 ## 4 Model Performance
 
@@ -148,21 +152,24 @@ After compilation, the demo program will be stored in `${SOPHON_PIPELINE}/releas
 
 
 
-|             Model            | int8 inference(ms) | int8(FPS) | fp16 inference(ms) | fp16(FPS) |
-|:---------------------------: |:------------------:|:---------:|:------------------:|:---------:|
-|          **yolov5s**         |        3.29        |    182    |        6.27        |    129    |
-|          **yolov6s**         |        3.03        |    108    |        4.42        |    105    |
-|          **yolov7**          |        8.93        |     98    |        22.5        |     40    |
-|          **yolov8s**         |        3.69        |    157    |        7.00        |    130    |
-|         **ppyoloe_s**        |        5.39        |    167    |        8.46        |    115    |
+|            Model             | int8 inference(ms) | int8(FPS) | fp16 inference(ms) | fp16(FPS) |
+| :--------------------------: | :----------------: | :-------: | :----------------: | :-------: |
+|         **yolov5s**          |        3.29        |    182    |        6.27        |    129    |
+|         **yolov6s**          |        3.03        |    108    |        4.42        |    105    |
+|          **yolov7**          |        8.93        |    98     |        22.5        |    40     |
+|         **yolov8s**          |        3.69        |    157    |        7.00        |    130    |
+|        **ppyoloe_s**         |        5.39        |    167    |        8.46        |    115    |
 |      **ppyoloe_plus_s**      |        5.10        |    160    |        7.86        |    115    |
-|     **openpose_coco_18**     |        5.38        |     40    |       11.26        |     37    |
-|     **openpose_body_25**     |        3.43        |     29    |        7.00        |     28    |
+|     **openpose_coco_18**     |        5.38        |    40     |       11.26        |    37     |
+|     **openpose_body_25**     |        3.43        |    29     |        7.00        |    28     |
+|       **yolact_base**        |       13.86        |    63     |         -          |     -     |
+|     **yolact_darknet53**     |       12.96        |    68     |         -          |     -     |
+|     **yolact_resnet50**      |       12.27        |    70     |         -          |     -     |
 | **retinaface_mobilenet0.25** |        0.67        |   ≥500    |        0.81        |   ≥500    |
-|        **face_detect**       |        1.16        |   ≥500    |        1.45        |   ≥500    |
-|     **face_recognition**     |          -         |     -     |          -         |     -     |
-|           **multi**          |          -         |     -     |          -         |     -     |
-|       **video_stitch**       |          -         |     -     |          -         |     -     |
+|       **face_detect**        |        1.16        |   ≥500    |        1.45        |   ≥500    |
+|     **face_recognition**     |         -          |     -     |         -          |     -     |
+|          **multi**           |         -          |     -     |         -          |     -     |
+|       **video_stitch**       |         -          |     -     |         -          |     -     |
 
 **Clarification：**
 
@@ -187,6 +194,9 @@ After compilation, the demo program will be stored in `${SOPHON_PIPELINE}/releas
 |      **ppyoloe_plus_s**      |       19.62        |    49     |
 |     **openpose_coco_18**     |        9.65        |    39     |
 |     **openpose_body_25**     |        6.20        |    27     |
+|       **yolact_base**        |       32.75        |    29     |
+|     **yolact_darknet53**     |       30.15        |    31     |
+|     **yolact_resnet50**      |       28.72        |    33     |
 | **retinaface_mobilenet0.25** |        1.77        |   ≥475    |
 |       **face_detect**        |        1.42        |   ≥475    |
 |     **face_recognition**     |         -          |     -     |

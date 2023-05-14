@@ -34,6 +34,7 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 |                        | [face_recognition](./examples/face_recognition) | 串联运行人脸检测 + 人脸关键点 + 人脸特征提取                 |
 |                        | [openpose](./examples/openpose)                 | openpose人体关键点检测                                       |
 |                        | [face_detect](./examples/face_detect)           | ssh_squeezenet人脸检测                                       |
+|                        | [yolact](./examples/yolact)                     | yolact检测                                                   |
 
 **Sophon Pipeline的主要结构设计如下图：** 
 
@@ -46,6 +47,7 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 
 | 版本  | 说明 |
 |:---------: |:------------|
+| **v0.3.7** | 添加yolact例程，适配1684x(x86 PCIe、SoC、arm PCIe)，1684(x86 PCIe、SoC、arm PCIe)；添加yolov5_opt、yolov7_opt模型 |
 | **v0.3.5** | 添加ppyoloe例程，适配1684x(x86 PCIe、SoC、arm PCIe)，1684(x86 PCIe、SoC、arm PCIe) |
 | **v0.3.4** | 添加yolov6、yolov7、yolov8例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC)；添加1684x fp16模型；所有例程适配1684/1684X arm PCIe(银河麒麟V10) |
 | **v0.3.1** | 添加openpose、face_detect例程，适配1684x(x86 PCIe、SoC)，1684(x86 PCIe、SoC) |
@@ -61,7 +63,7 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 
 ### 2.1 环境准备
 
-如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装 `libsophon`、`sophon-opencv`和`sophon-ffmpeg`。`libsophon`的安装可参考《LIBSOPHON使用手册.pdf》，`sophon-opencv`和`sophon-ffmpeg`的安装可参考《MULTIMEDIA使用手册.pdf》。注：需要获取《LIBSOPHON使用手册.pdf》和《MULTIMEDIA使用手册.pdf》，请联系技术支持。
+如果您在x86平台安装了PCIe加速卡z，并使用它测试本例程，您需要安装 `libsophon`、`sophon-opencv`和`sophon-ffmpeg`。`libsophon`的安装可参考《LIBSOPHON使用手册.pdf》，`sophon-opencv`和`sophon-ffmpeg`的安装可参考《MULTIMEDIA使用手册.pdf》。注：需要获取《LIBSOPHON使用手册.pdf》和《MULTIMEDIA使用手册.pdf》，请联系技术支持。
 
 ### 2.2 依赖安装
 
@@ -78,7 +80,8 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 <summary><b>具体版本依赖关系</b></summary>
 
 | sophon-pipeline版本 | 依赖libsophon版本 | 依赖sophon-ffmpeg版本 | 依赖sophon-opencv版本 |
-|:------------------: |:-----------------:|:---------------------:|:---------------------:|
+| :-----------------: | :---------------: | :-------------------: | :-------------------: |
+|     **v0.3.7**      |      >=0.4.7      |        >=0.6.2        |        >=0.6.2        |
 |     **v0.3.5**      |      >=0.4.6      |        >=0.6.0        |        >=0.6.0        |
 |     **v0.3.4**      |      >=0.4.4      |        >=0.5.1        |        >=0.5.1        |
 |     **v0.3.4**      |      >=0.4.4      |        >=0.5.1        |        >=0.5.1        |
@@ -146,6 +149,7 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev libexiv2-dev
 - [face_recognition](./docs/docs_zh/face_recognition.md)
 - [openpose](./docs/docs_zh/openpose.md)
 - [face_detect](./docs/docs_zh/face_detect.md)
+- [yolact](./docs/docs_zh/yolact.md)
 
 ## 4 性能概览
 
@@ -153,21 +157,24 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev libexiv2-dev
 <summary><b> SE7模型性能</b></summary>
 
 
-|         例程及模型名称       | int8 inference(ms) | int8(FPS) | fp16 inference(ms) | fp16(FPS) |
-|:---------------------------: |:------------------:|:---------:|:------------------:|:---------:|
-|          **yolov5s**         |        3.29        |    182    |        6.27        |    129    |
-|          **yolov6s**         |        3.03        |    108    |        4.42        |    105    |
-|          **yolov7**          |        8.93        |     98    |        22.5        |     40    |
-|          **yolov8s**         |        3.69        |    157    |        7.00        |    130    |
-|         **ppyoloe_s**        |        5.39        |    167    |        8.46        |    115    |
-|       **ppyoloe_plus_s**     |        5.10        |    160    |        7.86        |    115    |
-|     **openpose_coco_18**     |        5.38        |     40    |       11.26        |     37    |
-|     **openpose_body_25**     |        3.43        |     29    |        7.00        |     28    |
+|        例程及模型名称        | int8 inference(ms) | int8(FPS) | fp16 inference(ms) | fp16(FPS) |
+| :--------------------------: | :----------------: | :-------: | :----------------: | :-------: |
+|         **yolov5s**          |        3.29        |    182    |        6.27        |    129    |
+|         **yolov6s**          |        3.03        |    108    |        4.42        |    105    |
+|          **yolov7**          |        8.93        |    98     |        22.5        |    40     |
+|         **yolov8s**          |        3.69        |    157    |        7.00        |    130    |
+|        **ppyoloe_s**         |        5.39        |    167    |        8.46        |    115    |
+|      **ppyoloe_plus_s**      |        5.10        |    160    |        7.86        |    115    |
+|     **openpose_coco_18**     |        5.38        |    40     |       11.26        |    37     |
+|     **openpose_body_25**     |        3.43        |    29     |        7.00        |    28     |
+|       **yolact_base**        |       13.86        |    63     |         -          |     -     |
+|     **yolact_darknet53**     |       12.96        |    68     |         -          |     -     |
+|     **yolact_resnet50**      |       12.27        |    70     |         -          |     -     |
 | **retinaface_mobilenet0.25** |        0.67        |   ≥500    |        0.81        |   ≥500    |
-|     **face_detect**          |        1.16        |   ≥500    |        1.45        |   ≥500    |
+|       **face_detect**        |        1.16        |   ≥500    |        1.45        |   ≥500    |
 |     **face_recognition**     |         -          |     -     |         -          |     -     |
-|         **multi**            |         -          |     -     |         -          |     -     |
-|      **video_stitch**        |         -          |     -     |         -          |     -     |
+|          **multi**           |         -          |     -     |         -          |     -     |
+|       **video_stitch**       |         -          |     -     |         -          |     -     |
 
 **测试说明：**
 
@@ -191,6 +198,9 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev libexiv2-dev
 |      **ppyoloe_plus_s**      |       19.62        |    50     |
 |     **openpose_coco_18**     |        9.65        |    39     |
 |     **openpose_body_25**     |        6.20        |    27     |
+|       **yolact_base**        |       32.75        |    29     |
+|     **yolact_darknet53**     |       30.15        |    31     |
+|     **yolact_resnet50**      |       28.72        |    33     |
 | **retinaface_mobilenet0.25** |        1.77        |   ≥475    |
 |       **face_detect**        |        1.42        |   ≥475    |
 |     **face_recognition**     |         -          |     -     |

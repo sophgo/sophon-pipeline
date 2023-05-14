@@ -72,15 +72,23 @@ Please note to modify the`${SOPHON_PIPELINE}/release/yolov5s_demo/cameras_yolov5
   > **NOTE**  
   >
   > Download address of the video for testing：[elevator-1080p-25fps-4000kbps.h264](http://disk-sophgo-vip.quickconnect.cn/sharing/7ExA940x2)
+  >
+  > Download address of tpukernel shared library：[libbm1684x_kernel_module.so](http://disk-sophgo-vip.quickconnect.cn/sharing/IANenG525)
 
 YOLO series model list and NAS cloud disk download address
 
 | model_type | BM1684 int8bmodel                                            | BM1684X int8bmodel                                           | BM1684X fp16bmodel                                           |
 | ---------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| yolov5s    | [yolov5s_3output_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/HHAnuElhZ) | [yolov5s_3output_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/DwrN8hY1F) | [yolov5s_3output_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/9Rchhp0rl) |
+| yolov5s    | [yolov5s_3output_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/XN0Xjko3l) | [yolov5s_3output_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/4KXV0r0bV) | [yolov5s_3output_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/9Rchhp0rl) |
 | yolov6s    | [yolov6s_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/lHh7Xc70U) | [yolov6s_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/gtpPKFDSG) | [yolov6s_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/FsRFOU1Ng) |
 | yolov7     | [yolov7_3output_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/RFT8S9b4Y) | [yolov7_3output_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/CH139AIZF) | [yolov7_3output_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/CJ7ph33Ys) |
 | yolov8s    | [yolov8s_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/LqcrsJzz6) | [yolov8s_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/FdGTy4VEA) | [yolov8s_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/Tn1Jtev8e) |
+| yolov5s🚀| - |[yolov5s_tpukernel_int8_4b.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/3p9xqqe39) | - |
+| yolov7🚀| - |[yolov7_tpukernel_int8_4b.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/6XkwiGLuA) | - |
+
+> **NOTE**:  In the JSON configuration, you need to select the model_type corresponding to the model, otherwise the detection accuracy may be affected. 
+>
+> 🚀 tagged models are supported on BM1684X(x86 PCIe, arm SoC). If you would like to use  🚀 tagged models, modify ${SOPHON-PIPELINE}/CMakeLists.txt on Line 11, set USE_TPU_KERNEL to ON, then recompile the program, and download the libbm1684x_kernel_module.so for supporting use. To obtain 🚀 tagged models, please refer to [sophon-demo/sample/YOLOv5_opt](https://github.com/sophgo/sophon-demo/tree/release/sample/YOLOv5_opt).
 
 Description of parameters
 
@@ -91,6 +99,8 @@ Usage: yolov5s_demo [params]
                 cameras_yolov5.json The path to the configuration file, the default path is ./cameras_yolov5.json.
         --help (value:true)
                 Print help information
+        --tpu_kernel_module_path (value:./libbm1684x_kernel_module.so)
+                Path to tpu_kernel_module_path. If you use BM1684 or compile without set USE_TPU_KERNEL to ON, this parameter is not required.
 ```
 
 #### 3.2.1 x86 PCIe
@@ -100,7 +110,7 @@ Usage: yolov5s_demo [params]
 ```bash
 cd ${SOPHON_PIPELINE}/release/yolov5s_demo
 # ./x86/yolov5s_demo --help Print help information
-# Take x86 pcie 1684x as an example, copy the downloaded yolov5s model to ${SOPHON_PIPELINE}/release/yolov5s_demo directory and run it.
+# Take x86 pcie 1684x as an example, copy the downloaded yolov5s model to ${SOPHON_PIPELINE}/release/yolov5s_demo directory and run it. If you would like to use the 🚀 tagged models, copy libbm1684x_kernel_module.so to yolov5s_demo directory, then set --tpu_kernel_module_path=./libbm1684x_kernel_module.so
 ./x86/yolov5s_demo --config=./cameras_yolov5.json
 ```
 
@@ -124,13 +134,13 @@ The following message will be printed after execution：
 
 #### 3.2.2 arm SoC
 
-Copy the `cameras_yolov5.json`, `soc` folder and the corresponding models and test videos from the cross-compiled `${SOPHON_PIPELINE}/release/yolov5s_demo` folder to the same directory of the arm SoC running device, and modify the corresponding configuration of cameras_ yolov5.json, and then run:
+Copy the `cameras_yolov5.json`, `soc` folder and the corresponding models and test videos from the cross-compiled `${SOPHON_PIPELINE}/release/yolov5s_demo` folder to the same directory of the arm SoC running device. If you would like to use the 🚀 tagged models, copy `libbm1684x_kernel_module.so` to yolov5s_demo directory. Modify the corresponding configuration of cameras_ yolov5.json, then run:
 
 ```bash
 cd ${SOPHON_PIPELINE_YOLOV5}
 # ./soc/yolov5s_demo --help Print help information
-# Take Soc 1684x as an example.
-./soc/yolov5s_demo --config=./cameras_yolov5.json 
+# Take Soc 1684x as an example. If you would like to use the 🚀 tagged models, you need to set as follows: --tpu_kernel_module_path=./libbm1684x_kernel_module.so
+./soc/yolov5s_demo --config=./cameras_yolov5.json
 ```
 
 The following message will be printed after execution：
@@ -158,8 +168,8 @@ The following message will be printed after execution：
 ```bash
 cd ${SOPHON_PIPELINE}/release/yolov5s_demo
 # ./arm64/yolov5s_demo --help Print help information
-# Take arm pcie 1684x as an example, copy the downloaded yolov5s model to ${SOPHON_PIPELINE}/release/yolov5s_demo directory and run it.
-./arm64/yolov5s_demo --config=./cameras_yolov5.json
+# Take arm pcie 1684x as an example, copy the downloaded yolov5s model and libbm1684x_kernel_module.so to ${SOPHON_PIPELINE}/release/yolov5s_demo directory and run it.
+./arm64/yolov5s_demo --config=./cameras_yolov5.json --tpu_kernel_module_path=./libbm1684x_kernel_module.so
 ```
 
 The following message will be printed after execution：

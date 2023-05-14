@@ -13,26 +13,10 @@
 #include "bmutility_string.h"
 #include "inference.h"
 #include "bmutility_basemodel.hpp"
-#define MAX_YOLO_INPUT_NUM 3
-#define MAX_YOLO_ANCHOR_NUM 3
-typedef struct {
-  unsigned long long bottom_addr[MAX_YOLO_INPUT_NUM];
-  unsigned long long top_addr;
-  unsigned long long detected_num_addr;
-  int input_num;
-  int batch_num;
-  int hw_shape[MAX_YOLO_INPUT_NUM][2];
-  int num_classes;
-  int num_boxes;
-  int keep_top_k;
-  float nms_threshold;
-  float confidence_threshold;
-  float bias[MAX_YOLO_INPUT_NUM * MAX_YOLO_ANCHOR_NUM * 2];
-  float anchor_scale[MAX_YOLO_INPUT_NUM];
-  int clip_box;
-} tpu_kernel_api_yolov5NMS_t;
+#include "opencv2/opencv.hpp"
 
-class YoloV5 : public bm::DetectorDelegate<bm::FrameBaseInfo, bm::FrameInfo> 
+
+class YOLACT : public bm::DetectorDelegate<bm::FrameBaseInfo, bm::FrameInfo> 
              , public bm::BaseModel 
 {
     int MAX_BATCH;
@@ -43,16 +27,27 @@ class YoloV5 : public bm::DetectorDelegate<bm::FrameBaseInfo, bm::FrameInfo>
     //configuration
     int m_class_num; 
     int m_model_type {0};
+    int m_keep_top_k {100};
     std::vector<std::string> m_class_names;
     std::vector<std::vector<std::vector<float>>> m_anchors;
 
-    std::string tpu_kernel_module_path;
-#if USE_TPUKERNEL
-    tpu_kernel_function_t func_id = -1;
-#endif
+    std::vector <float> m_alpha;
+    std::vector <float> m_beta;
+
+    std::vector<int> m_conv_ws;
+    std::vector<int> m_conv_hs;
+    std::vector<float> m_aspect_ratios;
+    std::vector<float> m_scales;
+    std::vector<float> m_variances;
+
+    int m_num_priors;
+    int m_num_scales;
+    int m_num_aspect_ratios;
+    std::vector<float> m_priorbox;
+
 public:
-    YoloV5(bm::BMNNContextPtr bmctx, std::string tpu_kernel_module_path, std::string model_type);
-    ~YoloV5();
+    YOLACT(bm::BMNNContextPtr bmctx, std::string model_type);
+    ~YOLACT();
 
     virtual int get_Batch();
     virtual int preprocess(std::vector<bm::FrameBaseInfo>& frames, std::vector<bm::FrameInfo>& frame_info) override ;
@@ -60,13 +55,20 @@ public:
     virtual int postprocess(std::vector<bm::FrameInfo> &frame_info) override;
 private:
     int init_yolo(std::string model_type);
-    float sigmoid(float x);
-    int argmax(float* data, int dsize);
-    static float get_aspect_scaled_ratio(int src_w, int src_h, int dst_w, int dst_h, bool *alignWidth);
-    void NMS(bm::NetOutputObjects &dets, float nmsConfidence);
 
     void extract_yolobox_cpu(bm::FrameInfo& frameInfo);
-#if USE_TPUKERNEL
-    void extract_yolobox_tpukernel(bm::FrameInfo& frameInfo);
-#endif
+
+    void make_priors();
+
+    void qsort_descent_inplace(std::vector<bm::NetOutputObject>& datas, std::vector<std::vector<float>> masks);
+
+    void qsort_descent_inplace(
+        std::vector<bm::NetOutputObject>& datas, std::vector<std::vector<float>>& masks, int left, int right
+    );
+
+    inline float intersection_area(const bm::NetOutputObject& a, const bm::NetOutputObject& b);
+
+    void nms_sorted_bboxes(const std::vector<bm::NetOutputObject>& objects, std::vector<int>& picked, 
+        float nms_threshold, bool agnostic);
+    void sigmoid(cv::Mat& out, int length);
 };
