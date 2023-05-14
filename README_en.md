@@ -155,8 +155,10 @@ After compilation, the demo program will be stored in `${SOPHON_PIPELINE}/releas
 |            Model             | int8 inference(ms) | int8(FPS) | fp16 inference(ms) | fp16(FPS) |
 | :--------------------------: | :----------------: | :-------: | :----------------: | :-------: |
 |         **yolov5s**          |        3.29        |    182    |        6.27        |    129    |
+|       **yolov5_opt🚀**        |        2.37        |    260    |        6.13        |    137    |
 |         **yolov6s**          |        3.03        |    108    |        4.42        |    105    |
 |          **yolov7**          |        8.93        |    98     |        22.5        |    40     |
+|       **yolov7_opt🚀**        |        7.14        |    119    |       19.63        |    48     |
 |         **yolov8s**          |        3.69        |    157    |        7.00        |    130    |
 |        **ppyoloe_s**         |        5.39        |    167    |        8.46        |    115    |
 |      **ppyoloe_plus_s**      |        5.10        |    160    |        7.86        |    115    |

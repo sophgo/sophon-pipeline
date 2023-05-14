@@ -83,8 +83,8 @@ YOLO系列模型列表及NAS云盘下载地址
 | yolov6s    | [yolov6s_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/lHh7Xc70U) | [yolov6s_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/gtpPKFDSG) | [yolov6s_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/FsRFOU1Ng) |
 | yolov7     | [yolov7_3output_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/RFT8S9b4Y) | [yolov7_3output_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/CH139AIZF) | [yolov7_3output_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/CJ7ph33Ys) |
 | yolov8s    | [yolov8s_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/LqcrsJzz6) | [yolov8s_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/FdGTy4VEA) | [yolov8s_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/Tn1Jtev8e) |
-| yolov5s🚀| - |[yolov5s_tpukernel_int8_4b.bmodel](http://219.142.246.77:65000/sharing/3p9xqqe39) | - |
-| yolov7🚀| - |[yolov7_tpukernel_int8_4b.bmodel](http://219.142.246.77:65000/sharing/6XkwiGLuA) | - |
+| yolov5s_opt🚀 | - |[yolov5s_tpukernel_int8_4b.bmodel](http://219.142.246.77:65000/sharing/3p9xqqe39) | [yolov5s_tpukernel_fp16_4b.bmodel](http://219.142.246.77:65000/sharing/thyCbllqf) |
+| yolov7_opt🚀 | - |[yolov7_tpukernel_int8_4b.bmodel](http://219.142.246.77:65000/sharing/6XkwiGLuA) | [yolov7_tpukernel_fp16_4b.bmodel](http://219.142.246.77:65000/sharing/yy7uPazv7) |
 
 > 注意：在json配置中需选择使用模型对应的model_type，否则可能会影响检测精度。
 >
