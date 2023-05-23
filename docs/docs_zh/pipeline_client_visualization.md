@@ -49,15 +49,15 @@ sophon-pipeline配套客户端，用来显示实时流和检测结果。
 
 rtsp server推荐使用：
 
-开源仓库：https://github.com/aler9/rtsp-simple-server
+开源仓库：https://github.com/bluenviron/mediamtx
 
-或者直接下载release可执行程序：https://github.com/aler9/rtsp-simple-server/releases
+或者直接下载release可执行程序：https://github.com/bluenviron/mediamtx/releases
 
 > **注意：rtsp-simple-server、pipeline_client、sophon-pipeline例程程序运行的设备须网络连通。建议rtsp-simple-server和pipeline_client运行在同一台设备上。**
 
 **具体步骤如下：**(**假设运行rtsp-simple-server和pipeline_client的设备ip为123.45.67.89**)
 
-1. 启动rtsp server：`./rtsp-simple-server`，**默认端口**为`8554`，如果需要修改端口，请自行从`.yml`文件修改，请确保启动前该端口未被占用。
+1. 启动rtsp server：`./mediamtx`，**默认端口**为`8554`，如果需要修改端口，请自行从`.yml`文件修改，请确保启动前该端口未被占用。
 2. 运行sophon-pipeline例程程序，推流到指定rtsp地址：`.json`的`output_path`参数配置为`rtsp://123.45.67.89:8554/abc`
 3. 运行pipeline_client，拉流地址指定为`rtsp://123.45.67.89:8554/abc`
 4. 稍等片刻，pipeline_client可见画面

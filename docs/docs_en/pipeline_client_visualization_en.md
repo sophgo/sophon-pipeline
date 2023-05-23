@@ -49,15 +49,15 @@ If you use rtsp, you have to use it with an rtsp server. First push the stream t
 
 Recommended for rtsp server：
 
-Open Source Repository：https://github.com/aler9/rtsp-simple-server
+Open Source Repository：https://github.com/bluenviron/mediamtx
 
-Or download the released executable file directly：https://github.com/aler9/rtsp-simple-server/releases
+Or download the released executable file directly：https://github.com/bluenviron/mediamtx/releases
 
 > **NOTE ：The device networks running the rtsp-simple-server, pipeline_client and sophone-pipeline routines need to be connected to each other. It is recommended that rtsp-simple-server and pipeline_client run on the same device.**
 
 **The specific steps are as follows:** (**assuming that the device ip running rtsp-simple-server and pipeline_client is 123.45.67.89**)
 
-1. Start rtsp server: `. /rtsp-simple-server`, **default port** is `8554`, if you need to modify the port, please modify it by yourself from `.yml` file, please make sure the port is not occupied before starting.
+1. Start rtsp server: `. /mediamtx`, **default port** is `8554`, if you need to modify the port, please modify it by yourself from `.yml` file, please make sure the port is not occupied before starting.
 2. Run the sophon-pipeline routine and push the stream to the specified rtsp address: the `output_path` parameter of `.json` is configured as `rtsp://123.45.67.89:8554/abc`
 3. Run pipeline_client, with the pull stream address specified as`rtsp://123.45.67.89:8554/abc`
 4. Wait a moment, pipeline_client is visible
