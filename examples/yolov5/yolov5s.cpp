@@ -642,9 +642,10 @@ void YoloV5::extract_yolobox_tpukernel(bm::FrameInfo& frameInfo){
         tpu_kernel_launch(m_bmctx->handle(), func_id, &api[i], sizeof(api[i]));
         bm_thread_sync(m_bmctx->handle());
         bm_memcpy_d2s_partial_offset(m_bmctx->handle(), (void*)(detect_num + i), detect_num_mem[i], api[i].batch_num * sizeof(int32_t), 0);
-        bm_memcpy_d2s_partial_offset(m_bmctx->handle(), (void*)output_tensor[i], out_dev_mem[i], detect_num[i] * 7 * sizeof(float),
-                                    0);  
-        for (int bid = 0; bid < detect_num[i]; bid++) {
+        if (detect_num[i] > 0) {
+	    bm_memcpy_d2s_partial_offset(m_bmctx->handle(), (void*)output_tensor[i], out_dev_mem[i], detect_num[i] * 7 * sizeof(float), 0);  
+	}
+	for (int bid = 0; bid < detect_num[i]; bid++) {
             bm::NetOutputObject temp_bbox;
             temp_bbox.class_id = *(output_tensor[i] + 7 * bid + 1);
             if (temp_bbox.class_id == -1) {
