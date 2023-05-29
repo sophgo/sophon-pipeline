@@ -175,7 +175,7 @@ After compilation, the demo program will be stored in `${SOPHON_PIPELINE}/releas
 
 **Clarification：**
 
-- Test environment: SE7, 8-Core CPU @2.3GHz, TPU @1000MHz, VPU @800MHz, JPU @800MHz. SDK version: V22.12.01. Input videos and configurations are under the default configurations of each example.
+- Test environment: SE7, 8-Core CPU @2.3GHz, TPU @1000MHz, VPU @800MHz, JPU @800MHz. SDK version: V23.03.01. Input videos and configurations are under the default configurations of each example.
 - The speed of inference  do not contains the time cost of data reading and post-processing(NMS), which is cost time of  average an input sample.
 - FPS is the maximum FPS value that each example can run on SE7.
 
@@ -207,7 +207,7 @@ After compilation, the demo program will be stored in `${SOPHON_PIPELINE}/releas
 
 **Clarification：**
 
-- Test environment: SE5, 8-Core CPU @2.3GHz, TPU @550MHz, VPU @640MHz, JPU @160MHz. SDK version: V22.12.01. Input videos and configurations are under the default configurations of each example.
+- Test environment: SE5, 8-Core CPU @2.3GHz, TPU @550MHz, VPU @640MHz, JPU @160MHz. SDK version: V23.03.01. Input videos and configurations are under the default configurations of each example.
 - The speed of inference  do not contains the time cost of data reading and post-processing(NMS), which is cost time of  average an input sample.
 - FPS is the maximum FPS value that each example can run on SE5.
 

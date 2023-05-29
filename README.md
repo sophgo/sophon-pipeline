@@ -180,7 +180,7 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev libexiv2-dev
 
 **测试说明：**
 
-- 测试环境：SE7微服务器，8核cpu，cpu频率为2.3GHz，tpu频率为1000MHz，vpu频率为800MHz，jpu频率为800MHz。SDK版本为v22.12.01。测试视频和测试参数为各例程下默认视频和参数。
+- 测试环境：SE7微服务器，8核cpu，cpu频率为2.3GHz，tpu频率为1000MHz，vpu频率为800MHz，jpu频率为800MHz。SDK版本为v23.03.01。测试视频和测试参数为各例程下默认视频和参数。
 - inference只包含模型推理，不包含数据预处理和模型输出后处理部分，是平均一张图像推理耗时。
 - FPS为各例程下SE7能运行的最大FPS值。
 
@@ -211,7 +211,7 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev libexiv2-dev
 
 **测试说明：**
 
-- 测试环境：SE5微服务器，8核cpu，cpu频率为2.3GHz，tpu频率为550MHz，vpu频率为640MHz，jpu频率为160MHz。SDK版本为v22.12.01。测试视频和测试参数为各例程下默认视频和参数。
+- 测试环境：SE5微服务器，8核cpu，cpu频率为2.3GHz，tpu频率为550MHz，vpu频率为640MHz，jpu频率为160MHz。SDK版本为v23.03.01。测试视频和测试参数为各例程下默认视频和参数。
 - inference只包含模型推理，不包含数据预处理和模型输出后处理部分，是平均一张图像推理耗时。
 - FPS为各例程下SE5能运行的最大FPS值。
 
