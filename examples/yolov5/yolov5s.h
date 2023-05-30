@@ -30,7 +30,7 @@ typedef struct {
   float bias[MAX_YOLO_INPUT_NUM * MAX_YOLO_ANCHOR_NUM * 2];
   float anchor_scale[MAX_YOLO_INPUT_NUM];
   int clip_box;
-} tpu_kernel_api_yolov5NMS_t;
+}__attribute__((packed)) tpu_kernel_api_yolov5NMS_t;
 
 class YoloV5 : public bm::DetectorDelegate<bm::FrameBaseInfo, bm::FrameInfo> 
              , public bm::BaseModel 
