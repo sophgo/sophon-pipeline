@@ -9,6 +9,7 @@
 
 #include "yolov5s.h"
 #include <algorithm>
+#include <unistd.h>
 #define USE_ASPECT_RATIO 1
 #define USE_MULTICLASS_NMS 1
 #define BM1684_CHIPID_BIT_MASK (0X1 << 1)
@@ -94,31 +95,18 @@ int YoloV5::init_yolo(std::string model_type = "yolov5s"){
     bm_misc_info misc_info;
     bm_get_misc_info(m_bmctx->handle(), &misc_info);
     if(BM1686_CHIPID_BIT_MASK == misc_info.chipid_bit_mask && m_bmnet->outputTensor(0)->get_shape()->num_dims == 4){
+        if(m_net_h < 32 || m_net_w < 32 || m_net_h % 32 != 0 || m_net_w % 32 != 0 || m_net_h > 2048 || m_net_w > 2048 || (m_net_h + m_net_w) > 3072){
+            std::cerr << "Unsupported shape for tpukernel postprocession!" << std::endl;
+            exit(1);
+        }
+        if(access(tpu_kernel_module_path.c_str(), F_OK) != 0){
+            std::cerr << "Kernel module not exists." << std::endl;
+            exit(1);
+        }
         tpu_kernel_module_t tpu_module;
         tpu_module = tpu_kernel_load_module_file(m_bmctx->handle(), tpu_kernel_module_path.c_str());  
         func_id = tpu_kernel_get_function(m_bmctx->handle(), tpu_module, "tpu_kernel_api_yolov5_detect_out");
         std::cout << "Using tpu_kernel yolo postprocession, kernel funtion id: " << func_id << std::endl;
-        
-        const std::vector<std::vector<int>> supported_shapes{
-            {80, 160}, {160, 160}, {160, 320}, {160, 640}, {320, 320}, {320, 640}, {160, 960}, {320, 1280}, {640, 640}, {640, 1280}
-        }; //not all, if you want more, you can try yourself.(if failed, tpu may hang, you can use `sudo rmmod bmsophon && sudo modprobe bmsophon` to recover.)
-        bool input_valid_flag = false;
-        for(int i = 0; i < supported_shapes.size(); i++){
-            if(m_net_h == supported_shapes[i][0] && m_net_w == supported_shapes[i][1]){
-                input_valid_flag = true;
-                break;
-            }
-        }
-        if(input_valid_flag == false){
-            std::cerr << "Now the tpu postprocess function may not support the shape of your model, you can try it by adding such shape in `supported_shapes`."<<std::endl;
-            std::cerr << "(if failed, tpu may hang, you can use `sudo rmmod bmsophon && sudo modprobe bmsophon` to recover)" << std::endl;
-            std::cout << "Supported shapes: "; 
-            for(int i = 0; i < supported_shapes.size(); i++){
-                std::cout << "(" << supported_shapes[i][0] << ", " << supported_shapes[i][1] << "); ";
-            }
-            std::cout << std::endl;
-            exit(1);
-        }
     }else if(m_bmnet->outputTensor(0)->get_shape()->num_dims == 3 || m_bmnet->outputTensor(0)->get_shape()->num_dims == 5){
         std::cout << "Using cpu yolo postprocession." << std::endl;
     }else if(BM1686_CHIPID_BIT_MASK != misc_info.chipid_bit_mask && m_bmnet->outputTensor(0)->get_shape()->num_dims == 4){

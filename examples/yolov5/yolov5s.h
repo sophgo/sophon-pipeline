@@ -13,8 +13,11 @@
 #include "bmutility_string.h"
 #include "inference.h"
 #include "bmutility_basemodel.hpp"
-#define MAX_YOLO_INPUT_NUM 3
-#define MAX_YOLO_ANCHOR_NUM 3
+
+/*----------------------------------------*/
+/*You should not change kernel api params.*/
+#define MAX_YOLO_INPUT_NUM 8
+#define MAX_YOLO_ANCHOR_NUM 8
 typedef struct {
   unsigned long long bottom_addr[MAX_YOLO_INPUT_NUM];
   unsigned long long top_addr;
@@ -31,6 +34,7 @@ typedef struct {
   float anchor_scale[MAX_YOLO_INPUT_NUM];
   int clip_box;
 }__attribute__((packed)) tpu_kernel_api_yolov5NMS_t;
+/*----------------------------------------*/
 
 class YoloV5 : public bm::DetectorDelegate<bm::FrameBaseInfo, bm::FrameInfo> 
              , public bm::BaseModel 
