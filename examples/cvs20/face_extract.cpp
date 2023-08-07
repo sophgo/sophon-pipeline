@@ -62,7 +62,7 @@ int FaceExtract::preprocess(std::vector<bm::FeatureFrame> &frames, std::vector<b
             
             cv::Mat cvm1=frames[start_idx + i].img;
             cv::bmcv::toBMI(cvm1, &image1);
-            ret = bmcv_image_vpp_convert(handle, 1, image1, &resized_imgs[i]);
+            ret = bmcv_image_vpp_convert(handle, 1, image1, &resized_imgs[i], NULL, BMCV_INTER_LINEAR);
             assert(BM_SUCCESS == ret);
 #else
             int width = frames[start_idx + i].img.cols;
@@ -80,7 +80,7 @@ int FaceExtract::preprocess(std::vector<bm::FeatureFrame> &frames, std::vector<b
             assert(ret == 0);
 #endif
             finfo.frames.push_back(frames[start_idx + i]);
-            bm_image_destroy(image1);
+            bm_image_destroy(&image1);
         }
 
         //2. Convert to
@@ -119,7 +119,7 @@ int FaceExtract::preprocess(std::vector<bm::FeatureFrame> &frames, std::vector<b
         ret = bmcv_image_convert_to(m_bmctx->handle(), num, convert_to_attr, resized_imgs, convertto_imgs);
         assert(ret == 0);
 
-        bm_image_dettach_contiguous_mem(num, convertto_imgs);
+        bm_image_detach_contiguous_mem(num, convertto_imgs);
 
         finfo.input_tensors.push_back(input_tensor);
 

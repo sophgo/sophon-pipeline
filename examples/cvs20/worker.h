@@ -54,7 +54,7 @@ struct TChannel: public bm::NoCopyable {
         auto codec_id = ifmt_ctx->streams[video_index]->codec->codec_id;
 #endif
 
-        AVCodec *pCodec = avcodec_find_decoder(codec_id);
+        const AVCodec *pCodec = avcodec_find_decoder(codec_id);
         if (NULL == pCodec) {
             printf("can't find code_id %d\n", codec_id);
             return -1;
@@ -83,9 +83,9 @@ struct TChannel: public bm::NoCopyable {
         }
 #endif
 
-        if (pCodec->capabilities & AV_CODEC_CAP_TRUNCATED) {
-            m_decoder->flags |= AV_CODEC_FLAG_TRUNCATED; /* we do not send complete frames */
-        }
+        // if (pCodec->capabilities & AV_CODEC_CAP_TRUNCATED) {
+        //     m_decoder->flags |= AV_CODEC_FLAG_TRUNCATED; /* we do not send complete frames */
+        // }
 
         //for PCIE
         AVDictionary* opts = NULL;

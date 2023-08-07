@@ -10,7 +10,7 @@ set(CMAKE_PREFIX_PATH $ENV{QTDIR})
 
 set(inc_dirs ${common_inc_dirs} ${libsophon_inc_dirs} ${ffmpeg_inc_dirs} ${opencv_inc_dirs} ${TOP}/third_party/libyuv/include)
 set(link_dirs ${ffmpeg_link_dirs} ${opencv_link_dirs})
-set(link_libs ${opencv_link_libs} ${ffmpeg_link_libs} Qt5::Widgets pthread)
+set(link_libs ${opencv_link_libs} ${ffmpeg_link_libs} Qt5::Widgets pthread yuv)
 
 message(STATUS "[bmgui]inc_dirs=${inc_dirs}")
 message(STATUS "[bmgui]link_dirs=${link_dirs}")
