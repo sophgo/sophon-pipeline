@@ -44,6 +44,7 @@ namespace bm {
 
         while (ret >= 0) {
             ret = avcodec_receive_frame(dec_ctx, pFrame);
+            std::cout<<"Decoded format: "<<pFrame->format<<std::endl;
             if (ret == AVERROR(EAGAIN)) {
                 printf("decoder need more stream!\n");
                 break;
@@ -316,7 +317,7 @@ namespace bm {
         auto codec_id = ifmt_ctx->streams[video_index]->codec->codec_id;
 #endif
 
-        AVCodec *pCodec = avcodec_find_decoder(codec_id);
+        const AVCodec *pCodec = avcodec_find_decoder(codec_id);
         if (NULL == pCodec) {
             printf("can't find code_id %d\n", codec_id);
             return -1;
@@ -345,9 +346,9 @@ namespace bm {
         }
 #endif
 
-        if (pCodec->capabilities & AV_CODEC_CAP_TRUNCATED) {
-            m_dec_ctx->flags |= AV_CODEC_FLAG_TRUNCATED; /* we do not send complete frames */
-        }
+        // if (pCodec->capabilities & AV_CODEC_CAP_TRUNCATED) {
+        //     m_dec_ctx->flags |= AV_CODEC_FLAG_TRUNCATED; /* we do not send complete frames */
+        // }
 
         //for PCIE
         //av_dict_set_int(&opts, "pcie_board_id", 0, 0x0);
@@ -393,7 +394,7 @@ namespace bm {
 
     AVCodecContext* StreamDecoder::ffmpeg_create_decoder(enum AVCodecID codec_id, AVDictionary **opts)
     {
-        AVCodec *pCodec = avcodec_find_decoder(codec_id);
+        const AVCodec *pCodec = avcodec_find_decoder(codec_id);
         if (NULL == pCodec) {
             printf("can't find code_id %d\n", codec_id);
             return nullptr;
@@ -407,9 +408,9 @@ namespace bm {
             return nullptr;
         }
 
-        if (pCodec->capabilities & AV_CODEC_CAP_TRUNCATED) {
-            dec_ctx->flags |= AV_CODEC_FLAG_TRUNCATED;
-        }
+        // if (pCodec->capabilities & AV_CODEC_CAP_TRUNCATED) {
+        //     dec_ctx->flags |= AV_CODEC_FLAG_TRUNCATED;
+        // }
 
         dec_ctx->flags |= AV_CODEC_FLAG_LOW_DELAY;
 

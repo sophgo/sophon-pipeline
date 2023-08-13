@@ -29,11 +29,54 @@
 #include <sys/time.h>
 #endif //
 
+#ifndef WITH_DETECTOR
+#define WITH_DETECTOR 1
+#endif
+#ifndef WITH_EXTRACTOR
+#define WITH_EXTRACTOR 1
+#endif
+#ifndef WITH_OUTPUTER
+#define WITH_OUTPUTER 1
+#endif
+#ifndef PLD
+  #define PLD 1
+#endif
 #include "bmruntime_interface.h"
 #include "bmutility_types.h"
 #include "bmutility_timer.h"
 #include "bmutility_image.h"
 #include "bmutility_string.h"
+
+#if PLD
+static std::string shape_to_str(const bm_shape_t& shape) {
+    std::string str ="[ ";
+    for(int i=0; i<shape.num_dims; i++){
+    str += std::to_string(shape.dims[i]) + " ";
+    }
+    str += "]";
+    return str;
+}
+static void bm_image_dump_size(bm_image input, int dump_size){
+  int ret = 0;
+  int plane_num = bm_image_get_plane_num(input);
+  int plane_size[4];
+  assert(0 == bm_image_get_byte_size(input, plane_size));
+  uchar *buffers_resized[4]={0};
+  std::cout<<"creating host buffer!"<<std::endl;
+  for(int kk = 0; kk < plane_num; kk++) {
+      buffers_resized[kk] = new uchar[plane_size[kk]];
+      std::cout<<"plane "<<kk<<", size:"<<plane_size[kk]<<std::endl;
+  }
+  ret = bm_image_copy_device_to_host(input, (void**)buffers_resized);
+  assert(ret == 0);
+  std::cout<<"print_bm_image_host_buffer:"<<std::endl;
+  for(int kk = 0; kk < dump_size; kk++){
+      std::cout<<(int)buffers_resized[0][kk]<<" ";
+  }
+  for(int kk = 0; kk < plane_num; kk++) delete [] buffers_resized[kk];
+  std::cout<<"exit_bm_image_dump"<<std::endl;
+}
+#endif
 
 static std::ostream &operator<<(std::ostream &out, const bm_shape_t &shape)
 {
@@ -238,6 +281,7 @@ namespace bm {
             float *pFP32 = nullptr;
             int count = bmrt_shape_count(&m_tensor->shape);
             // in SOC mode, device mem can be mapped to host memory, faster then using d2s
+            // this form should be optimized.
             if(m_can_mmap) {
                 if (m_tensor->dtype == BM_FLOAT32) {
                     unsigned long long  addr;
@@ -263,7 +307,41 @@ namespace bm {
                     }
                     ret = bm_mem_unmap_device_mem(m_handle, pI8, bm_mem_get_device_size(m_tensor->device_mem));
                     assert(BM_SUCCESS == ret);
-                } else{
+                }else if (BM_FLOAT16 == m_tensor->dtype){
+                    float16_t* pFP16 = nullptr;
+                    unsigned long long  addr;
+                    ret = bm_mem_mmap_device_mem(m_handle, &m_tensor->device_mem, &addr);
+                    assert(BM_SUCCESS == ret);
+                    ret = bm_mem_invalidate_device_mem(m_handle, &m_tensor->device_mem);
+                    assert(BM_SUCCESS == ret);
+                    pFP16 = (float16_t*) addr;
+
+                    // dtype convert
+                    pFP32 = new float[count];
+                    assert(pFP32 != nullptr);
+                    for(int i = 0;i < count; ++ i) {
+                        pFP32[i] = pFP16[i] * m_scale;
+                    }
+                    ret = bm_mem_unmap_device_mem(m_handle, pFP16, bm_mem_get_device_size(m_tensor->device_mem));
+                    assert(BM_SUCCESS == ret);
+                } else if (m_tensor->dtype == BM_INT32) {
+                    int32_t * pI32 = nullptr;
+                    unsigned long long  addr;
+                    ret = bm_mem_mmap_device_mem(m_handle, &m_tensor->device_mem, &addr);
+                    assert(BM_SUCCESS == ret);
+                    ret = bm_mem_invalidate_device_mem(m_handle, &m_tensor->device_mem);
+                    assert(BM_SUCCESS == ret);
+                    pI32 = (int32_t*)addr;
+                    // dtype convert
+                    pFP32 = new float[count];
+                    assert(pFP32 != nullptr);
+                    for(int i = 0;i < count; ++ i) {
+                    pFP32[i] = pI32[i] * m_scale;
+                    }
+                    ret = bm_mem_unmap_device_mem(m_handle, pI32, bm_mem_get_device_size(m_tensor->device_mem));
+                    assert(BM_SUCCESS == ret);
+                } 
+                else{
                     std::cout << "NOT support dtype=" << m_tensor->dtype << std::endl;
                 }
             } else {
@@ -288,6 +366,36 @@ namespace bm {
                     pFP32[i] = pI8[i] * m_scale;
                     }
                     delete [] pI8;
+                } else if (BM_FLOAT16 == m_tensor->dtype) {
+                    float16_t * pFP16 = nullptr;
+                    int tensor_size = bmrt_tensor_bytesize(m_tensor);
+                    pFP16 = new float16_t[tensor_size];
+                    assert(pFP16 != nullptr);
+
+                    // dtype convert
+                    pFP32 = new float[count];
+                    assert(pFP32 != nullptr);
+                    ret = bm_memcpy_d2s_partial(m_handle, pFP16, m_tensor->device_mem, tensor_size);
+                    assert(BM_SUCCESS == ret);
+                    for(int i = 0;i < count; ++ i) {
+                        pFP32[i] = pFP16[i] * m_scale;
+                    }
+                    delete [] pFP16;
+                } else if(m_tensor->dtype == BM_INT32){
+                    int32_t *pI32=nullptr;
+                    int tensor_size = bmrt_tensor_bytesize(m_tensor);
+                    pI32 =new int32_t[tensor_size];
+                    assert(pI32 != nullptr);
+
+                    // dtype convert
+                    pFP32 = new float[count];
+                    assert(pFP32 != nullptr);
+                    ret = bm_memcpy_d2s_partial(m_handle, pI32, m_tensor->device_mem, tensor_size);
+                    assert(BM_SUCCESS ==ret);
+                    for(int i = 0;i < count; ++ i) {
+                        pFP32[i] = pI32[i] * m_scale;
+                    }
+                    delete [] pI32;            
                 } else{
                     std::cout << "NOT support dtype=" << m_tensor->dtype << std::endl;
                 }
@@ -384,7 +492,47 @@ namespace bm {
                 m_mapOutputName2Index[m_netinfo->output_names[i]] = i;
             }
 
+            showInfo();
             assert(m_netinfo->stage_num >= 1);
+        }
+
+        void showInfo()
+        {
+            const char* dtypeMap[] = {
+            "FLOAT32",
+            "FLOAT16",
+            "INT8",
+            "UINT8",
+            "INT16",
+            "UINT16",
+            "INT32",
+            "UINT32",
+            };
+            printf("\n########################\n");
+            printf("NetName: %s\n", m_netinfo->name);
+            for(int s=0; s<m_netinfo->stage_num; s++){
+            printf("---- stage %d ----\n", s);
+            for(int i=0; i<m_netinfo->input_num; i++){
+                auto shapeStr = shape_to_str(m_netinfo->stages[s].input_shapes[i]);
+                printf("  Input %d) '%s' shape=%s dtype=%s scale=%g\n",
+                    i,
+                    m_netinfo->input_names[i],
+                    shapeStr.c_str(),
+                    dtypeMap[m_netinfo->input_dtypes[i]],
+                    m_netinfo->input_scales[i]);
+            }
+            for(int i=0; i<m_netinfo->output_num; i++){
+                auto shapeStr = shape_to_str(m_netinfo->stages[s].output_shapes[i]);
+                printf("  Output %d) '%s' shape=%s dtype=%s scale=%g\n",
+                    i,
+                    m_netinfo->output_names[i],
+                    shapeStr.c_str(),
+                    dtypeMap[m_netinfo->output_dtypes[i]],
+                    m_netinfo->output_scales[i]);
+            }
+            }
+            printf("########################\n\n");
+
         }
 
         bool is_dynamic() const
@@ -508,6 +656,7 @@ namespace bm {
         {
             bool ok = bmrt_launch_tensor_ex(m_bmrt, m_netinfo->name, input_tensors, input_num,
                     output_tensors, output_num, false, false);
+
             if (!ok) {
                 std::cout << "bm_launch_tensor_ex() failed=" << std::endl;
                 return -1;
@@ -590,6 +739,7 @@ namespace bm {
 
         BMNNContext(BMNNHandlePtr handle, const std::string& bmodel_file) : m_handlePtr(handle) {
             bm_handle_t hdev = m_handlePtr->handle();
+        #if WITH_DETECTOR | WITH_EXTRACTOR
             m_bmrt = bmrt_create(hdev);
             if (NULL == m_bmrt) {
                 std::cout << "bmrt_create() failed!" << std::endl;
@@ -599,8 +749,8 @@ namespace bm {
             if (!bmrt_load_bmodel(m_bmrt, bmodel_file.c_str())) {
                 std::cout << "load bmodel(" << bmodel_file << ") failed" << std::endl;
             }
-
             load_network_names();
+        #endif
         }
 
         ~BMNNContext() {

@@ -9,8 +9,9 @@
 
 #ifndef SOPHON_PIPELINE_FACE_EXTRACT_H
 #define SOPHON_PIPELINE_FACE_EXTRACT_H
-
-
+#ifndef PLD
+  #define PLD 1
+#endif
 #include "bmutility.h"
 #include "bmutility_types.h"
 #include "inference.h"

@@ -50,7 +50,7 @@ function build_app()
     mkdir $builddir
     cd $builddir
     
-    cmake_params="-DTARGET_ARCH=$target_arch -DUSE_QTGUI=OFF"
+    cmake_params="-DTARGET_ARCH=$target_arch"
     
     if [ "$target_arch" == "arm64" -o "$target_arch" == "soc" ]; then
         cmake_params="$cmake_params -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-aarch64-linux.cmake -DSDK_PATH=${sdk_path}"

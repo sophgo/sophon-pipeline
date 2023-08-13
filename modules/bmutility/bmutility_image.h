@@ -18,22 +18,26 @@ extern "C" {
 #include "libswscale/swscale.h"
 }
 #endif
-
 #include "opencv2/opencv.hpp"
-#include "bmcv_api_ext.h"
-
+extern "C" {
+    #include "bmcv_api_ext.h"
+}
 namespace bm {
 ///////////////////////////////////////////////////////////////////////////
 #define BM_MEM_DDR0 1
 #define BM_MEM_DDR1 2
 #define BM_MEM_DDR2 4
 
+#ifndef PLD
+  #define PLD 1
+#endif
+            
 // BMCV_IMAGE
 struct BMImage {
   static inline void safe_dalete_bm_image_ptr(bm_image **ptr) {
       if (ptr == nullptr || *ptr == nullptr)
           return;
-      bm_image_destroy(**ptr);
+      bm_image_destroy(*ptr);
       delete *ptr;
       *ptr = nullptr;
   }
@@ -65,6 +69,9 @@ struct BMImage {
                                                 bm_image_format_ext img_format,
                                                 bm_image_data_format_ext data_type,
                                                 bm_image &out, int align = 1, int mask = 6) {
+    #if PLD
+      mask = BM_MEM_DDR0;
+    #endif                                              
     assert(FORMAT_COMPRESSED == in.image_format);
     int data_size = 1;
     if (data_type == DATA_TYPE_EXT_FLOAT32) {
@@ -89,7 +96,7 @@ struct BMImage {
     bm_image_create(handle, in.height, in.width, img_format, data_type, &out, stride);
     bm_status_t ret = bm_image_alloc_dev_mem_heap_mask(out, mask);
     assert(BM_SUCCESS == ret);
-    ret = bmcv_image_vpp_convert(handle, 1, in, &out);
+    ret = bmcv_image_vpp_convert(handle, 1, in, &out, NULL, BMCV_INTER_LINEAR);
     assert(BM_SUCCESS == ret);
     return BM_SUCCESS;
   }
@@ -103,7 +110,9 @@ struct BMImage {
                                          int batch_num,
                                          int align = 1, bool bPreAllocMem = true,
                                          bool bContinuious = false, int mask = 6) {
-
+    #if PLD
+      mask = BM_MEM_DDR0;
+    #endif                                              
     // init images
     int data_size = 1;
     if (data_type == DATA_TYPE_EXT_FLOAT32) {
@@ -115,8 +124,14 @@ struct BMImage {
     if (FORMAT_RGB_PLANAR == img_format ||
         FORMAT_RGB_PACKED == img_format ||
         FORMAT_BGR_PLANAR == img_format ||
-        FORMAT_BGR_PACKED == img_format) {
+        FORMAT_BGR_PACKED == img_format || 
+        FORMAT_RGBP_SEPARATE == img_format || 
+        FORMAT_BGRP_SEPARATE == img_format) {
+    #if PLD
+      stride[0] = stride[1] = stride[2] = FFALIGN(img_w_real, align);
+    #else
       stride[0] = FFALIGN(img_w_real, align);
+    #endif
     } else if (FORMAT_YUV420P == img_format) {
       stride[0] = FFALIGN(img_w_real, align);
       stride[1] = stride[2] = FFALIGN(img_w_real >> 1, align);
@@ -129,7 +144,8 @@ struct BMImage {
 
     int ret = 0;
     for (int i = 0; i < batch_num; i++) {
-      bm_image_create(handle, img_h, img_w, img_format, data_type, &image[i], stride);
+      ret = bm_image_create(handle, img_h, img_w, img_format, data_type, &image[i], stride);
+      assert(BM_SUCCESS == ret);
       if (bPreAllocMem && !bContinuious) {
         ret = bm_image_alloc_dev_mem_heap_mask(image[i], mask);
         assert(BM_SUCCESS == ret);
@@ -146,12 +162,18 @@ struct BMImage {
 
   static inline bm_status_t destroy_batch(bm_image *images, int batch_num, bool bContinuious = false) {
     if (bContinuious) {
+    #if PLD
+      std::cout<<"bm_image_free_contiguous_mem!"<<std::endl;
+    #endif
       bm_image_free_contiguous_mem(batch_num, images);
     }
 
     // deinit bm image
+    #if PLD
+      std::cout<<"destroy bm_images!"<<std::endl;
+    #endif
     for (int i = 0; i < batch_num; i++) {
-      if (BM_SUCCESS != bm_image_destroy(images[i])) {
+      if (BM_SUCCESS != bm_image_destroy(&images[i])) {
         printf("bm_image_destroy failed!\n");
       }
     }
@@ -207,176 +229,204 @@ struct BMImage {
     return format;
   }
 
-  static inline int convert_yuv420p_software(const AVFrame *src, AVFrame** p_dst)
-  {
-    AVFrame *dst = av_frame_alloc();
-    dst->width = src->width;
-    dst->height = src->height;
-    dst->format = AV_PIX_FMT_YUV420P;
+  // static inline int convert_yuv420p_software(const AVFrame *src, AVFrame** p_dst)
+  // {
+  //   AVFrame *dst = av_frame_alloc();
+  //   dst->width = src->width;
+  //   dst->height = src->height;
+  //   dst->format = AV_PIX_FMT_YUV420P;
 
-    av_frame_get_buffer(dst, 64);
-    SwsContext *ctx = sws_getContext(src->width, src->height, (AVPixelFormat)src->format, dst->width, dst->height,
-                                     (AVPixelFormat)dst->format,SWS_BICUBIC, 0, NULL, NULL);
-    sws_scale(ctx, src->data,  src->linesize, 0, src->height, dst->data, dst->linesize);
-    sws_freeContext(ctx);
-    *p_dst = dst;
-    return 0;
-  }
+  //   av_frame_get_buffer(dst, 64);
+  //   SwsContext *ctx = sws_getContext(src->width, src->height, (AVPixelFormat)src->format, dst->width, dst->height,
+  //                                    (AVPixelFormat)dst->format,SWS_BICUBIC, 0, NULL, NULL);
+  //   sws_scale(ctx, src->data,  src->linesize, 0, src->height, dst->data, dst->linesize);
+  //   sws_freeContext(ctx);
+  //   *p_dst = dst;
+  //   return 0;
+  // }
 
-  static inline bm_status_t avframe_to_bm_image(bm_handle_t &bm_handle, const AVFrame *ifp, bm_image &out) {
-
+  static inline bm_status_t avframe_to_bm_image(bm_handle_t &handle, const AVFrame *in, bm_image &out) {
+    bool data_on_device_mem = (in->data[4]!=NULL);
     int plane = 0;
+    int data_four_denominator = -1;
     int data_five_denominator = -1;
     int data_six_denominator = -1;
-    AVFrame *tmp_yuv420p=NULL;
-    AVFrame *pIn = (AVFrame*)ifp;
+    static int mem_flags = BM_MEM_DDR0; //BM_MEM_DDR2
 
-    if (ifp->data[4] != NULL) {
-      switch (ifp->format) {
-        case AV_PIX_FMT_GRAY8:plane = 1;
-          data_five_denominator = -1;
-          data_six_denominator = -1;
-          break;
-        case AV_PIX_FMT_YUV420P:plane = 3;
-          data_five_denominator = 4;
-          data_six_denominator = 4;
-          break;
-        case AV_PIX_FMT_NV12:plane = 2;
-          data_five_denominator = 2;
-          data_six_denominator = -1;
-          break;
-        case AV_PIX_FMT_YUV422P:plane = 3;
-          data_five_denominator = 2;
-          data_six_denominator = 2;
-          break;
-        case AV_PIX_FMT_NV16:plane = 2;
-          data_five_denominator = 2;
-          data_six_denominator = -1;
-          break;
+    switch (in->format) {
+        case AV_PIX_FMT_RGB24:
+        case AV_PIX_FMT_BGR24:
+            plane = 1;
+            data_four_denominator = 1;
+            data_five_denominator = -1;
+            data_six_denominator = -1;
+        case AV_PIX_FMT_GRAY8:
+            plane = 1;
+            data_four_denominator = -1;
+            data_five_denominator = -1;
+            data_six_denominator = -1;
+            break;
+        case AV_PIX_FMT_YUV420P:
+        case AV_PIX_FMT_YUVJ420P:
+            plane = 3;
+            data_four_denominator = -1;
+            data_five_denominator = 2;
+            data_six_denominator = 2;
+            break;
+        case AV_PIX_FMT_NV12:
+            plane = 2;
+            data_four_denominator = -1;
+            data_five_denominator = 1;
+            data_six_denominator = -1;
+            break;
+        case AV_PIX_FMT_YUV422P:
+        case AV_PIX_FMT_YUVJ422P:
+            plane = 3;
+            data_four_denominator = -1;
+            data_five_denominator = 1;
+            data_six_denominator = 1;
+            break;
+        // case AV_PIX_FMT_YUV440P:
+        // case AV_PIX_FMT_YUVJ440P:
+        //     plane = 3;
+        //     data_four_denominator = -1;
+        //     data_five_denominator = 1;
+        //     data_six_denominator = 4;
+        //     break;
+        case AV_PIX_FMT_NV16:
+            plane = 2;
+            data_four_denominator = -1;
+            data_five_denominator = 2;
+            data_six_denominator = -1;
+            break;
         case AV_PIX_FMT_YUV444P:
-        case AV_PIX_FMT_GBRP:plane = 3;
-          data_five_denominator = 1;
-          data_six_denominator = 1;
-          break;
+        case AV_PIX_FMT_YUVJ444P:
+        case AV_PIX_FMT_GBRP:
+            plane = 3;
+            data_four_denominator = -1;
+            data_five_denominator = 1;
+            data_six_denominator = 1;
+            break;
         default:
-          printf("unsupported format, only gray,nv12,yuv420p,nv16,yuv422p horizontal,yuv444p,rgbp supported\n");
-          assert(0);
-          break;
-      }
-
-      if (pIn->channel_layout == 101) {/* COMPRESSED NV12 FORMAT */
-        if ((0 == pIn->height) || (0 == pIn->width) || \
-         (0 == pIn->linesize[4]) || (0 == pIn->linesize[5]) || (0 == pIn->linesize[6]) || (0 == pIn->linesize[7]) || \
-         (0 == pIn->data[4]) || (0 == pIn->data[5]) || (0 == pIn->data[6]) || (0 == pIn->data[7])) {
-          printf("bm_image_from_frame: get yuv failed!!");
-          return BM_ERR_PARAM;
+            printf("unsupported format, only gray,nv12,yuv420p,nv16,yuv422p horizontal,yuv444p,rgbp supported\n");
+            break;
+    }
+    
+    if (in->channel_layout == 101) { /* COMPRESSED NV12 FORMAT */
+        if ((0 == in->height) || (0 == in->width) || (0 == in->linesize[4]) || (0 == in->linesize[5]) ||
+            (0 == in->linesize[6]) || (0 == in->linesize[7]) || (0 == in->data[4]) || (0 == in->data[5]) ||
+            (0 == in->data[6]) || (0 == in->data[7])) {
+            printf("bm_image_from_frame: get yuv failed!!");
+            return BM_ERR_PARAM;
         }
         bm_image cmp_bmimg;
-        bm_image_create(bm_handle,
-                        pIn->height,
-                        pIn->width,
-                        FORMAT_COMPRESSED,
-                        DATA_TYPE_EXT_1N_BYTE,
-                        &cmp_bmimg);
+        bm_image_create(handle, in->height, in->width, FORMAT_COMPRESSED, DATA_TYPE_EXT_1N_BYTE, &cmp_bmimg, NULL);
 
         bm_device_mem_t input_addr[4];
-        int size = pIn->height * pIn->linesize[4];
-        input_addr[0] = bm_mem_from_device((unsigned long long) pIn->data[6], size);
-        size = (pIn->height / 2) * pIn->linesize[5];
-        input_addr[1] = bm_mem_from_device((unsigned long long) pIn->data[4], size);
-        size = pIn->linesize[6];
-        input_addr[2] = bm_mem_from_device((unsigned long long) pIn->data[7], size);
-        size = pIn->linesize[7];
-        input_addr[3] = bm_mem_from_device((unsigned long long) pIn->data[5], size);
+        int size = in->height * in->linesize[4];
+        input_addr[0] = bm_mem_from_device((unsigned long long)in->data[6], size);
+        size = (in->height / 2) * in->linesize[5];
+        input_addr[1] = bm_mem_from_device((unsigned long long)in->data[4], size);
+        size = in->linesize[6];
+        input_addr[2] = bm_mem_from_device((unsigned long long)in->data[7], size);
+        size = in->linesize[7];
+        input_addr[3] = bm_mem_from_device((unsigned long long)in->data[5], size);
         bm_image_attach(cmp_bmimg, input_addr);
-        bm_image_create(bm_handle,
-                        pIn->height,
-                        pIn->width,
-                        FORMAT_YUV420P,
-                        DATA_TYPE_EXT_1N_BYTE,
-                        &out);
-        //bm_image_dev_mem_alloc(out);
-        bm_image_alloc_dev_mem_heap_mask(out, 4);
-        bmcv_rect_t crop_rect = {0, 0, pIn->width, pIn->height};
-        bmcv_image_vpp_convert(bm_handle, 1, cmp_bmimg, &out, &crop_rect);
-        bm_image_destroy(cmp_bmimg);
-      } else {
+        bm_image_create(handle, in->height, in->width, FORMAT_YUV420P, DATA_TYPE_EXT_1N_BYTE, &out, NULL);
+      #if PLD        
+        assert(BM_SUCCESS == bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR0));
+      #else
+        if (mem_flags == BM_MEM_DDR2 && bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR2) != BM_SUCCESS) {
+            mem_flags = BM_MEM_DDR1;
+        }
+        if (mem_flags == BM_MEM_DDR1 && bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR1) != BM_SUCCESS) {
+            printf("bmcv allocate mem failed!!!");
+        }
+      #endif
+
+
+        bmcv_rect_t crop_rect = {0, 0, in->width, in->height};
+        bmcv_image_vpp_convert(handle, 1, cmp_bmimg, &out, &crop_rect, BMCV_INTER_LINEAR);
+        bm_image_destroy(&cmp_bmimg);
+    } else {
         int stride[3];
         bm_image_format_ext bm_format;
         bm_device_mem_t input_addr[3] = {0};
-        if (plane == 1) {
-          if ((0 == pIn->height) || (0 == pIn->width) || (0 == pIn->linesize[4]) || (0 == pIn->data[4])) {
-            return BM_ERR_PARAM;
-          }
-          stride[0] = pIn->linesize[4];
-        } else if (plane == 2) {
-          if ((0 == pIn->height) || (0 == pIn->width) || \
-                (0 == pIn->linesize[4]) || (0 == pIn->linesize[5]) || \
-                (0 == pIn->data[4]) || (0 == pIn->data[5])) {
-            return BM_ERR_PARAM;
-          }
 
-          stride[0] = pIn->linesize[4];
-          stride[1] = pIn->linesize[5];
-        } else if (plane == 3) {
-          if ((0 == pIn->height) || (0 == pIn->width) || \
-                (0 == pIn->linesize[4]) || (0 == pIn->linesize[5]) || (0 == pIn->linesize[6]) || \
-                (0 == pIn->data[4]) || (0 == pIn->data[5]) || (0 == pIn->data[6])) {
-            return BM_ERR_PARAM;
-          }
+        data_on_device_mem ? stride[0] = in->linesize[4] : stride[0] = in->linesize[0];
 
-          stride[0] = pIn->linesize[4];
-          stride[1] = pIn->linesize[5];
-          stride[2] = pIn->linesize[6];
+        if (plane > 1) {
+            data_on_device_mem ? stride[1] = in->linesize[5] : stride[1] = in->linesize[1];
+        }
+        if (plane > 2) {
+            data_on_device_mem ? stride[2] = in->linesize[6] : stride[2] = in->linesize[2];
+        }
+        bm_image tmp;
+        bm_format = (bm_image_format_ext)map_avformat_to_bmformat(in->format);
+        bm_image_create(handle, in->height, in->width, bm_format, DATA_TYPE_EXT_1N_BYTE, &tmp, stride);
+        bm_image_create(handle, in->height, in->width, FORMAT_YUV420P, DATA_TYPE_EXT_1N_BYTE, &out, NULL);
+      #if PLD
+        bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR0);
+      #else
+        bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR2);
+      #endif
+        int size = in->height * stride[0];
+        if (data_four_denominator != -1) {
+            size = in->height * stride[0] * 3;
+        }
+        if (data_on_device_mem) {
+            input_addr[0] = bm_mem_from_device((unsigned long long)in->data[4], size);
+        } else {
+          #if PLD
+            bm_malloc_device_byte_heap(handle, &input_addr[0], BM_MEM_DDR0, size);
+          #else
+            bm_malloc_device_byte_heap(handle, &input_addr[0], BM_MEM_DDR2, size);
+          #endif
+            bm_memcpy_s2d_partial(handle, input_addr[0], in->data[0], size);
         }
 
-        bm_format = (bm_image_format_ext) map_avformat_to_bmformat(pIn->format);
-        bm_image_create(bm_handle,
-                        pIn->height,
-                        pIn->width,
-                        bm_format,
-                        DATA_TYPE_EXT_1N_BYTE,
-                        &out,
-                        stride);
-
-        int size = pIn->height * stride[0];
-        input_addr[0] = bm_mem_from_device((unsigned long long) pIn->data[4], size);
         if (data_five_denominator != -1) {
-          size = pIn->height * stride[1] / data_five_denominator;
-          input_addr[1] = bm_mem_from_device((unsigned long long) pIn->data[5], size);
+            size = FFALIGN(in->height,2) * stride[1] / data_five_denominator;
+            if (data_on_device_mem) {
+                input_addr[1] = bm_mem_from_device((unsigned long long)in->data[5], size);
+            } else {
+              #if PLD
+                bm_malloc_device_byte_heap(handle, &input_addr[1], BM_MEM_DDR0, size);
+              #else
+                bm_malloc_device_byte_heap(handle, &input_addr[1], BM_MEM_DDR2, size);
+              #endif
+                bm_memcpy_s2d_partial(handle, input_addr[1], in->data[1], size);
+            }
         }
-        if (data_six_denominator != -1) {
-          size = pIn->height * stride[2] / data_six_denominator;
-          input_addr[2] = bm_mem_from_device((unsigned long long) pIn->data[6], size);
-        }
-        bm_image_attach(out, input_addr);
-      }
-      return BM_SUCCESS;
-    }
 
-    // software
-    bm_status_t ret;
-    int strides[3];
-    bm_device_mem_t input_addr[3] = {0};
-    convert_yuv420p_software(ifp, &tmp_yuv420p);
-    strides[0] = tmp_yuv420p->linesize[0];
-    strides[1] = tmp_yuv420p->linesize[1];
-    strides[2] = tmp_yuv420p->linesize[2];
-    bm_image_create(bm_handle,
-                    pIn->height,
-                    pIn->width,
-                    FORMAT_YUV420P,
-                    DATA_TYPE_EXT_1N_BYTE,
-                    &out,
-                    strides);
-    ret = bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR1 | BM_MEM_DDR2);
-    assert(BM_SUCCESS == ret);
-    ret = bm_image_copy_host_to_device(out, (void**)tmp_yuv420p->data);
-    assert(BM_SUCCESS == ret);
-    if (tmp_yuv420p) {
-      av_frame_free(&tmp_yuv420p);
+        if (data_six_denominator != -1) {
+            size = FFALIGN(in->height,2) * stride[2] / data_six_denominator;
+            if (data_on_device_mem) {
+                input_addr[2] = bm_mem_from_device((unsigned long long)in->data[6], size);
+            } else {
+              #if PLD
+                bm_malloc_device_byte_heap(handle, &input_addr[2], BM_MEM_DDR0, size);
+              #else
+                bm_malloc_device_byte_heap(handle, &input_addr[2], BM_MEM_DDR2, size);
+              #endif
+                bm_memcpy_s2d_partial(handle, input_addr[2], in->data[2], size);
+            }
+        }
+        
+        bm_image_attach(tmp, input_addr);
+        bmcv_rect_t crop_rect = {0, 0, in->width, in->height};
+        bmcv_image_vpp_convert(handle, 1, tmp, &out, &crop_rect, BMCV_INTER_LINEAR);
+        bm_image_destroy(&tmp);
+
+        if (!data_on_device_mem) {
+            bm_free_device(handle, input_addr[0]);
+            if (data_five_denominator != -1)
+                bm_free_device(handle, input_addr[1]);
+            if (data_six_denominator != -1)
+                bm_free_device(handle, input_addr[2]);
+        }
     }
-    return ret;
+    return BM_SUCCESS;
   }
 
   static inline bm_status_t from_avframe(bm_handle_t bm_handle,
@@ -385,6 +435,10 @@ struct BMImage {
     bm_status_t ret;
     const AVFrame &in = *pAVFrame;
     if (in.format != AV_PIX_FMT_NV12) {
+      int stride[3] = {0};
+      for(int stride_i = 0; stride_i < 3; stride_i ++){
+        stride[stride_i] = FFALIGN(in.linesize[stride_i], 64);
+      }
       bm_image in_bmimage;
       ret = avframe_to_bm_image(bm_handle, pAVFrame, in_bmimage);
       assert(BM_SUCCESS == ret);
@@ -393,13 +447,18 @@ struct BMImage {
                             in.width,
                             FORMAT_YUV420P,
                             DATA_TYPE_EXT_1N_BYTE,
-                            &out);
+                            &out,
+                            NULL);
       assert(BM_SUCCESS == ret);
+    #if PLD
+      ret = bm_image_alloc_dev_mem(out, BMCV_HEAP_ANY);
+    #else
       ret = bm_image_alloc_dev_mem(out, BMCV_HEAP1_ID);
+    #endif
       assert(BM_SUCCESS == ret);
-      int ret = bmcv_image_vpp_convert(bm_handle, 1, in_bmimage, &out);
+      int ret = bmcv_image_vpp_convert(bm_handle, 1, in_bmimage, &out, NULL, BMCV_INTER_LINEAR);
       assert(BM_SUCCESS == ret);
-      bm_image_destroy(in_bmimage);
+      bm_image_destroy(&in_bmimage);
 
       return BM_SUCCESS;
     }
@@ -418,7 +477,8 @@ struct BMImage {
                             in.width,
                             FORMAT_COMPRESSED,
                             DATA_TYPE_EXT_1N_BYTE,
-                            &cmp_bmimg);
+                            &cmp_bmimg,
+                            NULL);
       assert(BM_SUCCESS == ret);
       /* calculate physical address of avframe */
       bm_device_mem_t input_addr[4];
@@ -436,18 +496,27 @@ struct BMImage {
       if (!bToYUV420p) {
         out = cmp_bmimg;
       } else {
+        int stride[3] = {0};
+        for(int stride_i = 0; stride_i < 3; stride_i ++){
+          stride[stride_i] = FFALIGN(in.linesize[stride_i], 64);
+        }
         ret = bm_image_create(bm_handle,
                               in.height,
                               in.width,
                               FORMAT_YUV420P,
                               DATA_TYPE_EXT_1N_BYTE,
-                              &out);
+                              &out,
+                              stride);
         assert(BM_SUCCESS == ret);
+      #if PLD
+        ret = bm_image_alloc_dev_mem(out, BMCV_HEAP_ANY);
+      #else
         ret = bm_image_alloc_dev_mem(out, BMCV_HEAP1_ID);
+      #endif
         assert(BM_SUCCESS == ret);
-        int ret = bmcv_image_vpp_convert(bm_handle, 1, cmp_bmimg, &out);
+        int ret = bmcv_image_vpp_convert(bm_handle, 1, cmp_bmimg, &out, NULL, BMCV_INTER_LINEAR);
         assert(BM_SUCCESS == ret);
-        bm_image_destroy(cmp_bmimg);
+        bm_image_destroy(&cmp_bmimg);
       }
 
     } else { /* UNCOMPRESSED NV12 FORMAT */
@@ -490,13 +559,18 @@ struct BMImage {
                               in.width,
                               FORMAT_YUV420P,
                               DATA_TYPE_EXT_1N_BYTE,
-                              &out);
+                              &out,
+                              NULL);
         assert(BM_SUCCESS == ret);
+      #if PLD
+        ret = bm_image_alloc_dev_mem(out, BMCV_HEAP_ANY);
+      #else
         ret = bm_image_alloc_dev_mem(out, BMCV_HEAP1_ID);
+      #endif
         assert(BM_SUCCESS == ret);
-        int ret = bmcv_image_vpp_convert(bm_handle, 1, cmp_bmimg, &out);
+        int ret = bmcv_image_vpp_convert(bm_handle, 1, cmp_bmimg, &out, NULL, BMCV_INTER_LINEAR);
         assert(BM_SUCCESS == ret);
-        bm_image_destroy(cmp_bmimg);
+        bm_image_destroy(&cmp_bmimg);
       }
     }
 
@@ -509,9 +583,9 @@ struct BMImage {
     assert(BM_SUCCESS == ret);
     uint8_t *jpeg = nullptr;
     size_t out_size = 0;
-    ret = bmcv_image_jpeg_enc(handle, 1, &yuv_img, (void **) &jpeg, &out_size);
+    ret = bmcv_image_jpeg_enc(handle, 1, &yuv_img, (void **) &jpeg, &out_size, 85);
     assert(BM_SUCCESS == ret);
-    bm_image_destroy(yuv_img);
+    bm_image_destroy(&yuv_img);
     return jpeg;
   }
 

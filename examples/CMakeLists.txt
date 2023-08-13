@@ -19,6 +19,7 @@ if (USE_SOPHON_FFMPEG)
     if (HAVE_TRACKER)
         add_subdirectory(cvs20)
     endif()
+
 else()
     if (HAVE_TRACKER)
         add_subdirectory(cvs20)

@@ -24,7 +24,7 @@ extern "C" {
 #include "libavformat/avformat.h"
 #include "libavutil/avutil.h"
 #include "libavutil/time.h"
-
+#include <libavutil/opt.h>
 }
 #endif
 
@@ -73,7 +73,7 @@ namespace bm {
                 av_dict_set(&opts, "rtsp_transport", "tcp", 0);
                 av_dict_set(&opts, "muxdelay", "0.1", 0);
             }
-
+            
             //Write file header
             ret = avformat_write_header(m_ofmt_ctx, &opts);
             if (ret < 0) {
@@ -212,8 +212,9 @@ namespace bm {
 #endif
                     }
                 }
-
-                m_ofmt_ctx->oformat->flags |= AVFMT_TS_NONSTRICT;
+                AVOutputFormat* oformat = const_cast<AVOutputFormat*>(m_ofmt_ctx->oformat);
+                oformat->flags |= AVFMT_TS_NONSTRICT;
+                // m_ofmt_ctx->oformat->flags |= AVFMT_TS_NONSTRICT;
             }
 
             if (!m_ofmt_ctx) {

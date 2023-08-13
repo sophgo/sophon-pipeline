@@ -7,15 +7,27 @@ if(USE_DEBUG)
     add_definitions(-DUSE_DEBUG=1)
 endif()
 
+add_definitions(-DWITH_DECODE=1)
+add_definitions(-DWITH_ENCODE_JPEG=0)#depend on decode
+add_definitions(-DWITH_ENCODE_H264=0)#depend on decode
+add_definitions(-DWITH_DETECTOR=0)#depend on decode
+
+add_definitions(-DWITH_EXTRACTOR=0)
+
+add_definitions(-DWITH_OUTPUTER=0)#depend on detector
+
 set(src_files main.cpp worker.cpp)
 add_definitions(-DHAVE_FACEDETECT_MODULE=1)
-list(APPEND src_files face_detector.cpp face_extract.cpp resnet50.cpp)
+list(APPEND src_files face_detector.cpp face_extract.cpp resnet50.cpp ff_video_encode.cpp)
 
 include_directories(${common_inc_dirs} ${libsophon_inc_dirs} ${ffmpeg_inc_dirs} ${opencv_inc_dirs})
 link_directories(${ffmpeg_link_dirs} ${libsophon_link_dirs} ${opencv_link_dirs})
 
 
 add_executable(cvs20 ${src_files})
+message("====================================")
+message("====================================")
+message("path: ${opencv_link_libs}")
 if (USE_QTGUI)
     target_link_libraries(cvs20 bmutility ${opencv_link_libs} ${ffmpeg_link_libs} ${libsophon_link_libs} bmtracker bmgui jsoncpp)
 else()

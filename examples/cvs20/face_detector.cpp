@@ -13,6 +13,9 @@
 
 #define DUMP_FILE 0
 #define DYNAMIC_SIZE 0
+#ifndef USE_RGBP_SEPARATE
+#define USE_RGBP_SEPARATE 1
+#endif
 
 static inline bool compareBBox(const bm::NetOutputObject &a, const bm::NetOutputObject &b) {
     return a.score > b.score;
@@ -20,7 +23,7 @@ static inline bool compareBBox(const bm::NetOutputObject &a, const bm::NetOutput
 
 FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num)
 {
-    auto net_name = bmctx->network_name(0);
+    auto net_name = bmctx->network_name(1); // origin: 0
 
     bmctx_ = bmctx;
     anchor_ratios_.push_back(1.0f);
@@ -106,7 +109,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             num = left;
         }
 
-# if 1 // resize 1/3 for cvs20 test forcely
+# if 0 // resize 1/3 for cvs20 test forcely
         
         int pre_width = 1920;
         int pre_height = 1080;
@@ -114,17 +117,22 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
         pre_height /= 3;
 
         bm_image cvs20_resized_imgs[MAX_BATCH];
+    #if USE_RGBP_SEPARATE
+        ret = bm::BMImage::create_batch(handle, pre_height, pre_width, FORMAT_RGBP_SEPARATE, DATA_TYPE_EXT_1N_BYTE, cvs20_resized_imgs, num, 64);
+    #else
         ret = bm::BMImage::create_batch(handle, pre_height, pre_width, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, cvs20_resized_imgs, num, 64);
+    #endif
         assert(BM_SUCCESS == ret);
 
         for(int i = 0;i < num; ++i) {
             if ((frames[start_idx + i].chan_id < resize_num_) || (resize_num_ == -1)){
                 bm_image cvs20_image1;
                 bm::BMImage::from_avframe(handle, frames[start_idx + i].avframe, cvs20_image1, true);
-                ret = bmcv_image_vpp_convert(handle, 1, cvs20_image1, &cvs20_resized_imgs[i]);
+                std::cout<<"bm_image_format: "<<cvs20_image1.image_format<<std::endl;
+                ret = bmcv_image_vpp_convert(handle, 1, cvs20_image1, &cvs20_resized_imgs[i], NULL, BMCV_INTER_LINEAR);
                 assert(BM_SUCCESS == ret);
 
-                bm_image_destroy(cvs20_image1);
+                bm_image_destroy(&cvs20_image1);
             }
         }
 
@@ -135,13 +143,20 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
         bm::cvs10FrameInfo finfo;
         //1. Resize
         bm_image resized_imgs[MAX_BATCH];
+    #if USE_RGBP_SEPARATE
+        ret = bm::BMImage::create_batch(handle, m_net_h, m_net_w, FORMAT_RGBP_SEPARATE, DATA_TYPE_EXT_1N_BYTE, resized_imgs, num, 64);
+    #else
         ret = bm::BMImage::create_batch(handle, m_net_h, m_net_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, resized_imgs, num, 64);
+    #endif
         assert(BM_SUCCESS == ret);
 
         for(int i = 0;i < num; ++i) {
             bm_image image1;
             bm::BMImage::from_avframe(handle, frames[start_idx + i].avframe, image1, true);
-            ret = bmcv_image_vpp_convert(handle, 1, image1, &resized_imgs[i]);
+        #if PLD
+            std::cout<<"This is face_detector.cpp:159: bmcv_image_vpp_convert."<<std::endl;
+        #endif
+            ret = bmcv_image_vpp_convert(handle, 1, image1, &resized_imgs[i], NULL, BMCV_INTER_LINEAR);
             assert(BM_SUCCESS == ret);
 
             uint8_t *jpeg_data=NULL;
@@ -157,7 +172,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             av_frame_free(&frames[start_idx + i].avframe);
 
             finfo.frames.push_back(frames[start_idx + i]);
-            bm_image_destroy(image1);
+            bm_image_destroy(&image1);
 #ifdef DEBUG
             if (frames[start_idx].chan_id == 0)
                  std::cout << "[" << frames[start_idx].chan_id << "]total index =" << start_idx + i << std::endl;
@@ -185,8 +200,11 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             beta             = 0.0;
             img_type = DATA_TYPE_EXT_FLOAT32;
         }
-
+    #if USE_RGBP_SEPARATE
+        ret = bm::BMImage::create_batch(handle, m_net_h, m_net_w, FORMAT_RGBP_SEPARATE, img_type, convertto_imgs, num, 64, false, true); //set A2 PLD new stride = 64
+    #else
         ret = bm::BMImage::create_batch(handle, m_net_h, m_net_w, FORMAT_RGB_PLANAR, img_type, convertto_imgs, num, 1, false, true);
+    #endif
         assert(BM_SUCCESS == ret);
 
         bm_tensor_t input_tensor = *tensor->bm_tensor();
@@ -203,11 +221,24 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
         convert_to_attr.beta_1  = beta + G_bias;
         convert_to_attr.beta_2  = beta + R_bias;
 
+    #if PLD
+        std::cout<<"This is face_detector.cpp:227, bmcv_image_convert_to."<<std::endl;
+    #endif
         ret = bmcv_image_convert_to(bmctx_->handle(), num, convert_to_attr, resized_imgs, convertto_imgs);
         assert(ret == 0);
 
-        bm_image_dettach_contiguous_mem(num, convertto_imgs);
-
+        bm_image_detach_contiguous_mem(num, convertto_imgs);
+    #if PLD
+        std::cout<<"face_detect: input_tensor:"<<std::endl;
+        std::cout<<"========================="<<std::endl;
+        bm::BMNNTensorPtr tensor_ = std::make_shared<bm::BMNNTensor>(bmctx_->handle(), "detector_in", 1.0,
+                                                                &input_tensor);
+        float* input_cpu_data = tensor_->get_cpu_data();
+        for(int kk = 0; kk < 100; kk++){
+            std::cout<<*(input_cpu_data+kk)<<" ";
+        }
+        std::cout<<std::endl<<"========================="<<std::endl;
+    #endif
         finfo.input_tensors.push_back(input_tensor);
 
         bm::BMImage::destroy_batch(resized_imgs, num);
@@ -248,9 +279,49 @@ int FaceDetector::forward(std::vector<bm::cvs10FrameInfo>& frame_infos)
                 frame_infos[b].frames.size(), m_net_h, m_net_w, false, false);
 #endif
         //printf("shape batch = %d\n", frame_infos[b].input_tensors[0].shape.dims[0]);
+
+    #if PLD
+        std::cout<<"this is face_detector, forward."<<std::endl;
+        std::cout<<"input_tensor shape:"<<std::endl;
+        for(int i = 0; i < frame_infos[b].input_tensors.size(); i++){
+            std::cout<<std::endl;
+            for(int j = 0; j < frame_infos[b].input_tensors[i].shape.num_dims; j++){
+                std::cout<<frame_infos[b].input_tensors[i].shape.dims[j]<<" ";
+            }
+        }
+        std::cout<<std::endl;
+    #endif
         ret = bmnet_->forward(frame_infos[b].input_tensors.data(), frame_infos[b].input_tensors.size(),
                                frame_infos[b].output_tensors.data(), frame_infos[b].output_tensors.size());
         assert(BM_SUCCESS == ret);
+    #if PLD
+        std::cout<<"face_detector forward success."<<std::endl;
+            const char* dtypeMap[] = {
+            "FLOAT32",
+            "FLOAT16",
+            "INT8",
+            "UINT8",
+            "INT16",
+            "UINT16",
+            "INT32",
+            "UINT32",
+            };
+
+            for(int i = 0; i < frame_infos[b].input_tensors.size(); i++){
+                auto shapeStr = shape_to_str(frame_infos[b].input_tensors[i].shape);
+                printf("  Input %d) shape=%s dtype=%s\n",
+                    i,
+                    shapeStr.c_str(),
+                    dtypeMap[frame_infos[b].input_tensors[i].dtype]);
+            }
+            for(int i = 0; i < frame_infos[b].output_tensors.size(); i++){
+                auto shapeStr = shape_to_str(frame_infos[b].output_tensors[i].shape);
+                printf("  Output %d) shape=%s dtype=%s\n",
+                    i,
+                    shapeStr.c_str(),
+                    dtypeMap[frame_infos[b].output_tensors[i].dtype]);
+            }
+    #endif
     }
 #else
     bm::FrameInfo frame4batch;
@@ -271,6 +342,9 @@ int FaceDetector::forward(std::vector<bm::cvs10FrameInfo>& frame_infos)
 
 int FaceDetector::postprocess(std::vector<bm::cvs10FrameInfo> &frames)
 {
+    #if PLD
+        std::cout<<"This is face_detector.cpp, postprocess."<<std::endl;
+    #endif
     for(int i=0;i < frames.size(); ++i) {
 
         // Free AVFrames
@@ -318,6 +392,24 @@ bm::BMNNTensorPtr FaceDetector::get_output_tensor(const std::string &name, bm::c
         std::cout << "ERROR:idx=" << idx << std::endl;
         assert(0);
     }
+    #if PLD
+        std::cout<<"FaceDetector::get_output_tensor:"<<std::endl;
+        const char* dtypeMap[] = {
+        "FLOAT32",
+        "FLOAT16",
+        "INT8",
+        "UINT8",
+        "INT16",
+        "UINT16",
+        "INT32",
+        "UINT32",
+        };
+        auto shapeStr = shape_to_str(frame_info.output_tensors[idx].shape);
+        printf("Tensor name: %s) shape=%s dtype=%s\n",
+            name.c_str(),
+            shapeStr.c_str(),
+            dtypeMap[frame_info.output_tensors[idx].dtype]);
+    #endif
     bm::BMNNTensorPtr tensor = std::make_shared<bm::BMNNTensor>(bmctx_->handle(), name, scale,
                                   &frame_info.output_tensors[idx]);
     return tensor;
@@ -336,11 +428,11 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
     float m1_cls_scale_to_float = bmnet_->get_output_scale(5);
 
     
-    bm::BMNNTensorPtr m3_bbox_tensor = get_output_tensor("m3@ssh_bbox_pred_output", frame_info, m3_scale_to_float);
+    bm::BMNNTensorPtr m3_bbox_tensor = get_output_tensor("m3@ssh_bbox_pred_output_f32", frame_info, m3_scale_to_float);
     bm::BMNNTensorPtr m3_cls_tensor = get_output_tensor("m3@ssh_cls_prob_reshape_output", frame_info, m3_cls_scale_to_float);
-    bm::BMNNTensorPtr m2_bbox_tensor = get_output_tensor("m2@ssh_bbox_pred_output", frame_info, m2_scale_to_float);
+    bm::BMNNTensorPtr m2_bbox_tensor = get_output_tensor("m2@ssh_bbox_pred_output_f32", frame_info, m2_scale_to_float);
     bm::BMNNTensorPtr m2_cls_tensor = get_output_tensor("m2@ssh_cls_prob_reshape_output", frame_info, m2_cls_scale_to_float);
-    bm::BMNNTensorPtr m1_bbox_tensor = get_output_tensor("m1@ssh_bbox_pred_output", frame_info, m1_scale_to_float);
+    bm::BMNNTensorPtr m1_bbox_tensor = get_output_tensor("m1@ssh_bbox_pred_output_f32", frame_info, m1_scale_to_float);
     bm::BMNNTensorPtr m1_cls_tensor = get_output_tensor("m1@ssh_cls_prob_reshape_output", frame_info, m1_cls_scale_to_float);
 
     // NCHW
@@ -371,10 +463,23 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
     const float *m3_scores      = (float*)m3_cls_tensor->get_cpu_data();
     const float *m2_scores      = (float*)m2_cls_tensor->get_cpu_data();
     const float *m1_scores      = (float*)m1_cls_tensor->get_cpu_data();
+    #if 1
+        std::cout<<"dump face_detector m3_scores outputs:"<<std::endl;
+        for(int kk = 0; kk < 10; kk++){
+            std::cout<<*(m3_scores+kk) << " ";
+        }
+        std::cout<<std::endl;
+    #endif
     const float *m3_bbox_deltas = (float*)m3_bbox_tensor->get_cpu_data();
     const float *m2_bbox_deltas = (float*)m2_bbox_tensor->get_cpu_data();
     const float *m1_bbox_deltas = (float*)m1_bbox_tensor->get_cpu_data();
-
+    #if 1
+        std::cout<<"dump face_detector m3_bbox_deltas outputs:"<<std::endl;
+        for(int kk = 0; kk < 10; kk++){
+            std::cout<<*(m3_bbox_deltas+kk) << " ";
+        }
+        std::cout<<std::endl;
+    #endif
     for (int n = 0; n < image_n; n++) {
         int                   width  = frame_info.frames[n].width;
         int                   height = frame_info.frames[n].height;
@@ -415,8 +520,13 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
         faceRects.clear();
         for (size_t i = 0; i < nmsProposals.size(); ++i) {
             bm::NetOutputObject rect = nmsProposals[i];
-            if (rect.score >= 0.7)
+            if (rect.score >= 0.7){
                 faceRects.push_back(rect);
+
+            #if PLD
+                std::cout<<"face_detector rect: "<<rect.x1<<" "<<rect.y1<<" "<<rect.x2<<" "<<rect.y2<<std::endl;
+            #endif
+            }
         }
 
         frame_info.out_datums.push_back(bm::NetOutputDatum(faceRects));

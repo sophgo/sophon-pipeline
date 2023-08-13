@@ -20,6 +20,16 @@ enum ModelType {
     MODEL_RESNET50=1
 };
 
+#ifndef WITH_DETECTOR
+#define WITH_DETECTOR 1
+#endif
+#ifndef WITH_EXTRACTOR
+#define WITH_EXTRACTOR 1
+#endif
+#ifndef WITH_OUTPUTER
+#define WITH_OUTPUTER 1
+#endif
+
 int main(int argc, char *argv[])
 {
     const char *base_keys="{help | 0 | Print help information.}"
@@ -96,28 +106,34 @@ int main(int argc, char *argv[])
         bm::BMNNHandlePtr handle = std::make_shared<bm::BMNNHandle>(dev_id);
         bm::BMNNContextPtr contextPtr = std::make_shared<bm::BMNNContext>(handle, cfg.get_model_path());
 
+        std::cout << "start_chan_index=" << start_chan_index << ", channel_num=" << channel_num << std::endl;
+        OneCardInferAppPtr appPtr = std::make_shared<OneCardInferApp>(appStatis, gui,
+                tqp, contextPtr, output_url, start_chan_index, channel_num, skip_frame_num, feature_delay, feature_num,
+                enable_l2_ddrr, stop_frame_num, save_num, display_num);
+        start_chan_index += channel_num;
+    #if WITH_DETECTOR
         std::shared_ptr<bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo>> detector;
         if (MODEL_FACE_DETECT == model_type) {
             detector = std::make_shared<FaceDetector>(contextPtr, resize_num);
         }else if (MODEL_RESNET50 == model_type) {
             detector = std::make_shared<Resnet>(contextPtr);
         }
-
-        std::cout << "start_chan_index=" << start_chan_index << ", channel_num=" << channel_num << std::endl;
-        OneCardInferAppPtr appPtr = std::make_shared<OneCardInferApp>(appStatis, gui,
-                tqp, contextPtr, output_url, start_chan_index, channel_num, skip_frame_num, feature_delay, feature_num,
-                enable_l2_ddrr, stop_frame_num, save_num, display_num);
-        start_chan_index += channel_num;
-
         // set detector delegator
         appPtr->setDetectorDelegate(detector);
+    #endif
+    #if WITH_EXTRACTOR    
         std::shared_ptr<bm::DetectorDelegate<bm::FeatureFrame, bm::FeatureFrameInfo>> feature_delegate;
         feature_delegate = std::make_shared<FaceExtract>(contextPtr);
         appPtr->setFeatureDelegate(feature_delegate);
+    #endif
         appPtr->start(cfg.cardUrls(card_idx), cfg);
         apps.push_back(appPtr);
     }
-
+#if PLD
+    while(true){
+        std::this_thread::sleep_for(std::chrono::milliseconds(25));
+    }
+#else
     uint64_t timer_id;
     tqp->create_timer(1000, [&appStatis](){
         int ch = 0;
@@ -143,6 +159,6 @@ int main(int argc, char *argv[])
     }, 1, &timer_id);
 
     tqp->run_loop();
-
+#endif
     return 0;
 }

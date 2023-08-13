@@ -34,8 +34,9 @@
 #endif
 
 #include <opencv2/opencv.hpp>
-
-#include "bmcv_api_ext.h"
+extern "C" {
+    #include "bmcv_api_ext.h"
+}
 #include "bmruntime_interface.h"
 
 namespace bm {
@@ -638,8 +639,8 @@ namespace bm {
                 av_frame_free(&avframe);
                 avframe = nullptr;
             }
-            bm_image_destroy(original);
-            bm_image_destroy(resized);
+            bm_image_destroy(&original);
+            bm_image_destroy(&resized);
             cvimg.release();
             jpeg_data.reset();
         }

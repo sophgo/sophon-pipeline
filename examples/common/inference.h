@@ -45,7 +45,7 @@ namespace bm {
 
             postprocess_queue_size = 5;
             postprocess_thread_num = 2;
-            batch_num=4;
+            batch_num=1;
         }
 
         int preprocess_queue_size;

@@ -12,7 +12,7 @@
 #include "video_pixmap_widget.h"
 #include "ui_video_pixmap_widget.h"
 
-#if USE_LIBYUV
+#if 1
 #include "libyuv.h"
 #endif
 
@@ -117,7 +117,7 @@ void video_pixmap_widget::paintEvent(QPaintEvent *event)
 
 unsigned char* video_pixmap_widget::avframe_to_rgb32(const AVFrame *src)
 {
-#if 1
+#if 0
     uint8_t /**src_data[4],*/ *dst_data[4];
     int /*src_linesize[4],*/ dst_linesize[4];
     int src_w = 320, src_h = 240, dst_w, dst_h;
@@ -145,7 +145,7 @@ unsigned char* video_pixmap_widget::avframe_to_rgb32(const AVFrame *src)
     return prgb32;
 #else
     uint8_t *prgb32 = new uint8_t[src->width *src->height *4];
-    printf("NV12 = %d\n", AV_PIX_FMT_NV12);
+    // printf("NV12 = %d\n", AV_PIX_FMT_NV12);
     if (src->format == AV_PIX_FMT_YUV420P) {
         libyuv::I420ToARGB(src->data[0], src->linesize[0], src->data[1], src->linesize[1], src->data[2],
                            src->linesize[2],
