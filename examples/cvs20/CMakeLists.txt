@@ -7,14 +7,7 @@ if(USE_DEBUG)
     add_definitions(-DUSE_DEBUG=1)
 endif()
 
-add_definitions(-DWITH_DECODE=1)
-add_definitions(-DWITH_ENCODE_JPEG=0)#depend on decode
-add_definitions(-DWITH_ENCODE_H264=0)#depend on decode
-add_definitions(-DWITH_DETECTOR=0)#depend on decode
 
-add_definitions(-DWITH_EXTRACTOR=0)
-
-add_definitions(-DWITH_OUTPUTER=0)#depend on detector
 
 set(src_files main.cpp worker.cpp)
 add_definitions(-DHAVE_FACEDETECT_MODULE=1)

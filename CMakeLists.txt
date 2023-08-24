@@ -23,6 +23,13 @@ option(USE_QTGUI "Whether has GUI support" OFF)
 option(CMODEL_MODE "Run in cmodel mode" OFF)
 option(USE_DEBUG "use debug to print result" ON)
 
+add_definitions(-DWITH_DECODE=1)
+add_definitions(-DWITH_ENCODE_JPEG=1)#depend on decode
+add_definitions(-DWITH_ENCODE_H264=0)#depend on decode
+add_definitions(-DWITH_DETECTOR=0)#depend on decode
+add_definitions(-DWITH_EXTRACTOR=0)
+add_definitions(-DWITH_OUTPUTER=0)#depend on detector
+
 add_compile_options(-Wno-deprecated-declarations -fPIC)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

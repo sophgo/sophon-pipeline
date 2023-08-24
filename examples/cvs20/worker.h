@@ -107,13 +107,19 @@ struct TChannel: public bm::NoCopyable {
         //for PCIE
         AVDictionary* opts = NULL;
         av_dict_set_int(&opts, "sophon_idx", dev_id, 0x0);
-        av_dict_set(&opts, "output_format", "0", 18);//101
+        av_dict_set(&opts, "output_format", "101", 0);//101
         av_dict_set(&opts, "extra_frame_buffer_num", "18", 0);
+    
+    #if PLD
+        std::cout<<"opening decoder!"<<std::endl;
+    #endif
         if (avcodec_open2(m_decoder, pCodec, &opts) < 0) {
             std::cout << "Unable to open codec";
             return -1;
         }
-
+    #if PLD
+        std::cout<<"open decoder success!"<<std::endl;
+    #endif
         return 0;
     }
 
@@ -133,7 +139,13 @@ struct TChannel: public bm::NoCopyable {
         }
 
         while (ret >= 0) {
+        #if PLD
+            std::cout<<"avcodec_receive_frame!"<<std::endl;
+        #endif
             ret = avcodec_receive_frame(dec_ctx, frame);
+        #if PLD
+            std::cout<<"avcodec_received_frame!!!!"<<std::endl;
+        #endif
             if (ret == AVERROR(EAGAIN)) {
 # if USE_DEBUG
                 printf("need more data!\n");

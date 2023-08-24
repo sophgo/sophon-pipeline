@@ -63,10 +63,15 @@ int StreamDemuxer::get_codec_type(int stream_index, int *p_codec_type)
         std::cout << "Open stream " << m_inputUrl << std::endl;
 
         int ret = avformat_open_input(&m_ifmt_ctx, m_inputUrl.c_str(), nullptr, &opts);
+        std::cout << "avdictfree " << std::endl;
         av_dict_free(&opts);
+        std::cout << "avdictfreed " << std::endl;
         if (ret < 0) {
             std::cout << "Can't open file " << m_inputUrl << std::endl;
             return ret;
+        }
+        else{
+            std::cout << "Open stream successed!!!" << std::endl;
         }
 
         ret = avformat_find_stream_info(m_ifmt_ctx, NULL);

@@ -707,12 +707,16 @@ namespace bm {
             return std::make_shared<BMNNHandle>(dev_id);
         }
         BMNNHandle(int dev_id = 0) : m_dev_id(dev_id) {
+        #if WITH_DETECTOR | WITH_EXTRACTOR
             int ret = bm_dev_request(&m_handle, dev_id);
             assert(BM_SUCCESS == ret);
+        #endif
         }
 
         ~BMNNHandle() {
+        #if WITH_DETECTOR | WITH_EXTRACTOR
             bm_dev_free(m_handle);
+        #endif
         }
 
         bm_handle_t handle() {
@@ -740,7 +744,7 @@ namespace bm {
         BMNNContext(BMNNHandlePtr handle, const std::string& bmodel_file) : m_handlePtr(handle) {
             bm_handle_t hdev = m_handlePtr->handle();
         #if WITH_DETECTOR | WITH_EXTRACTOR
-            m_bmrt = bmrt_create(hdev);
+            m_bmrt = bmrt_create(hdev);sad
             if (NULL == m_bmrt) {
                 std::cout << "bmrt_create() failed!" << std::endl;
                 exit(-1);

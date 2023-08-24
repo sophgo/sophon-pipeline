@@ -149,7 +149,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         std::string media_file;
         AVDictionary *opts = NULL;
         av_dict_set_int(&opts, "sophon_idx", m_dev_id, 0);
-        av_dict_set(&opts, "output_format", "0", 18); //101
+        av_dict_set(&opts, "output_format", "101", 18); //101
         av_dict_set(&opts, "extra_frame_buffer_num", "18", 0);
 
         pchan->demuxer->set_avformat_opend_callback([this, pchan](AVFormatContext *ifmt) {
@@ -200,7 +200,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             pchan->decode_video2(pchan->m_decoder, frame, &got_picture, pkt);
         #endif
         
-        #if WITH_ENCODE_H264
+        #if WITH_ENCODE_H264 //need output format=0
             if(got_picture){
                 #define STEP_ALIGNMENT 32
                 int stride = (frame->width + STEP_ALIGNMENT - 1) & ~(STEP_ALIGNMENT - 1);
