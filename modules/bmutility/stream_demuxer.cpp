@@ -128,6 +128,12 @@ int StreamDemuxer::get_codec_type(int stream_index, int *p_codec_type)
         int64_t frame_index = 0;
         while (Service == m_work_state) {
             int ret = av_read_frame(m_ifmt_ctx, pkt);
+            #if PLD
+                static int rrr = 0;
+                rrr++;
+                std::cout<<"av_read_frame times:"<<rrr<<", ret: "<<ret<<std::endl;
+            #endif
+            
             if (ret < 0) {
                 if (ret != AVERROR_EOF) continue;
                 if (m_repeat && m_is_file_url) {
@@ -227,6 +233,7 @@ int StreamDemuxer::get_codec_type(int stream_index, int *p_codec_type)
                         break;
                     case Service:
                         do_service();
+                        std::this_thread::sleep_for(std::chrono::seconds(25));
                         break;
                     case Down:
                         do_down();

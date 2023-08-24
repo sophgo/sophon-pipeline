@@ -454,10 +454,6 @@ struct BMImage {
     bm_status_t ret;
     const AVFrame &in = *pAVFrame;
     if (in.format != AV_PIX_FMT_NV12) {
-      int stride[3] = {0};
-      for(int stride_i = 0; stride_i < 3; stride_i ++){
-        stride[stride_i] = FFALIGN(in.linesize[stride_i], 64);
-      }
       bm_image in_bmimage;
       ret = avframe_to_bm_image(bm_handle, pAVFrame, in_bmimage);
       assert(BM_SUCCESS == ret);
@@ -515,17 +511,13 @@ struct BMImage {
       if (!bToYUV420p) {
         out = cmp_bmimg;
       } else {
-        int stride[3] = {0};
-        for(int stride_i = 0; stride_i < 3; stride_i ++){
-          stride[stride_i] = FFALIGN(in.linesize[stride_i], 64);
-        }
         ret = bm_image_create(bm_handle,
                               in.height,
                               in.width,
                               FORMAT_YUV420P,
                               DATA_TYPE_EXT_1N_BYTE,
                               &out,
-                              stride);
+                              NULL);
         assert(BM_SUCCESS == ret);
       #if PLD_HEAP
         ret = bm_image_alloc_dev_mem(out, BMCV_HEAP_ANY);

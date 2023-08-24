@@ -197,6 +197,9 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         #if WITH_DECODE
             int got_picture = 0;
             AVFrame *frame = av_frame_alloc();
+            static int ddd = 0;
+            ddd++;
+            std::cout<<"decode times: " << ddd << std::endl;
             pchan->decode_video2(pchan->m_decoder, frame, &got_picture, pkt);
         #endif
         
@@ -245,7 +248,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 #if PLD
                     std::cout<<"=========================="<<std::endl;
                     std::cout<<"==saving decoded frames!=="<<std::endl;
-                    std::cout<<"=========================="<<std::endl;
+                    std::cout<<"=========================="<<std::endl;asdsad
                 #endif
                 bm_image image1;
                 bm::BMImage::from_avframe(m_bmctx->handle(), frame, image1, true);
