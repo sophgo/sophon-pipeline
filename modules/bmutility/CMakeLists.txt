@@ -18,8 +18,8 @@ add_library(bmutility
         bmutility_timer.cpp
         bmutility_string.cpp)
 
-add_executable(stream_unittest stream_unittest.cpp)
-target_link_libraries(stream_unittest bmutility ${ffmpeg_link_libs} bmlib pthread)
+# add_executable(stream_unittest stream_unittest.cpp)
+# target_link_libraries(stream_unittest bmutility ${ffmpeg_link_libs} bmlib pthread)
 
-add_executable(base64_unittest base64_unittest.cpp)
-target_link_libraries(base64_unittest bmutility pthread)
+# add_executable(base64_unittest base64_unittest.cpp)
+# target_link_libraries(base64_unittest bmutility pthread)

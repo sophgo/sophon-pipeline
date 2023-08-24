@@ -19,25 +19,40 @@ extern "C" {
 }
 #endif
 #include "opencv2/opencv.hpp"
+#if A2_SDK
 extern "C" {
     #include "bmcv_api_ext.h"
+}
+#else
+#include "bmcv_api_ext.h"
+#endif
+
+static int bm_image_destroy_allinone(bm_image *image){
+  int ret = 0;
+  #if A2_SDK
+    ret = bm_image_destroy(image);
+  #else
+    ret = bm_image_destroy(*image);
+  #endif
+  assert(ret == BM_SUCCESS);
+  return ret;
 }
 namespace bm {
 ///////////////////////////////////////////////////////////////////////////
 #define BM_MEM_DDR0 1
 #define BM_MEM_DDR1 2
 #define BM_MEM_DDR2 4
-
+#define PLD_HEAP 0
 #ifndef PLD
   #define PLD 1
 #endif
-            
+
 // BMCV_IMAGE
 struct BMImage {
   static inline void safe_dalete_bm_image_ptr(bm_image **ptr) {
       if (ptr == nullptr || *ptr == nullptr)
           return;
-      bm_image_destroy(*ptr);
+      bm_image_destroy_allinone(*ptr);
       delete *ptr;
       *ptr = nullptr;
   }
@@ -69,7 +84,7 @@ struct BMImage {
                                                 bm_image_format_ext img_format,
                                                 bm_image_data_format_ext data_type,
                                                 bm_image &out, int align = 1, int mask = 6) {
-    #if PLD
+    #if PLD_HEAP
       mask = BM_MEM_DDR0;
     #endif                                              
     assert(FORMAT_COMPRESSED == in.image_format);
@@ -110,7 +125,7 @@ struct BMImage {
                                          int batch_num,
                                          int align = 1, bool bPreAllocMem = true,
                                          bool bContinuious = false, int mask = 6) {
-    #if PLD
+    #if PLD_HEAP
       mask = BM_MEM_DDR0;
     #endif                                              
     // init images
@@ -173,8 +188,8 @@ struct BMImage {
       std::cout<<"destroy bm_images!"<<std::endl;
     #endif
     for (int i = 0; i < batch_num; i++) {
-      if (BM_SUCCESS != bm_image_destroy(&images[i])) {
-        printf("bm_image_destroy failed!\n");
+      if (BM_SUCCESS != bm_image_destroy_allinone(&images[i])) {
+        printf("bm_image_destroy_allinone failed!\n");
       }
     }
 
@@ -251,7 +266,11 @@ struct BMImage {
     int data_four_denominator = -1;
     int data_five_denominator = -1;
     int data_six_denominator = -1;
-    static int mem_flags = BM_MEM_DDR0; //BM_MEM_DDR2
+  #if PLD_HEAP
+    static int mem_flags = BM_MEM_DDR0;
+  #else
+    static int mem_flags = BM_MEM_DDR2;
+  #endif  
 
     switch (in->format) {
         case AV_PIX_FMT_RGB24:
@@ -333,7 +352,7 @@ struct BMImage {
         input_addr[3] = bm_mem_from_device((unsigned long long)in->data[5], size);
         bm_image_attach(cmp_bmimg, input_addr);
         bm_image_create(handle, in->height, in->width, FORMAT_YUV420P, DATA_TYPE_EXT_1N_BYTE, &out, NULL);
-      #if PLD        
+      #if PLD_HEAP        
         assert(BM_SUCCESS == bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR0));
       #else
         if (mem_flags == BM_MEM_DDR2 && bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR2) != BM_SUCCESS) {
@@ -347,7 +366,7 @@ struct BMImage {
 
         bmcv_rect_t crop_rect = {0, 0, in->width, in->height};
         bmcv_image_vpp_convert(handle, 1, cmp_bmimg, &out, &crop_rect, BMCV_INTER_LINEAR);
-        bm_image_destroy(&cmp_bmimg);
+        bm_image_destroy_allinone(&cmp_bmimg);
     } else {
         int stride[3];
         bm_image_format_ext bm_format;
@@ -365,7 +384,7 @@ struct BMImage {
         bm_format = (bm_image_format_ext)map_avformat_to_bmformat(in->format);
         bm_image_create(handle, in->height, in->width, bm_format, DATA_TYPE_EXT_1N_BYTE, &tmp, stride);
         bm_image_create(handle, in->height, in->width, FORMAT_YUV420P, DATA_TYPE_EXT_1N_BYTE, &out, NULL);
-      #if PLD
+      #if PLD_HEAP
         bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR0);
       #else
         bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR2);
@@ -377,7 +396,7 @@ struct BMImage {
         if (data_on_device_mem) {
             input_addr[0] = bm_mem_from_device((unsigned long long)in->data[4], size);
         } else {
-          #if PLD
+          #if PLD_HEAP
             bm_malloc_device_byte_heap(handle, &input_addr[0], BM_MEM_DDR0, size);
           #else
             bm_malloc_device_byte_heap(handle, &input_addr[0], BM_MEM_DDR2, size);
@@ -390,7 +409,7 @@ struct BMImage {
             if (data_on_device_mem) {
                 input_addr[1] = bm_mem_from_device((unsigned long long)in->data[5], size);
             } else {
-              #if PLD
+              #if PLD_HEAP
                 bm_malloc_device_byte_heap(handle, &input_addr[1], BM_MEM_DDR0, size);
               #else
                 bm_malloc_device_byte_heap(handle, &input_addr[1], BM_MEM_DDR2, size);
@@ -404,7 +423,7 @@ struct BMImage {
             if (data_on_device_mem) {
                 input_addr[2] = bm_mem_from_device((unsigned long long)in->data[6], size);
             } else {
-              #if PLD
+              #if PLD_HEAP
                 bm_malloc_device_byte_heap(handle, &input_addr[2], BM_MEM_DDR0, size);
               #else
                 bm_malloc_device_byte_heap(handle, &input_addr[2], BM_MEM_DDR2, size);
@@ -416,7 +435,7 @@ struct BMImage {
         bm_image_attach(tmp, input_addr);
         bmcv_rect_t crop_rect = {0, 0, in->width, in->height};
         bmcv_image_vpp_convert(handle, 1, tmp, &out, &crop_rect, BMCV_INTER_LINEAR);
-        bm_image_destroy(&tmp);
+        bm_image_destroy_allinone(&tmp);
 
         if (!data_on_device_mem) {
             bm_free_device(handle, input_addr[0]);
@@ -450,7 +469,7 @@ struct BMImage {
                             &out,
                             NULL);
       assert(BM_SUCCESS == ret);
-    #if PLD
+    #if PLD_HEAP
       ret = bm_image_alloc_dev_mem(out, BMCV_HEAP_ANY);
     #else
       ret = bm_image_alloc_dev_mem(out, BMCV_HEAP1_ID);
@@ -458,7 +477,7 @@ struct BMImage {
       assert(BM_SUCCESS == ret);
       int ret = bmcv_image_vpp_convert(bm_handle, 1, in_bmimage, &out, NULL, BMCV_INTER_LINEAR);
       assert(BM_SUCCESS == ret);
-      bm_image_destroy(&in_bmimage);
+      bm_image_destroy_allinone(&in_bmimage);
 
       return BM_SUCCESS;
     }
@@ -508,7 +527,7 @@ struct BMImage {
                               &out,
                               stride);
         assert(BM_SUCCESS == ret);
-      #if PLD
+      #if PLD_HEAP
         ret = bm_image_alloc_dev_mem(out, BMCV_HEAP_ANY);
       #else
         ret = bm_image_alloc_dev_mem(out, BMCV_HEAP1_ID);
@@ -516,7 +535,7 @@ struct BMImage {
         assert(BM_SUCCESS == ret);
         int ret = bmcv_image_vpp_convert(bm_handle, 1, cmp_bmimg, &out, NULL, BMCV_INTER_LINEAR);
         assert(BM_SUCCESS == ret);
-        bm_image_destroy(&cmp_bmimg);
+        bm_image_destroy_allinone(&cmp_bmimg);
       }
 
     } else { /* UNCOMPRESSED NV12 FORMAT */
@@ -562,7 +581,7 @@ struct BMImage {
                               &out,
                               NULL);
         assert(BM_SUCCESS == ret);
-      #if PLD
+      #if PLD_HEAP
         ret = bm_image_alloc_dev_mem(out, BMCV_HEAP_ANY);
       #else
         ret = bm_image_alloc_dev_mem(out, BMCV_HEAP1_ID);
@@ -570,7 +589,7 @@ struct BMImage {
         assert(BM_SUCCESS == ret);
         int ret = bmcv_image_vpp_convert(bm_handle, 1, cmp_bmimg, &out, NULL, BMCV_INTER_LINEAR);
         assert(BM_SUCCESS == ret);
-        bm_image_destroy(&cmp_bmimg);
+        bm_image_destroy_allinone(&cmp_bmimg);
       }
     }
 
@@ -585,7 +604,7 @@ struct BMImage {
     size_t out_size = 0;
     ret = bmcv_image_jpeg_enc(handle, 1, &yuv_img, (void **) &jpeg, &out_size, 85);
     assert(BM_SUCCESS == ret);
-    bm_image_destroy(&yuv_img);
+    bm_image_destroy_allinone(&yuv_img);
     return jpeg;
   }
 

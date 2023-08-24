@@ -8,7 +8,7 @@ if(USE_DEBUG)
 endif()
 
 
-
+set(CMAKE_BUILD_TYPE "Debug")
 set(src_files main.cpp worker.cpp)
 add_definitions(-DHAVE_FACEDETECT_MODULE=1)
 list(APPEND src_files face_detector.cpp face_extract.cpp resnet50.cpp ff_video_encode.cpp)

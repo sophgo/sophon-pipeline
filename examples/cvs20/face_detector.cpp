@@ -132,7 +132,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
                 ret = bmcv_image_vpp_convert(handle, 1, cvs20_image1, &cvs20_resized_imgs[i], NULL, BMCV_INTER_LINEAR);
                 assert(BM_SUCCESS == ret);
 
-                bm_image_destroy(&cvs20_image1);
+                bm_image_destroy_allinone(&cvs20_image1);
             }
         }
 
@@ -172,7 +172,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             av_frame_free(&frames[start_idx + i].avframe);
 
             finfo.frames.push_back(frames[start_idx + i]);
-            bm_image_destroy(&image1);
+            bm_image_destroy_allinone(&image1);
 #ifdef DEBUG
             if (frames[start_idx].chan_id == 0)
                  std::cout << "[" << frames[start_idx].chan_id << "]total index =" << start_idx + i << std::endl;
@@ -227,7 +227,11 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
         ret = bmcv_image_convert_to(bmctx_->handle(), num, convert_to_attr, resized_imgs, convertto_imgs);
         assert(ret == 0);
 
+    #if A2_SDK
         bm_image_detach_contiguous_mem(num, convertto_imgs);
+    #else
+        bm_image_dettach_contiguous_mem(num, convertto_imgs);
+    #endif
     #if PLD
         std::cout<<"face_detect: input_tensor:"<<std::endl;
         std::cout<<"========================="<<std::endl;

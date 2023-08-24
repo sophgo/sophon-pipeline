@@ -149,7 +149,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         std::string media_file;
         AVDictionary *opts = NULL;
         av_dict_set_int(&opts, "sophon_idx", m_dev_id, 0);
-        av_dict_set(&opts, "output_format", "101", 18); //101
+        av_dict_set(&opts, "output_format", "0", 18); //101
         av_dict_set(&opts, "extra_frame_buffer_num", "18", 0);
 
         pchan->demuxer->set_avformat_opend_callback([this, pchan](AVFormatContext *ifmt) {
@@ -256,15 +256,15 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     static int ii = 0;
                     std::string img_file = "decoded_frame_" + std::to_string(ii++) + ".jpg";
                     FILE *fp = fopen(img_file.c_str(), "wb");
-                    for(int kk = 0; kk < 50; kk++){
-                        std::cout << *(jpeg_data+kk)<<" ";
-                    }
-                    std::cout<<std::endl;
+                    // for(int kk = 0; kk < 50; kk++){
+                    //     std::cout << *(jpeg_data+kk)<<" ";
+                    // }
+                    // std::cout<<std::endl;
                     fwrite(jpeg_data, out_size, 1, fp);
                     fclose(fp);
                 }
                 free(jpeg_data);
-                bm_image_destroy(&image1);
+                bm_image_destroy_allinone(&image1);
             }
         #endif
         #if WITH_DETECTOR

@@ -34,11 +34,15 @@
 #endif
 
 #include <opencv2/opencv.hpp>
+#if A2_SDK
 extern "C" {
     #include "bmcv_api_ext.h"
 }
+#else
+    #include "bmcv_api_ext.h"
+#endif
 #include "bmruntime_interface.h"
-
+#include "bmutility_image.h"
 namespace bm {
 
     class NoCopyable {
@@ -639,8 +643,8 @@ namespace bm {
                 av_frame_free(&avframe);
                 avframe = nullptr;
             }
-            bm_image_destroy(&original);
-            bm_image_destroy(&resized);
+            bm_image_destroy_allinone(&original);
+            bm_image_destroy_allinone(&resized);
             cvimg.release();
             jpeg_data.reset();
         }

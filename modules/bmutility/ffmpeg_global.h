@@ -25,7 +25,9 @@ namespace bm {
     class FfmpegGlobal {
     public:
         FfmpegGlobal() {
-	    // av_register_all();
+        #if !A2_SDK
+	        av_register_all();
+        #endif
             avformat_network_init();
             avdevice_register_all();
             av_log_set_level(AV_LOG_ERROR);

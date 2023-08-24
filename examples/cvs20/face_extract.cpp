@@ -137,7 +137,7 @@ int FaceExtract::preprocess(std::vector<bm::FeatureFrame> &frames, std::vector<b
         #endif
 #endif
             finfo.frames.push_back(frames[start_idx + i]);
-            bm_image_destroy(&image1);
+            bm_image_destroy_allinone(&image1);
         }
 
         //2. Convert to
@@ -186,7 +186,11 @@ int FaceExtract::preprocess(std::vector<bm::FeatureFrame> &frames, std::vector<b
         std::cout<<"convert_to successed!"<<std::endl;
         std::cout<<"bm_image_detach_contiguous_mem"<<std::endl;
     #endif 
+    #if A2_SDK
         ret = bm_image_detach_contiguous_mem(num, convertto_imgs);
+    #else
+        ret = bm_image_dettach_contiguous_mem(num, convertto_imgs);
+    #endif
         assert(ret == 0);
         finfo.input_tensors.push_back(input_tensor);
     #if PLD

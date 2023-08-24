@@ -130,7 +130,7 @@ ret:
         call(bm_image_get_contiguous_device_mem, num, images, &mem);
         this->free(mem);
         for (int i = 0; i < num; ++i)
-            call(bm_image_destroy, &images[i]);
+            call(bm_image_destroy_allinone, &images[i]);
     }
 
     void DeviceMemoryPool::alloc(bm_tensor_t &tensor)

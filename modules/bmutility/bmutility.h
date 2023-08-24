@@ -307,24 +307,7 @@ namespace bm {
                     }
                     ret = bm_mem_unmap_device_mem(m_handle, pI8, bm_mem_get_device_size(m_tensor->device_mem));
                     assert(BM_SUCCESS == ret);
-                }else if (BM_FLOAT16 == m_tensor->dtype){
-                    float16_t* pFP16 = nullptr;
-                    unsigned long long  addr;
-                    ret = bm_mem_mmap_device_mem(m_handle, &m_tensor->device_mem, &addr);
-                    assert(BM_SUCCESS == ret);
-                    ret = bm_mem_invalidate_device_mem(m_handle, &m_tensor->device_mem);
-                    assert(BM_SUCCESS == ret);
-                    pFP16 = (float16_t*) addr;
-
-                    // dtype convert
-                    pFP32 = new float[count];
-                    assert(pFP32 != nullptr);
-                    for(int i = 0;i < count; ++ i) {
-                        pFP32[i] = pFP16[i] * m_scale;
-                    }
-                    ret = bm_mem_unmap_device_mem(m_handle, pFP16, bm_mem_get_device_size(m_tensor->device_mem));
-                    assert(BM_SUCCESS == ret);
-                } else if (m_tensor->dtype == BM_INT32) {
+                }else if (m_tensor->dtype == BM_INT32) {
                     int32_t * pI32 = nullptr;
                     unsigned long long  addr;
                     ret = bm_mem_mmap_device_mem(m_handle, &m_tensor->device_mem, &addr);
@@ -366,22 +349,7 @@ namespace bm {
                     pFP32[i] = pI8[i] * m_scale;
                     }
                     delete [] pI8;
-                } else if (BM_FLOAT16 == m_tensor->dtype) {
-                    float16_t * pFP16 = nullptr;
-                    int tensor_size = bmrt_tensor_bytesize(m_tensor);
-                    pFP16 = new float16_t[tensor_size];
-                    assert(pFP16 != nullptr);
-
-                    // dtype convert
-                    pFP32 = new float[count];
-                    assert(pFP32 != nullptr);
-                    ret = bm_memcpy_d2s_partial(m_handle, pFP16, m_tensor->device_mem, tensor_size);
-                    assert(BM_SUCCESS == ret);
-                    for(int i = 0;i < count; ++ i) {
-                        pFP32[i] = pFP16[i] * m_scale;
-                    }
-                    delete [] pFP16;
-                } else if(m_tensor->dtype == BM_INT32){
+                }else if(m_tensor->dtype == BM_INT32){
                     int32_t *pI32=nullptr;
                     int tensor_size = bmrt_tensor_bytesize(m_tensor);
                     pI32 =new int32_t[tensor_size];
@@ -707,14 +675,14 @@ namespace bm {
             return std::make_shared<BMNNHandle>(dev_id);
         }
         BMNNHandle(int dev_id = 0) : m_dev_id(dev_id) {
-        #if WITH_DETECTOR | WITH_EXTRACTOR
+        #if WITH_DETECTOR | WITH_EXTRACTOR | WITH_ENCODE_JPEG
             int ret = bm_dev_request(&m_handle, dev_id);
             assert(BM_SUCCESS == ret);
         #endif
         }
 
         ~BMNNHandle() {
-        #if WITH_DETECTOR | WITH_EXTRACTOR
+        #if WITH_DETECTOR | WITH_EXTRACTOR | WITH_ENCODE_JPEG
             bm_dev_free(m_handle);
         #endif
         }
