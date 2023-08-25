@@ -32,8 +32,9 @@ else()
     add_definitions(-DA2_SDK=0)
 endif()
 
+add_definitions(-DPLD=1)
 add_definitions(-DWITH_DECODE=1)
-add_definitions(-DWITH_ENCODE_JPEG=0)#depend on decode
+add_definitions(-DWITH_ENCODE_JPEG=1)#depend on decode
 add_definitions(-DWITH_ENCODE_H264=0)#depend on decode
 add_definitions(-DWITH_DETECTOR=0)#depend on decode
 add_definitions(-DWITH_EXTRACTOR=0)

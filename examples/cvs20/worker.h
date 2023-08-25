@@ -163,8 +163,8 @@ struct TChannel: public bm::NoCopyable {
                 break;
             }
             *got_picture += 1;
-            std::cout<<"cout: decoded_format:"<<frame->format<<std::endl;
-            printf("printf: decoded_format: %d", frame->format);
+            static int fff = 0;
+            std::cout<<"cout: decoded_format:"<<frame->format << ", times: " << fff++ <<std::endl;
             break;
         }
 

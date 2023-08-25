@@ -149,7 +149,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         std::string media_file;
         AVDictionary *opts = NULL;
         av_dict_set_int(&opts, "sophon_idx", m_dev_id, 0);
-        av_dict_set(&opts, "output_format", "0", 18); //101
+        av_dict_set(&opts, "output_format", "101", 18); //101
         av_dict_set(&opts, "extra_frame_buffer_num", "18", 0);
 
         pchan->demuxer->set_avformat_opend_callback([this, pchan](AVFormatContext *ifmt) {
@@ -201,6 +201,29 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             ddd++;
             std::cout<<"decode times: " << ddd << std::endl;
             pchan->decode_video2(pchan->m_decoder, frame, &got_picture, pkt);
+
+            #if 0// DUMP_BIN
+            if(got_picture && frame->channel_layout == 101){
+                FILE *fp_fbc[4] = {0};
+                char fbc_filename[4][128];
+                static int save_bin_id = 0;
+                for(int ii=0; ii<4; ii++)
+                {
+                    sprintf(fbc_filename[ii], "results/%d_fbc_data%d.dat", save_bin_id, ii);
+                    fp_fbc[ii] = fopen(fbc_filename[ii], "wb");
+                }
+                int size = frame->height * frame->linesize[4];
+                
+                //     (unsigned long long) in.data[6], size;
+                // size = (in.height / 2) * in.linesize[5];
+                //     (unsigned long long) in.data[4], size;
+                // size = in.linesize[6];
+                //     (unsigned long long) in.data[7], size;
+                // size = in.linesize[7];
+                //     (unsigned long long) in.data[5], size;
+            }
+            #endif
+
         #endif
         
         #if WITH_ENCODE_H264 //need output format=0
@@ -248,7 +271,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 #if PLD
                     std::cout<<"=========================="<<std::endl;
                     std::cout<<"==saving decoded frames!=="<<std::endl;
-                    std::cout<<"=========================="<<std::endl;asdsad
+                    std::cout<<"=========================="<<std::endl;
                 #endif
                 bm_image image1;
                 bm::BMImage::from_avframe(m_bmctx->handle(), frame, image1, true);
