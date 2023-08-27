@@ -33,6 +33,8 @@ namespace bm {
         virtual int postprocess(std::vector<T2> &frames) = 0;
 
         virtual int set_detected_callback(DetectedFinishFunc func) { m_pfnDetectFinish = func; return 0;};
+
+        virtual int get_max_batch() = 0;
     };
 
     struct DetectorParam {

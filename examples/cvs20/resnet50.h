@@ -34,7 +34,9 @@ public:
     virtual int preprocess(std::vector<bm::cvs10FrameBaseInfo> &in, std::vector<bm::cvs10FrameInfo> &of) override;
     virtual int forward(std::vector<bm::cvs10FrameInfo> &frames) override;
     virtual int postprocess(std::vector<bm::cvs10FrameInfo> &frames) override;
-
+    virtual int get_max_batch() override{
+        return MAX_BATCH;
+    };
 private:
     bm::BMNNTensorPtr get_output_tensor(const std::string &name, bm::cvs10FrameInfo& frame_info, float scale);
     void extract_feature_cpu(bm::cvs10FrameInfo& frame);

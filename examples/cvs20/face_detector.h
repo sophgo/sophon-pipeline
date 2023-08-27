@@ -39,8 +39,7 @@ class FaceDetector : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs
     double             img_x_scale_;
     double             img_y_scale_;
     int  m_net_h, m_net_w;
-    int MAX_BATCH;
-
+    int MAX_BATCH = 1;
     int resize_num_;
 
 public:
@@ -50,7 +49,9 @@ public:
     virtual int preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::vector<bm::cvs10FrameInfo>& frame_info) override ;
     virtual int forward(std::vector<bm::cvs10FrameInfo>& frame_info) override ;
     virtual int postprocess(std::vector<bm::cvs10FrameInfo> &frame_info) override;
-
+    virtual int get_max_batch() override{
+        return MAX_BATCH;
+    };
 private:
     int extract_facebox_cpu(bm::cvs10FrameInfo &frame_info);
     bm::BMNNTensorPtr get_output_tensor(const std::string &name, bm::cvs10FrameInfo& frame_info, float scale);

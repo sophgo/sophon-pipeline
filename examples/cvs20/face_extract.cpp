@@ -9,14 +9,18 @@
 
 #include "face_extract.h"
 #ifndef USE_RGBP_SEPARATE
-#define USE_RGBP_SEPARATE 1
+#define USE_RGBP_SEPARATE 0
 #endif
-#define PLD_DEBUG 0
+#define PLD_DEBUG_DUMP_DATA 0
 
 
 
 FaceExtract::FaceExtract(bm::BMNNContextPtr bmctx):m_bmctx(bmctx) {
+#if A2_SDK
     auto net_name = bmctx->network_name(0);
+#else
+    auto net_name = bmctx->network_name(1);
+#endif
     m_bmnet = std::make_shared<bm::BMNNNetwork>(m_bmctx->bmrt(), net_name); //feature_extract_bmnetc
 
     assert(m_bmnet != nullptr);
@@ -91,7 +95,7 @@ int FaceExtract::preprocess(std::vector<bm::FeatureFrame> &frames, std::vector<b
             buffers[0] = frame.data;
             ret = bm_image_copy_host_to_device(image1, buffers);
             assert(ret == 0);
-        #if PLD_DEBUG
+        #if PLD_DEBUG_DUMP_DATA
             std::cout<<"cv::mat data:==========="<<std::endl;
             int count = 0;
             for (int row = 0; row < height; ++row) {
@@ -130,7 +134,7 @@ int FaceExtract::preprocess(std::vector<bm::FeatureFrame> &frames, std::vector<b
             //ret = bmcv_image_vpp_convert(handle, 1, image1, &resized_imgs[i], NULL, BMCV_INTER_LINEAR);   
             assert(ret == 0);
         #endif
-        #if PLD_DEBUG
+        #if PLD_DEBUG_DUMP_DATA
             std::cout<<"resized_:data:============="<<std::endl;
             bm_image_dump_size(resized_imgs[i],100);
             std::cout<<std::endl<<"========================="<<std::endl;

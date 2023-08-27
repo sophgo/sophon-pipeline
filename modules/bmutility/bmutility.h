@@ -712,7 +712,7 @@ namespace bm {
         BMNNContext(BMNNHandlePtr handle, const std::string& bmodel_file) : m_handlePtr(handle) {
             bm_handle_t hdev = m_handlePtr->handle();
         #if WITH_DETECTOR | WITH_EXTRACTOR
-            m_bmrt = bmrt_create(hdev);sad
+            m_bmrt = bmrt_create(hdev);
             if (NULL == m_bmrt) {
                 std::cout << "bmrt_create() failed!" << std::endl;
                 exit(-1);

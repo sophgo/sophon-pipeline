@@ -127,14 +127,15 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
     param.inference_queue_size = m_channel_num;
     param.postprocess_thread_num = cpu_num;
     param.postprocess_queue_size = m_channel_num;
-
     loadConfig(param, config);
 
 #if WITH_DETECTOR
+    param.batch_num = m_detectorDelegate->get_max_batch();
     m_inferPipe.init(param, m_detectorDelegate);
 #endif
     //feature
 #if WITH_EXTRACTOR
+    param->batch_num = m_featureDelegate->get_max_batch();
     m_featurePipe.init(param, m_featureDelegate);
 #endif
 
@@ -245,7 +246,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     (AVPixelFormat)frame->format, frame->width, frame->height, 32
                 );
                 if(!pchan->writer.is_opened){
-                    std::string output_path = "output_" + std::to_string(pchan->channel_id) + ".h264";
+                    std::string output_path = "results/output_" + std::to_string(pchan->channel_id) + ".h264";
                     int ret_writer = pchan->writer.openEnc(output_path.c_str(), 
                                                                 0, 
                                                                 AV_CODEC_ID_H264, 
@@ -280,7 +281,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 ret = bmcv_image_jpeg_enc(m_bmctx->handle(), 1, &image1, (void**)&jpeg_data, &out_size, 85);
                 if (ret == BM_SUCCESS) {
                     static int ii = 0;
-                    std::string img_file = "decoded_frame_" + std::to_string(ii++) + ".jpg";
+                    std::string img_file = "results/decoded_frame_" + std::to_string(ii++) + ".jpg";
                     FILE *fp = fopen(img_file.c_str(), "wb");
                     // for(int kk = 0; kk < 50; kk++){
                     //     std::cout << *(jpeg_data+kk)<<" ";
@@ -288,9 +289,14 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     // std::cout<<std::endl;
                     fwrite(jpeg_data, out_size, 1, fp);
                     fclose(fp);
+                } else{
+                    std::cout<<"bmcv_image_jpeg_enc failed!"<<std::endl;
                 }
                 free(jpeg_data);
-                bm_image_destroy_allinone(&image1);
+                std::cout<<"destroy bm_image_for_jpeg!"<<std::endl;
+                ret = bm_image_destroy_allinone(&image1);
+                assert(ret == BM_SUCCESS);
+                std::cout<<"destroy bm_image_for_jpeg!"<<std::endl;
             }
         #endif
         #if WITH_DETECTOR

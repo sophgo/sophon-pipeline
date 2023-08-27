@@ -12,6 +12,8 @@
 #include "configuration_cvs.h"
 #include "bmutility_timer.h"
 #include <iomanip>
+#include <unistd.h>
+#include <sys/stat.h>
 #include "face_extract.h"
 #include "resnet50.h"
 
@@ -52,7 +54,9 @@ int main(int argc, char *argv[])
         parser.printMessage();
         return 0;
     }
-
+    if (access("results", 0) != F_OK){
+        mkdir("results", S_IRWXU);
+    }
     std::string output_url  = parser.get<std::string>("output");
     std::string config_file = parser.get<std::string>("config");
 

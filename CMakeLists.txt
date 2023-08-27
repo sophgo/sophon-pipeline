@@ -30,14 +30,16 @@ if(A2_SDK)
     add_definitions(-DA2_SDK=1)
 else()
     add_definitions(-DA2_SDK=0)
-endif()
+    endif()
 
 add_definitions(-DPLD=1)
 add_definitions(-DWITH_DECODE=1)
 add_definitions(-DWITH_ENCODE_JPEG=1)#depend on decode
 add_definitions(-DWITH_ENCODE_H264=0)#depend on decode
 add_definitions(-DWITH_DETECTOR=0)#depend on decode
+add_definitions(-DDRAW_DETECTOR=0)#depend on detector.Func: draw boxes and encode.
 add_definitions(-DWITH_EXTRACTOR=0)
+add_definitions(-DDRAR_EXTRACTOR=0)#depend on extractor (Not implement yet)
 add_definitions(-DWITH_OUTPUTER=0)#depend on detector
 
 add_compile_options(-Wno-deprecated-declarations -fPIC)
@@ -111,7 +113,8 @@ elseif (${TARGET_ARCH} STREQUAL "soc")
     CACHE INTERNAL "")
 
     if(A2_SDK)
-        set(sophon_opencv_inc_dirs  /home/lihengfang/work/open-source/opencv-3.4.16/build/install/include)
+        set(sophon_opencv_inc_dirs  /home/lihengfang/work/open-source/opencv-3.4.16/build/install/include) #official opencv
+        # set(sophon_opencv_inc_dirs /home/lihengfang/work/sophon_media/buildit/_CPack_Packages/Linux/TGZ/sophon_media-soc_1.0.0_aarch64/opt/sophon/sophon-opencv_1.0.0/include/opencv4/) #sophgo opencv
     else()
         set(sophon_opencv_inc_dirs  ${LIBSOPHON_TOP}/include/opencv4)
     endif()
@@ -160,7 +163,8 @@ elseif (${TARGET_ARCH} STREQUAL "arm64")
 elseif (${TARGET_ARCH} STREQUAL "soc")
     set(sophon_ffmpeg_link_dirs ${LIBSOPHON_TOP}/lib)
     if(A2_SDK)
-        set(sophon_opencv_link_dirs /home/lihengfang/work/bsp-solutions/palladium/athena2/bin/opencv/)
+        set(sophon_opencv_link_dirs /home/lihengfang/work/bsp-solutions/palladium/athena2/bin/opencv/) #official opencv
+        # set(sophon_opencv_link_dirs /home/lihengfang/work/a2_evb/ramdisk/initramfs/glibc_arm64/test_pack_cvs20/sophon_opencv_libs) #sophgo opencv
     else()
         set(sophon_opencv_link_dirs ${LIBSOPHON_TOP}/lib)
     endif()
