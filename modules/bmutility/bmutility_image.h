@@ -149,10 +149,10 @@ struct BMImage {
     #endif
     } else if (FORMAT_YUV420P == img_format) {
       stride[0] = FFALIGN(img_w_real, align);
-      stride[1] = stride[2] = FFALIGN(img_w_real >> 1, align);
+      stride[1] = stride[2] = FFALIGN((int)ceil((float)img_w_real / 2), align);
     } else if (FORMAT_NV12 == img_format || FORMAT_NV21 == img_format) {
       stride[0] = FFALIGN(img_w_real, align);
-      stride[1] = FFALIGN(img_w_real >> 1, align);
+      stride[1] = FFALIGN((int)ceil((float) img_w_real / 2), align);
     } else {
       assert(0);
     }

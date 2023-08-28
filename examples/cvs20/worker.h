@@ -139,13 +139,7 @@ struct TChannel: public bm::NoCopyable {
         }
 
         while (ret >= 0) {
-        #if PLD
-            std::cout<<"avcodec_receive_frame!"<<std::endl;
-        #endif
             ret = avcodec_receive_frame(dec_ctx, frame);
-        #if PLD
-            std::cout<<"avcodec_received_frame!!!!"<<std::endl;
-        #endif
             if (ret == AVERROR(EAGAIN)) {
 # if USE_DEBUG
                 printf("need more data!\n");

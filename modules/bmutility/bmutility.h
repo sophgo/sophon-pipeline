@@ -56,25 +56,91 @@ static std::string shape_to_str(const bm_shape_t& shape) {
     str += "]";
     return str;
 }
-static void bm_image_dump_size(bm_image input, int dump_size){
-  int ret = 0;
-  int plane_num = bm_image_get_plane_num(input);
-  int plane_size[4];
-  assert(0 == bm_image_get_byte_size(input, plane_size));
-  uchar *buffers_resized[4]={0};
-  std::cout<<"creating host buffer!"<<std::endl;
-  for(int kk = 0; kk < plane_num; kk++) {
-      buffers_resized[kk] = new uchar[plane_size[kk]];
-      std::cout<<"plane "<<kk<<", size:"<<plane_size[kk]<<std::endl;
-  }
-  ret = bm_image_copy_device_to_host(input, (void**)buffers_resized);
-  assert(ret == 0);
-  std::cout<<"print_bm_image_host_buffer:"<<std::endl;
-  for(int kk = 0; kk < dump_size; kk++){
-      std::cout<<(int)buffers_resized[0][kk]<<" ";
-  }
-  for(int kk = 0; kk < plane_num; kk++) delete [] buffers_resized[kk];
-  std::cout<<"exit_bm_image_dump"<<std::endl;
+static void bm_image_dump_size(bm_image input, int dump_size, bool dump_flag=false){
+    int ret = 0;
+    int plane_num = bm_image_get_plane_num(input);
+    int plane_size[4];
+    assert(0 == bm_image_get_byte_size(input, plane_size));
+    uchar *buffers_resize[4]={0};
+    std::cout<<"creating host buffer!"<<std::endl;
+    for(int i = 0; i < plane_num; i++) {
+        buffers_resize[i] = new uchar[plane_size[i]];
+        std::cout<<"plane "<<i<<", size:"<<plane_size[i]<<std::endl;
+    }
+    ret = bm_image_copy_device_to_host(input, (void**)buffers_resize);
+    assert(ret == 0);
+    std::cout<<"print_bm_image_host_buffer:"<<std::endl;
+    for(int i = 0; i < dump_size; i++){
+        std::cout<<(int)buffers_resize[0][i]<<" ";
+    }
+    for(int i = 0; i < plane_num; i++) delete [] buffers_resize[i];
+    std::cout<<std::endl<<"exit_bm_image_dump"<<std::endl;
+}
+static int compare_resize_converto(bm_image resized, bm_image convertoed, bmcv_convert_to_attr attr){
+    if ((resized.image_format != FORMAT_RGB_PLANAR && resized.image_format != FORMAT_BGR_PLANAR) ||
+        (convertoed.image_format != FORMAT_RGB_PLANAR && convertoed.image_format != FORMAT_BGR_PLANAR) ||
+        (resized.image_format != convertoed.image_format) || convertoed.data_type != DATA_TYPE_EXT_FLOAT32 ||
+        (resized.width != convertoed.width) ||
+        (resized.height != convertoed.height)) {
+        return -1;
+    }
+
+    int ret = 0;
+    int plane_num = bm_image_get_plane_num(resized);
+    int plane_size_resize[4];
+    assert(0 == bm_image_get_byte_size(resized, plane_size_resize));
+    uchar *buffers_resize[4]={0};
+    std::cout<<"creating resize buffer!"<<std::endl;
+    for(int i = 0; i < plane_num; i++) {
+        buffers_resize[i] = new uchar[plane_size_resize[i]];
+        std::cout<<"plane "<<i<<", byte size:"<<plane_size_resize[i]<<std::endl;
+    }
+    ret = bm_image_copy_device_to_host(resized, (void**)buffers_resize);
+    assert(ret == 0);
+
+    int plane_size_convert[4];
+    assert(0 == bm_image_get_byte_size(convertoed, plane_size_convert));
+    float *buffers_converto[4]={0};
+    std::cout<<"creating converto buffer!"<<std::endl;
+    for(int i = 0; i < plane_num; i++) {
+        buffers_converto[i] = new float[plane_size_convert[i]/sizeof(float)];
+        std::cout<<"plane "<<i<<", byte size:"<<plane_size_convert[i]<<std::endl;
+    }
+    ret = bm_image_copy_device_to_host(convertoed, (void**)buffers_converto);
+    assert(ret == 0);
+
+    float coefficients[2][3] = {
+        {attr.alpha_0, attr.alpha_1, attr.alpha_2},
+        {attr.beta_0, attr.beta_1, attr.beta_2}
+    };
+    double diff_sum = 0.0;
+    int channel = 0;
+    int channel_size = 0;
+    int channel_num = 3;
+    if(plane_num == 1){
+        channel_size = (plane_size_resize[0] / 3);
+    }else{
+        std::cout<<"not support plane_num > 1 yet"<<std::endl;
+        return -1;
+    }
+    for(int i = 0; i < channel_num; i++){
+        for(int j = channel_size * i; j < channel_size * (i + 1); j++){
+            float converto_pix = buffers_converto[0][j];
+            float resize_pix = buffers_resize[0][j];
+            float converto_ref = resize_pix * coefficients[0][i] + coefficients[1][i];
+            if(converto_pix != converto_ref){
+                // std::cout<<i <<" "<< j << ";";
+                std::cout<<converto_pix<<" "<<resize_pix<<" "<<converto_ref<<" "<<j<<" "<<channel<<std::endl;
+            }
+            diff_sum += std::abs(converto_pix - converto_ref);
+        }
+    }
+    double diff_avg = diff_sum / (plane_num * plane_size_resize[0]);
+    std::cout << "diff_sum: " << diff_sum << std::endl;
+    std::cout << "diff_avg: " << diff_avg << std::endl; 
+    for(int i = 0; i < plane_num; i++) delete [] buffers_resize[i];
+    for(int i = 0; i < plane_num; i++) delete [] buffers_converto[i];
+    return 0;
 }
 #endif
 

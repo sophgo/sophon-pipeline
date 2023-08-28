@@ -269,13 +269,93 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         #endif
         #if WITH_ENCODE_JPEG //save decoded avframe
             if (got_picture){
+
+                bm_image image1;
+                bm::BMImage::from_avframe(m_bmctx->handle(), frame, image1, true);
+                bm_image* image_for_enc;
+            #if WITH_RESIZE_TEST
+                int test_resize_h = 400;
+                int test_resize_w = 711;
+                int test_align = 64;
+                bm_image resized;
+                ret = bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &resized, 1, test_align);
+                assert(ret == BM_SUCCESS);
+                ret = bmcv_image_vpp_convert(m_bmctx->handle(), 1, image1, &resized, NULL, BMCV_INTER_LINEAR);
+                assert(ret == BM_SUCCESS);
+            #if WITH_CONVERTO_TEST
+                bm_image convertoed;
+                ret = bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_FLOAT32, &convertoed, 1, 1, false, true);
+                assert(ret == BM_SUCCESS);
+                bmcv_convert_to_attr convert_to_attr;
+                convert_to_attr.alpha_0 = 1;
+                convert_to_attr.alpha_1 = 1;
+                convert_to_attr.alpha_2 = 1;
+                convert_to_attr.beta_0  = -123.0f;
+                convert_to_attr.beta_1  = -117.0f;
+                convert_to_attr.beta_2  = -104.0f;
+                ret = bmcv_image_convert_to(m_bmctx->handle(), 1, convert_to_attr, &resized, &convertoed);
+                assert(ret == BM_SUCCESS);
+                std::cout<<"calculate converto data:=="<<std::endl;
+                // bm_image converto_;
+                // bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &converto_, 1, 1);
+                // bmcv_image_storage_convert(m_bmctx->handle(), 1, &convertoed, &converto_);
+                bm_image resized_;
+                bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &resized_, 1, 1);
+                bmcv_copy_to_atrr_t copy_to_attr{0,0,0,0,0,0};
+                bmcv_image_copy_to(m_bmctx->handle(), copy_to_attr, resized, resized_);
+                compare_resize_converto(resized_, convertoed, convert_to_attr);
+                // bm_image_dump_size(resized, 50);
+                // bm_image_dump_size(converto_, 50);
+                ret = bm_image_destroy_allinone(&resized_);
+                assert(ret == BM_SUCCESS);
+                // ret = bm_image_destroy_allinone(&converto_);
+                // assert(ret == BM_SUCCESS);
+                std::cout<<"========================="<<std::endl;
+                ret = bm_image_destroy_allinone(&convertoed);
+                assert(ret == BM_SUCCESS);
+            #endif
+                #if PLD
+                    std::cout<<"=========================="<<std::endl;
+                    std::cout<<"==saving resized frames!=="<<std::endl;
+                    std::cout<<"=========================="<<std::endl;
+                #endif
+                uint8_t *jpeg_data_resized=NULL;
+                size_t out_size_resized = 0;
+                bm_image resized_yuv420;
+                ret = bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_YUV420P, DATA_TYPE_EXT_1N_BYTE, &resized_yuv420, 1, test_align);
+                assert(ret == BM_SUCCESS);
+                ret = bmcv_image_storage_convert(m_bmctx->handle(), 1, &resized, &resized_yuv420);
+                assert(ret == BM_SUCCESS);
+
+                // cv::Mat resized_mat;
+                // cv::bmcv::toMAT(&resized_yuv420, resized_mat);
+                // static int cc = 0;
+                // std::string cvimg_file = "results/cvmat_resized_" + std::to_string(cc++) + ".jpg";
+                // cv::imwrite(cvimg_file, resized_mat);      //400 711  
+                bm_image_format_info_t  info;
+                bm_image_get_format_info(&resized_yuv420, &info);
+
+                ret = bmcv_image_jpeg_enc(m_bmctx->handle(), 1, &resized_yuv420, (void**)&jpeg_data_resized, &out_size_resized, 85);
+                if (ret == BM_SUCCESS) {
+                    static int ii = 0;
+                    std::string img_file = "results/resized_frame_" + std::to_string(ii++) + ".jpg";
+                    FILE *fp = fopen(img_file.c_str(), "wb");
+                    fwrite(jpeg_data_resized, out_size_resized, 1, fp);
+                    fclose(fp);
+                } else{
+                    std::cout<<"bmcv_image_jpeg_enc resized failed!"<<std::endl;
+                }
+                free(jpeg_data_resized);
+                ret = bm_image_destroy_allinone(&resized);
+                assert(ret == BM_SUCCESS);
+                ret = bm_image_destroy_allinone(&resized_yuv420);
+                assert(ret == BM_SUCCESS);
+            #endif
                 #if PLD
                     std::cout<<"=========================="<<std::endl;
                     std::cout<<"==saving decoded frames!=="<<std::endl;
                     std::cout<<"=========================="<<std::endl;
                 #endif
-                bm_image image1;
-                bm::BMImage::from_avframe(m_bmctx->handle(), frame, image1, true);
                 uint8_t *jpeg_data=NULL;
                 size_t out_size = 0;
                 ret = bmcv_image_jpeg_enc(m_bmctx->handle(), 1, &image1, (void**)&jpeg_data, &out_size, 85);
@@ -283,20 +363,14 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     static int ii = 0;
                     std::string img_file = "results/decoded_frame_" + std::to_string(ii++) + ".jpg";
                     FILE *fp = fopen(img_file.c_str(), "wb");
-                    // for(int kk = 0; kk < 50; kk++){
-                    //     std::cout << *(jpeg_data+kk)<<" ";
-                    // }
-                    // std::cout<<std::endl;
                     fwrite(jpeg_data, out_size, 1, fp);
                     fclose(fp);
                 } else{
-                    std::cout<<"bmcv_image_jpeg_enc failed!"<<std::endl;
+                    std::cout<<"bmcv_image_jpeg_enc decoded failed!"<<std::endl;
                 }
                 free(jpeg_data);
-                std::cout<<"destroy bm_image_for_jpeg!"<<std::endl;
                 ret = bm_image_destroy_allinone(&image1);
                 assert(ret == BM_SUCCESS);
-                std::cout<<"destroy bm_image_for_jpeg!"<<std::endl;
             }
         #endif
         #if WITH_DETECTOR
