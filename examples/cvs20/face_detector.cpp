@@ -13,7 +13,7 @@
 
 #define DUMP_FILE 0
 #define DYNAMIC_SIZE 0
-#define PLD_DEBUG_DUMP_DATA 1
+#define PLD_DEBUG_DUMP_DATA 0
 #ifndef USE_RGBP_SEPARATE //convert_to do not support
 #define USE_RGBP_SEPARATE 0
 #endif
@@ -166,7 +166,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             uint8_t *jpeg_data=NULL;
             size_t out_size = 0;
 #if USE_QTGUI
-            bmcv_image_jpeg_enc(handle, 1, &image1, (void**)&jpeg_data, &out_size);
+            bmcv_image_jpeg_enc(handle, 1, &image1, (void**)&jpeg_data, &out_size, 85);
 #endif
             frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size);
             frames[start_idx + i].height= image1.height;
@@ -229,7 +229,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
         convert_to_attr.beta_1  = beta + G_bias;
         convert_to_attr.beta_2  = beta + R_bias;
 
-    #if PLD_DEBUG_DUMP_DATA
+    #if PLD
         std::cout<<"This is face_detector.cpp:227, bmcv_image_convert_to."<<std::endl;
     #endif
         ret = bmcv_image_convert_to(bmctx_->handle(), num, convert_to_attr, resized_imgs, convertto_imgs);
@@ -240,13 +240,13 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
     #else
         bm_image_dettach_contiguous_mem(num, convertto_imgs);
     #endif
-    #if PLD_DEBUG_DUMP_DATA
+    #if PLD
         std::cout<<"face_detect: input_tensor:"<<std::endl;
         std::cout<<"========================="<<std::endl;
         bm::BMNNTensorPtr tensor_ = std::make_shared<bm::BMNNTensor>(bmctx_->handle(), "detector_in", 1.0,
                                                                 &input_tensor);
         float* input_cpu_data = tensor_->get_cpu_data();
-        for(int kk = 0; kk < 100; kk++){
+        for(int kk = 0; kk < 20; kk++){
             std::cout<<*(input_cpu_data+kk)<<" ";
         }
         std::cout<<std::endl<<"========================="<<std::endl;
@@ -292,7 +292,7 @@ int FaceDetector::forward(std::vector<bm::cvs10FrameInfo>& frame_infos)
 #endif
         //printf("shape batch = %d\n", frame_infos[b].input_tensors[0].shape.dims[0]);
 
-    #if PLD_DEBUG_DUMP_DATA
+    #if PLD
         std::cout<<"this is face_detector, forward."<<std::endl;
         std::cout<<"input_tensor shape:"<<std::endl;
         for(int i = 0; i < frame_infos[b].input_tensors.size(); i++){
@@ -306,7 +306,7 @@ int FaceDetector::forward(std::vector<bm::cvs10FrameInfo>& frame_infos)
         ret = bmnet_->forward(frame_infos[b].input_tensors.data(), frame_infos[b].input_tensors.size(),
                                frame_infos[b].output_tensors.data(), frame_infos[b].output_tensors.size());
         assert(BM_SUCCESS == ret);
-    #if PLD_DEBUG_DUMP_DATA
+    #if PLD
         std::cout<<"face_detector forward success."<<std::endl;
             const char* dtypeMap[] = {
             "FLOAT32",
@@ -440,17 +440,21 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
     float m1_cls_scale_to_float = bmnet_->get_output_scale(5);
 
 #if A2_SDK // TODO: improve get output name method.
-    bm::BMNNTensorPtr m3_bbox_tensor = get_output_tensor("m3@ssh_bbox_pred_output_f32", frame_info, m3_scale_to_float);
-    bm::BMNNTensorPtr m2_bbox_tensor = get_output_tensor("m2@ssh_bbox_pred_output_f32", frame_info, m2_scale_to_float);
-    bm::BMNNTensorPtr m1_bbox_tensor = get_output_tensor("m1@ssh_bbox_pred_output_f32", frame_info, m1_scale_to_float);
+    bm::BMNNTensorPtr m3_bbox_tensor = get_output_tensor("m3@ssh_bbox_pred_output_f32_Conv_f32", frame_info, m3_scale_to_float);
+    bm::BMNNTensorPtr m2_bbox_tensor = get_output_tensor("m2@ssh_bbox_pred_output_f32_Conv_f32", frame_info, m2_scale_to_float);
+    bm::BMNNTensorPtr m1_bbox_tensor = get_output_tensor("m1@ssh_bbox_pred_output_f32_Conv_f32", frame_info, m1_scale_to_float);
+    bm::BMNNTensorPtr m3_cls_tensor = get_output_tensor("m3@ssh_cls_prob_reshape_output_Conv_f32", frame_info, m3_cls_scale_to_float);
+    bm::BMNNTensorPtr m2_cls_tensor = get_output_tensor("m2@ssh_bbox_pred_output_f32_Conv_f32", frame_info, m2_cls_scale_to_float);
+    bm::BMNNTensorPtr m1_cls_tensor = get_output_tensor("m1@ssh_cls_prob_reshape_output_Conv_f32", frame_info, m1_cls_scale_to_float);
 #else
     bm::BMNNTensorPtr m3_bbox_tensor = get_output_tensor("m3@ssh_bbox_pred_output", frame_info, m3_scale_to_float);
     bm::BMNNTensorPtr m2_bbox_tensor = get_output_tensor("m2@ssh_bbox_pred_output", frame_info, m2_scale_to_float);
     bm::BMNNTensorPtr m1_bbox_tensor = get_output_tensor("m1@ssh_bbox_pred_output", frame_info, m1_scale_to_float);
-#endif
     bm::BMNNTensorPtr m3_cls_tensor = get_output_tensor("m3@ssh_cls_prob_reshape_output", frame_info, m3_cls_scale_to_float);
     bm::BMNNTensorPtr m2_cls_tensor = get_output_tensor("m2@ssh_cls_prob_reshape_output", frame_info, m2_cls_scale_to_float);
     bm::BMNNTensorPtr m1_cls_tensor = get_output_tensor("m1@ssh_cls_prob_reshape_output", frame_info, m1_cls_scale_to_float);
+#endif
+
 
     // NCHW
     int m3_c = m3_cls_tensor->get_shape()->dims[1];
@@ -477,9 +481,9 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
     int b1_w = m1_bbox_tensor->get_shape()->dims[3];
     int b1_h = m1_bbox_tensor->get_shape()->dims[2];
 
-    const float *m3_scores      = (float*)m3_cls_tensor->get_cpu_data();
-    const float *m2_scores      = (float*)m2_cls_tensor->get_cpu_data();
-    const float *m1_scores      = (float*)m1_cls_tensor->get_cpu_data();
+    float *m3_scores      = (float*)m3_cls_tensor->get_cpu_data();
+    float *m2_scores      = (float*)m2_cls_tensor->get_cpu_data();
+    float *m1_scores      = (float*)m1_cls_tensor->get_cpu_data();
     #if PLD_DEBUG_DUMP_DATA
         std::cout<<"dump face_detector m3_scores outputs:"<<std::endl;
         for(int kk = 0; kk < 10; kk++){
@@ -487,10 +491,68 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
         }
         std::cout<<std::endl;
     #endif
-    const float *m3_bbox_deltas = (float*)m3_bbox_tensor->get_cpu_data();
-    const float *m2_bbox_deltas = (float*)m2_bbox_tensor->get_cpu_data();
-    const float *m1_bbox_deltas = (float*)m1_bbox_tensor->get_cpu_data();
-    #if PLD_DEBUG_DUMP_DATA
+    float *m3_bbox_deltas = (float*)m3_bbox_tensor->get_cpu_data();
+    float *m2_bbox_deltas = (float*)m2_bbox_tensor->get_cpu_data();
+    float *m1_bbox_deltas = (float*)m1_bbox_tensor->get_cpu_data();
+    
+    #if WITH_FAKEDATA 
+        std::cout<<"LOADING_FAKE_DATA!"<<std::endl;
+        if (access("results/fakedata", 0) != F_OK){
+            mkdir("results/fakedata", S_IRWXU);
+        }
+        static int dd = 0;
+        char fp_filename[6][128];
+        sprintf(fp_filename[0], "results/fakedata/m1_scores_%d.dat", dd);
+        sprintf(fp_filename[1], "results/fakedata/m2_scores_%d.dat", dd);
+        sprintf(fp_filename[2], "results/fakedata/m3_scores_%d.dat", dd);
+        sprintf(fp_filename[3], "results/fakedata/m1_boxes_%d.dat", dd);
+        sprintf(fp_filename[4], "results/fakedata/m2_boxes_%d.dat", dd);
+        sprintf(fp_filename[5], "results/fakedata/m3_boxes_%d.dat", dd);
+    #if A2_SDK//load postprocess data.
+        FILE *m1_scores_fp = fopen(fp_filename[0], "rb");
+        fread((void*)m1_scores, sizeof(float), m1_c * m1_w * m1_h, m1_scores_fp);
+        fclose(m1_scores_fp);
+        FILE *m2_scores_fp = fopen(fp_filename[1], "rb+");
+        fread((void*)m2_scores, sizeof(float), m2_c * m2_w * m2_h, m2_scores_fp);
+        fclose(m2_scores_fp);
+        FILE *m3_scores_fp = fopen(fp_filename[2], "rb+");
+        fread((void*)m3_scores, sizeof(float), m3_c * m3_w * m3_h, m3_scores_fp);
+        fclose(m3_scores_fp);
+
+        FILE *m1_bbox_deltas_fp = fopen(fp_filename[3], "rb+");
+        fread(m1_bbox_deltas, sizeof(float), b1_c * b1_w * b1_h, m1_bbox_deltas_fp);
+        fclose(m1_bbox_deltas_fp);
+        FILE *m2_bbox_deltas_fp = fopen(fp_filename[4], "rb+");
+        fread(m2_bbox_deltas, sizeof(float), b2_c * b2_w * b2_h, m2_bbox_deltas_fp);
+        fclose(m2_bbox_deltas_fp);
+        FILE *m3_bbox_deltas_fp = fopen(fp_filename[5], "rb+");
+        fread(m3_bbox_deltas, sizeof(float), b3_c * b3_w * b3_h, m3_bbox_deltas_fp);
+        fclose(m3_bbox_deltas_fp);
+    #else //dump postprocess data
+        dd++;
+        FILE *m1_scores_fp = fopen(fp_filename[0], "wb+");
+        fwrite(m1_scores, sizeof(float), m1_c * m1_w * m1_h, m1_scores_fp);
+        fclose(m1_scores_fp);
+        FILE *m2_scores_fp = fopen(fp_filename[1], "wb+");
+        fwrite(m2_scores, sizeof(float), m2_c * m2_w * m2_h, m2_scores_fp);
+        fclose(m2_scores_fp);
+        FILE *m3_scores_fp = fopen(fp_filename[2], "wb+");
+        fwrite(m3_scores, sizeof(float), m3_c * m3_w * m3_h, m3_scores_fp);
+        fclose(m3_scores_fp);
+
+        FILE *m1_bbox_deltas_fp = fopen(fp_filename[3], "wb+");
+        fwrite(m1_bbox_deltas, sizeof(float), b1_c * b1_w * b1_h, m1_bbox_deltas_fp);
+        fclose(m1_bbox_deltas_fp);
+        FILE *m2_bbox_deltas_fp = fopen(fp_filename[4], "wb+");
+        fwrite(m2_bbox_deltas, sizeof(float), b2_c * b2_w * b2_h, m2_bbox_deltas_fp);
+        fclose(m2_bbox_deltas_fp);
+        FILE *m3_bbox_deltas_fp = fopen(fp_filename[5], "wb+");
+        fwrite(m3_bbox_deltas, sizeof(float), b3_c * b3_w * b3_h, m3_bbox_deltas_fp);
+        fclose(m3_bbox_deltas_fp);
+    #endif
+    #endif
+
+    #if PLD
         std::cout<<"dump face_detector m3_bbox_deltas outputs:"<<std::endl;
         for(int kk = 0; kk < 10; kk++){
             std::cout<<*(m3_bbox_deltas+kk) << " ";

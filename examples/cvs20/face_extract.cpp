@@ -127,7 +127,7 @@ int FaceExtract::preprocess(std::vector<bm::FeatureFrame> &frames, std::vector<b
             bm_image image_planar;
             int strides_planar[3];
             strides_planar[0]=strides_planar[1]=strides_planar[2] = FFALIGN(width, 64);
-            assert(0 == bm_image_create(handle, height, width, FORMAT_RGBP_SEPARATE, DATA_TYPE_EXT_1N_BYTE, &image_planar, strides_planar));
+            assert(0 == bm_image_create(handle, height, width, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &image_planar, strides_planar));
             assert(0 == bmcv_image_storage_convert(handle, 1, &image1, &image_planar));
             std::cout<<"this is face_extract.cpp:100 bmcv_image_vpp_convert"<<std::endl;
             ret = bmcv_image_vpp_convert(handle, 1, image_planar, &resized_imgs[i], NULL, BMCV_INTER_LINEAR);   
@@ -203,7 +203,7 @@ int FaceExtract::preprocess(std::vector<bm::FeatureFrame> &frames, std::vector<b
         bm::BMNNTensorPtr tensor_ = std::make_shared<bm::BMNNTensor>(m_bmctx->handle(), "extractor_in", 1.0,
                                                                 &input_tensor);
         float* input_cpu_data = tensor_->get_cpu_data();
-        for(int kk = 0; kk < 100; kk++){
+        for(int kk = 0; kk < 20; kk++){
             std::cout<<*(input_cpu_data+kk)<<" ";
         }
         std::cout<<std::endl<<"========================="<<std::endl;
@@ -305,7 +305,11 @@ void FaceExtract::extract_facefeature_cpu(bm::FeatureFrameInfo &frame_info) {
     int frameNum = frame_info.frames.size();
     frame_info.out_datums.resize(frameNum);
     for(int frameIdx = 0; frameIdx < frameNum;++frameIdx) {
-        bm::BMNNTensorPtr output_tensor = get_output_tensor("fc1_scale_f32", frame_info, m_bmnet->get_output_scale(0));
+    #if A2_SDK
+        bm::BMNNTensorPtr output_tensor = get_output_tensor("mobilenetv20_output_flatten0_reshape0_Reshape_f32", frame_info, m_bmnet->get_output_scale(0));
+    #else
+        bm::BMNNTensorPtr output_tensor = get_output_tensor("fc1_scale", frame_info, m_bmnet->get_output_scale(0));
+    #endif
         const void *out_data = (const void *) output_tensor->get_cpu_data();
         auto output_shape = output_tensor->get_shape();
         int out_c = output_shape->dims[1];
@@ -320,7 +324,8 @@ void FaceExtract::extract_facefeature_cpu(bm::FeatureFrameInfo &frame_info) {
             features.clear();
             for (int i = 0; i < out_c; i++) {
             #if PLD
-                std::cout<<data[i]<<" ";
+                if(i % 50 == 0)
+                    std::cout<<data[i]<<" ";
             #endif
                 features.push_back(data[i]);
             }

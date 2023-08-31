@@ -69,7 +69,7 @@ int Resnet::preprocess(std::vector<bm::cvs10FrameBaseInfo> &frames, std::vector<
             uint8_t *jpeg_data = NULL;
             size_t out_size = 0;
 #if USE_QTGUI
-            bmcv_image_jpeg_enc(handle, 1, &image1, (void **) &jpeg_data, &out_size);
+            bmcv_image_jpeg_enc(handle, 1, &image1, (void **) &jpeg_data, &out_size, 85);
 #endif
             frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size);
             frames[start_idx + i].height = image1.height;

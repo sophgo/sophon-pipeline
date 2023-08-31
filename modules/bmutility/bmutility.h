@@ -14,7 +14,8 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <assert.h>
-
+#include <unistd.h>
+#include <sys/stat.h>
 #include <iostream>
 #include <string>
 #include <memory>
@@ -128,16 +129,17 @@ static int compare_resize_converto(bm_image resized, bm_image convertoed, bmcv_c
             float converto_pix = buffers_converto[0][j];
             float resize_pix = buffers_resize[0][j];
             float converto_ref = resize_pix * coefficients[0][i] + coefficients[1][i];
-            if(converto_pix != converto_ref){
-                // std::cout<<i <<" "<< j << ";";
-                std::cout<<converto_pix<<" "<<resize_pix<<" "<<converto_ref<<" "<<j<<" "<<channel<<std::endl;
+            if(std::abs(converto_pix - converto_ref) > 0.001){
+                std::cout<<converto_pix<<" "<<converto_ref<<" "<<j<<std::endl;
             }
             diff_sum += std::abs(converto_pix - converto_ref);
         }
     }
     double diff_avg = diff_sum / (plane_num * plane_size_resize[0]);
+    std::cout<<"========================="<<std::endl;
     std::cout << "diff_sum: " << diff_sum << std::endl;
     std::cout << "diff_avg: " << diff_avg << std::endl; 
+    std::cout<<"========================="<<std::endl;
     for(int i = 0; i < plane_num; i++) delete [] buffers_resize[i];
     for(int i = 0; i < plane_num; i++) delete [] buffers_converto[i];
     return 0;
@@ -660,9 +662,15 @@ namespace bm {
                 // if true, bmrt don't alloc mem again.
                 user_mem = true;
             }
-
+            bm_profile_t start,end;
+            memset(&start, 0, sizeof(bm_profile_t));
+            memset(&end, 0, sizeof(bm_profile_t));
+            bm_get_profile(m_handle, &start);
             bool ok = bmrt_launch_tensor_ex(m_bmrt, m_netinfo->name, m_inputTensors, m_netinfo->input_num,
                                          m_outputTensors, m_netinfo->output_num, user_mem, true);
+            bm_get_profile(m_handle, &end);
+            auto npu_time = end.tpu_process_time - start.tpu_process_time;
+            std::cout<<"npu time:" << npu_time<<std::endl;
             if (!ok) {
                 std::cout << "bm_launch_tensor() failed=" << std::endl;
                 return -1;
@@ -688,6 +696,10 @@ namespace bm {
 
         int forward(const bm_tensor_t *input_tensors, int input_num, bm_tensor_t *output_tensors, int output_num)
         {
+            bm_profile_t start,end;
+            memset(&start, 0, sizeof(bm_profile_t));
+            memset(&end, 0, sizeof(bm_profile_t));
+            bm_get_profile(m_handle, &start);
             bool ok = bmrt_launch_tensor_ex(m_bmrt, m_netinfo->name, input_tensors, input_num,
                     output_tensors, output_num, false, false);
 
@@ -702,7 +714,9 @@ namespace bm {
                 std::cout << "bm_thread_sync: Failed to sync: " << m_netinfo->name << " inference" << std::endl;
                 return -1;
             }
-
+            bm_get_profile(m_handle, &end);
+            auto npu_time = end.tpu_process_time - start.tpu_process_time;
+            std::cout<<"npu time:" << npu_time<<std::endl;
             return 0;
         }
 
@@ -783,7 +797,9 @@ namespace bm {
                 std::cout << "bmrt_create() failed!" << std::endl;
                 exit(-1);
             }
-
+        #if PLD
+            std::cout<<"start loading bmodel !!! "<<std::endl;
+        #endif
             if (!bmrt_load_bmodel(m_bmrt, bmodel_file.c_str())) {
                 std::cout << "load bmodel(" << bmodel_file << ") failed" << std::endl;
             }

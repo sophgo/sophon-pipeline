@@ -12,7 +12,7 @@
 
 void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config)
 {
-    bool enable_outputer = false;
+    bool enable_outputer = WITH_HDMI;
 #if WITH_OUTPUTER
     if (bm::start_with(m_output_url, "rtsp://") || bm::start_with(m_output_url, "udp://") ||
         bm::start_with(m_output_url, "tcp://")) {
@@ -135,7 +135,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
 #endif
     //feature
 #if WITH_EXTRACTOR
-    param->batch_num = m_featureDelegate->get_max_batch();
+    param.batch_num = m_featureDelegate->get_max_batch();
     m_featurePipe.init(param, m_featureDelegate);
 #endif
 
@@ -156,7 +156,6 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         pchan->demuxer->set_avformat_opend_callback([this, pchan](AVFormatContext *ifmt) {
             pchan->create_video_decoder(m_dev_id, ifmt);
             // todo create DDR reduction for optimization
-
             if (pchan->outputer && ((pchan->channel_id < m_save_num) || (m_save_num == -1))) {
                 
                 std::string url;
@@ -195,6 +194,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
 
         pchan->demuxer->set_read_Frame_callback([this, pchan, ch](AVPacket* pkt){
             int ret = 0;
+
         #if WITH_DECODE
             int got_picture = 0;
             AVFrame *frame = av_frame_alloc();
@@ -202,29 +202,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             ddd++;
             std::cout<<"decode times: " << ddd << std::endl;
             pchan->decode_video2(pchan->m_decoder, frame, &got_picture, pkt);
-
-            #if 0// DUMP_BIN
-            if(got_picture && frame->channel_layout == 101){
-                FILE *fp_fbc[4] = {0};
-                char fbc_filename[4][128];
-                static int save_bin_id = 0;
-                for(int ii=0; ii<4; ii++)
-                {
-                    sprintf(fbc_filename[ii], "results/%d_fbc_data%d.dat", save_bin_id, ii);
-                    fp_fbc[ii] = fopen(fbc_filename[ii], "wb");
-                }
-                int size = frame->height * frame->linesize[4];
-                
-                //     (unsigned long long) in.data[6], size;
-                // size = (in.height / 2) * in.linesize[5];
-                //     (unsigned long long) in.data[4], size;
-                // size = in.linesize[6];
-                //     (unsigned long long) in.data[7], size;
-                // size = in.linesize[7];
-                //     (unsigned long long) in.data[5], size;
-            }
-            #endif
-
+        
         #endif
         
         #if WITH_ENCODE_H264 //need output format=0
@@ -280,6 +258,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 bm_image resized;
                 ret = bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &resized, 1, test_align);
                 assert(ret == BM_SUCCESS);
+                std::cout<<"Now, bmcv_image_vpp_convert: "<<std::endl;
                 ret = bmcv_image_vpp_convert(m_bmctx->handle(), 1, image1, &resized, NULL, BMCV_INTER_LINEAR);
                 assert(ret == BM_SUCCESS);
             #if WITH_CONVERTO_TEST
@@ -293,24 +272,20 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 convert_to_attr.beta_0  = -123.0f;
                 convert_to_attr.beta_1  = -117.0f;
                 convert_to_attr.beta_2  = -104.0f;
+                std::cout<<"Now, bmcv_image_convert_to: "<<std::endl;
                 ret = bmcv_image_convert_to(m_bmctx->handle(), 1, convert_to_attr, &resized, &convertoed);
                 assert(ret == BM_SUCCESS);
                 std::cout<<"calculate converto data:=="<<std::endl;
-                // bm_image converto_;
-                // bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &converto_, 1, 1);
-                // bmcv_image_storage_convert(m_bmctx->handle(), 1, &convertoed, &converto_);
                 bm_image resized_;
                 bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &resized_, 1, 1);
                 bmcv_copy_to_atrr_t copy_to_attr{0,0,0,0,0,0};
                 bmcv_image_copy_to(m_bmctx->handle(), copy_to_attr, resized, resized_);
                 compare_resize_converto(resized_, convertoed, convert_to_attr);
                 // bm_image_dump_size(resized, 50);
-                // bm_image_dump_size(converto_, 50);
+                // bm_image_dump_size(resized_, 50);
                 ret = bm_image_destroy_allinone(&resized_);
                 assert(ret == BM_SUCCESS);
-                // ret = bm_image_destroy_allinone(&converto_);
                 // assert(ret == BM_SUCCESS);
-                std::cout<<"========================="<<std::endl;
                 ret = bm_image_destroy_allinone(&convertoed);
                 assert(ret == BM_SUCCESS);
             #endif
@@ -360,11 +335,28 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 size_t out_size = 0;
                 ret = bmcv_image_jpeg_enc(m_bmctx->handle(), 1, &image1, (void**)&jpeg_data, &out_size, 85);
                 if (ret == BM_SUCCESS) {
+                #if USE_QTGUI && WITH_HDMI //post avpkt directly, rtsp or tcp, cannot be simultaneous with outputer above.
+                    if(got_picture){
+                        bm::NetOutputObject fake_object{100,100,200,200,0.9,0,0};
+                        bm::NetOutputObjects fake_objects{fake_object};
+                        bm::NetOutputDatum fake_datum(fake_objects);
+                        if (ch < m_display_num){
+                            bm::UIFrame jpgframe;
+                            jpgframe.jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size);
+                            jpgframe.chan_id = ch;
+                            jpgframe.h = image1.height;
+                            jpgframe.w = image1.width;
+                            jpgframe.datum = fake_datum;
+                            m_guiReceiver->pushFrame(jpgframe);
+                        }
+                    }
+                #else
                     static int ii = 0;
                     std::string img_file = "results/decoded_frame_" + std::to_string(ii++) + ".jpg";
                     FILE *fp = fopen(img_file.c_str(), "wb");
                     fwrite(jpeg_data, out_size, 1, fp);
                     fclose(fp);
+                #endif
                 } else{
                     std::cout<<"bmcv_image_jpeg_enc decoded failed!"<<std::endl;
                 }

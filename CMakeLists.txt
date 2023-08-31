@@ -8,9 +8,6 @@ endif()
 if (${TARGET_ARCH} STREQUAL "x86")
     set(CMAKE_CXX_STANDARD 11)
 elseif (${TARGET_ARCH} STREQUAL "soc")
-    # set(CMAKE_C_COMPILER /home/lihengfang/work/aarch64-gcc/gcc-linaro-6.3.1-2017.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-gcc)
-    # set(CMAKE_ASM_COMPILER /home/lihengfang/work/aarch64-gcc/gcc-linaro-6.3.1-2017.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-gcc)
-    # set(CMAKE_CXX_COMPILER /home/lihengfang/work/aarch64-gcc/gcc-linaro-6.3.1-2017.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-g++)
     set(CMAKE_C_COMPILER   /home/lihengfang/work/aarch64-gcc/gcc-linaro-6.3.1-2017.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-gcc)
     set(CMAKE_ASM_COMPILER /home/lihengfang/work/aarch64-gcc/gcc-linaro-6.3.1-2017.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-gcc)
     set(CMAKE_CXX_COMPILER /home/lihengfang/work/aarch64-gcc/gcc-linaro-6.3.1-2017.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-g++)
@@ -22,7 +19,7 @@ endif()
 option(HAVE_TRACKER "Enable tracker" ON)
 option(USE_SOPHON_FFMPEG "Use sophon-ffmpeg" ON)
 option(USE_SOPHON_OPENCV "Use sophon-opencv" ON)
-option(USE_QTGUI "Whether has GUI support" OFF)
+option(USE_QTGUI "Whether has GUI support" ON)
 option(CMODEL_MODE "Run in cmodel mode" OFF)
 option(USE_DEBUG "use debug to print result" ON)
 option(A2_SDK "use A2 SDK" ON)
@@ -34,15 +31,17 @@ else()
 
 add_definitions(-DPLD=1)
 add_definitions(-DWITH_DECODE=1)
-add_definitions(-DWITH_ENCODE_JPEG=1)#depend on decode
-add_definitions(-DWITH_ENCODE_H264=0)#depend on decode
-add_definitions(-DWITH_RESIZE_TEST=1)#depend on decode\encode_jpeg.
-add_definitions(-DWITH_CONVERTO_TEST=1)#depend on decode\encode_jpeg\resize_test.
-add_definitions(-DWITH_DETECTOR=0)#depend on decode
-add_definitions(-DDRAW_DETECTOR=0)#depend on detector.Func: draw boxes and encode.
+add_definitions(-DWITH_ENCODE_JPEG=0)   #depend on decode
+add_definitions(-DWITH_HDMI=1)          #depend on encode_jpeg, a2 hdmi
+add_definitions(-DWITH_ENCODE_H264=0)   #depend on decode
+add_definitions(-DWITH_RESIZE_TEST=0)   #depend on decode\encode_jpeg.
+add_definitions(-DWITH_CONVERTO_TEST=0) #depend on decode\encode_jpeg\resize_test.
+add_definitions(-DWITH_DETECTOR=0)      #depend on decode
+add_definitions(-DWITH_FAKEDATA=0)      #depend on detector, feed fake data to postprocess.
+add_definitions(-DDRAW_DETECTOR=0)      #depend on detector.Func: draw boxes and encode.
 add_definitions(-DWITH_EXTRACTOR=0)
-add_definitions(-DDRAR_EXTRACTOR=0)#depend on extractor (Not implement yet)
-add_definitions(-DWITH_OUTPUTER=0)#depend on detector
+add_definitions(-DDRAR_EXTRACTOR=0)     #depend on extractor (Not implement yet)
+add_definitions(-DWITH_OUTPUTER=0)      #depend on detector, output rtsp flow to pipeline client.
 
 add_compile_options(-Wno-deprecated-declarations -fPIC)
 
@@ -58,8 +57,8 @@ set(COMMON_TOP ${TOP}/modules)
 if (USE_QTGUI)
     if (${TARGET_ARCH} STREQUAL "soc")
 	    #set(QTDIR /opt/qt5.14-18.04-soc)
-	set(QTDIR /home/lihengfang/work/sophon-QT/sophon-qt-demo/sophon_qt_base_lib/)
-	set(Qt5Widgets_DIR /home/lihengfang/work/sophon-QT/sophon-qt-demo/sophon_qt_base_lib/lib/cmake/Qt5Widgets)
+	set(QTDIR /home/lihengfang/work/open-source/qtbase-5.14.2-aarch64/)
+	set(Qt5Widgets_DIR /home/lihengfang/work/open-source/qtbase-5.14.2-aarch64/lib/cmake/Qt5Widgets)
 	#set(Qt5Widgets_DIR /opt/qt5.14-18.04-soc/lib/cmake/Qt5Widgets)
     else()
         set(QTDIR /opt/Qt5.12.9/5.12.9/gcc_64)

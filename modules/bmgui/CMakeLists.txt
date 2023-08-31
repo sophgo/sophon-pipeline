@@ -9,8 +9,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_PREFIX_PATH $ENV{QTDIR})
 
 set(inc_dirs ${common_inc_dirs} ${libsophon_inc_dirs} ${ffmpeg_inc_dirs} ${opencv_inc_dirs} ${TOP}/third_party/libyuv/include)
-set(link_dirs ${ffmpeg_link_dirs} ${opencv_link_dirs})
-set(link_libs ${opencv_link_libs} ${ffmpeg_link_libs} Qt5::Widgets pthread yuv)
+set(link_dirs ${libsophon_link_dirs} ${ffmpeg_link_dirs} ${opencv_link_dirs})
+set(link_libs ${libsophon_link_libs} ${opencv_link_libs} ${ffmpeg_link_libs} Qt5::Widgets pthread yuv)
 
 message(STATUS "[bmgui]inc_dirs=${inc_dirs}")
 message(STATUS "[bmgui]link_dirs=${link_dirs}")
@@ -21,7 +21,7 @@ link_directories(${link_dirs})
 
 find_package(Qt5Widgets)
 
-add_library(bmgui SHARED bmgui.cpp mainwindow.cpp
+add_library(bmgui bmgui.cpp mainwindow.cpp
         container_widget.cpp
         video_pixmap_widget.cpp
         video_widget.cpp)

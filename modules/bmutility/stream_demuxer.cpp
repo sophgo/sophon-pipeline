@@ -233,7 +233,7 @@ int StreamDemuxer::get_codec_type(int stream_index, int *p_codec_type)
                         break;
                     case Service:
                         do_service();
-                        std::this_thread::sleep_for(std::chrono::seconds(25));
+                        std::this_thread::sleep_for(std::chrono::seconds(40));
                         break;
                     case Down:
                         do_down();

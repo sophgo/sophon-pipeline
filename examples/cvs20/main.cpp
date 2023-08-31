@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
                           "{feat_num | 10 | feature num per channel}"
                           "{num | 1 | number of channel to infer}"
                           "{skip_frame_num | 1 | skip N frames to detect}"
-                          "{display_num | 0 | display number of channel in QT}"
+                          "{display_num | 1 | display number of channel in QT}"
                           "{resize_num | 0 | resize number of channel in hardware emulation}"
                           "{stop_frame_num | 1 | frame number early stop}"
                           "{save_num | 0 | number of channel to save .flv}"
