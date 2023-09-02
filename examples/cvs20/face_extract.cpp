@@ -305,7 +305,7 @@ void FaceExtract::extract_facefeature_cpu(bm::FeatureFrameInfo &frame_info) {
     int frameNum = frame_info.frames.size();
     frame_info.out_datums.resize(frameNum);
     for(int frameIdx = 0; frameIdx < frameNum;++frameIdx) {
-    #if A2_SDK
+    #if 0//A2_SDK
         bm::BMNNTensorPtr output_tensor = get_output_tensor("mobilenetv20_output_flatten0_reshape0_Reshape_f32", frame_info, m_bmnet->get_output_scale(0));
     #else
         bm::BMNNTensorPtr output_tensor = get_output_tensor("fc1_scale", frame_info, m_bmnet->get_output_scale(0));

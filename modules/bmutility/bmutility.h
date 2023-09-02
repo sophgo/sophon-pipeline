@@ -129,7 +129,7 @@ static int compare_resize_converto(bm_image resized, bm_image convertoed, bmcv_c
             float converto_pix = buffers_converto[0][j];
             float resize_pix = buffers_resize[0][j];
             float converto_ref = resize_pix * coefficients[0][i] + coefficients[1][i];
-            if(std::abs(converto_pix - converto_ref) > 0.001){
+            if(std::abs(converto_pix - converto_ref) > 0.01){
                 std::cout<<converto_pix<<" "<<converto_ref<<" "<<j<<std::endl;
             }
             diff_sum += std::abs(converto_pix - converto_ref);
@@ -375,6 +375,23 @@ namespace bm {
                     }
                     ret = bm_mem_unmap_device_mem(m_handle, pI8, bm_mem_get_device_size(m_tensor->device_mem));
                     assert(BM_SUCCESS == ret);
+                } else if (BM_UINT8 == m_tensor->dtype) {
+                    uint8_t * pI8 = nullptr;
+                    unsigned long long  addr;
+                    ret = bm_mem_mmap_device_mem(m_handle, &m_tensor->device_mem, &addr);
+                    assert(BM_SUCCESS == ret);
+                    ret = bm_mem_invalidate_device_mem(m_handle, &m_tensor->device_mem);
+                    assert(BM_SUCCESS == ret);
+                    pI8 = (uint8_t*)addr;
+
+                    // dtype convert
+                    pFP32 = new float[count];
+                    assert(pFP32 != nullptr);
+                    for(int i = 0;i < count; ++ i) {
+                    pFP32[i] = pI8[i] * m_scale;
+                    }
+                    ret = bm_mem_unmap_device_mem(m_handle, pI8, bm_mem_get_device_size(m_tensor->device_mem));
+                    assert(BM_SUCCESS == ret);
                 }else if (m_tensor->dtype == BM_INT32) {
                     int32_t * pI32 = nullptr;
                     unsigned long long  addr;
@@ -406,6 +423,21 @@ namespace bm {
                     int8_t * pI8 = nullptr;
                     int tensor_size = bmrt_tensor_bytesize(m_tensor);
                     pI8 = new int8_t[tensor_size];
+                    assert(pI8 != nullptr);
+
+                    // dtype convert
+                    pFP32 = new float[count];
+                    assert(pFP32 != nullptr);
+                    ret = bm_memcpy_d2s_partial(m_handle, pI8, m_tensor->device_mem, tensor_size);
+                    assert(BM_SUCCESS ==ret);
+                    for(int i = 0;i < count; ++ i) {
+                    pFP32[i] = pI8[i] * m_scale;
+                    }
+                    delete [] pI8;
+                } else if (BM_UINT8 == m_tensor->dtype) {
+                    uint8_t * pI8 = nullptr;
+                    int tensor_size = bmrt_tensor_bytesize(m_tensor);
+                    pI8 = new uint8_t[tensor_size];
                     assert(pI8 != nullptr);
 
                     // dtype convert
@@ -481,6 +513,7 @@ namespace bm {
 
 
     class BMNNNetwork : public NoCopyable {
+    public:
         const bm_net_info_t *m_netinfo;
         bm_tensor_t *m_inputTensors;
         bm_tensor_t *m_outputTensors;

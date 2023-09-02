@@ -38,7 +38,9 @@ FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num)
     is4N_ = false;
 
     bmnet_ = std::make_shared<bm::BMNNNetwork>(bmctx_->bmrt(), net_name); //squeezenet_bmnetc
-
+#if PLD
+    std::cout << "net_name: "<< net_name << std::endl;
+#endif
     assert(bmnet_ != nullptr);
     assert(bmnet_->inputTensorNum() == 1);
 
@@ -201,13 +203,20 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             img_type = DATA_TYPE_EXT_1N_BYTE_SIGNED;
             alpha            = tensor->get_scale() * 1.0;//0.847682119;
             beta             = 0.0;
+        #if A2_SDK
+            img_type = DATA_TYPE_EXT_1N_BYTE_SIGNED;
+        #else
             img_type = (is4N_) ? (DATA_TYPE_EXT_4N_BYTE_SIGNED)
                                : (DATA_TYPE_EXT_1N_BYTE_SIGNED);
+        #endif
         }else{
             alpha            = 1.0;
             beta             = 0.0;
             img_type = DATA_TYPE_EXT_FLOAT32;
         }
+    #if PLD
+        std::cout<<"creating converto_imgs"<<std::endl;
+    #endif
     #if USE_RGBP_SEPARATE
         ret = bm::BMImage::create_batch(handle, m_net_h, m_net_w, FORMAT_RGBP_SEPARATE, img_type, convertto_imgs, num, 1, false, true); //set A2 PLD new stride = 64
     #else
@@ -366,6 +375,9 @@ int FaceDetector::postprocess(std::vector<bm::cvs10FrameInfo> &frames)
         extract_facebox_cpu(frame_info);
 
         if (m_pfnDetectFinish != nullptr) {
+        #if PLD
+            std::cout<<"postprocess outputer or hdmi..."<<std::endl;
+        #endif
             m_pfnDetectFinish(frame_info);
         }
 
@@ -439,7 +451,7 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
     float m2_cls_scale_to_float = bmnet_->get_output_scale(3);
     float m1_cls_scale_to_float = bmnet_->get_output_scale(5);
 
-#if A2_SDK // TODO: improve get output name method.
+#if 0 // TODO: improve get output name method.
     bm::BMNNTensorPtr m3_bbox_tensor = get_output_tensor("m3@ssh_bbox_pred_output_f32_Conv_f32", frame_info, m3_scale_to_float);
     bm::BMNNTensorPtr m2_bbox_tensor = get_output_tensor("m2@ssh_bbox_pred_output_f32_Conv_f32", frame_info, m2_scale_to_float);
     bm::BMNNTensorPtr m1_bbox_tensor = get_output_tensor("m1@ssh_bbox_pred_output_f32_Conv_f32", frame_info, m1_scale_to_float);
@@ -447,12 +459,12 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
     bm::BMNNTensorPtr m2_cls_tensor = get_output_tensor("m2@ssh_bbox_pred_output_f32_Conv_f32", frame_info, m2_cls_scale_to_float);
     bm::BMNNTensorPtr m1_cls_tensor = get_output_tensor("m1@ssh_cls_prob_reshape_output_Conv_f32", frame_info, m1_cls_scale_to_float);
 #else
-    bm::BMNNTensorPtr m3_bbox_tensor = get_output_tensor("m3@ssh_bbox_pred_output", frame_info, m3_scale_to_float);
-    bm::BMNNTensorPtr m2_bbox_tensor = get_output_tensor("m2@ssh_bbox_pred_output", frame_info, m2_scale_to_float);
-    bm::BMNNTensorPtr m1_bbox_tensor = get_output_tensor("m1@ssh_bbox_pred_output", frame_info, m1_scale_to_float);
-    bm::BMNNTensorPtr m3_cls_tensor = get_output_tensor("m3@ssh_cls_prob_reshape_output", frame_info, m3_cls_scale_to_float);
-    bm::BMNNTensorPtr m2_cls_tensor = get_output_tensor("m2@ssh_cls_prob_reshape_output", frame_info, m2_cls_scale_to_float);
-    bm::BMNNTensorPtr m1_cls_tensor = get_output_tensor("m1@ssh_cls_prob_reshape_output", frame_info, m1_cls_scale_to_float);
+    bm::BMNNTensorPtr m3_bbox_tensor = get_output_tensor(bmnet_->m_netinfo->output_names[4], frame_info, m3_scale_to_float);
+    bm::BMNNTensorPtr m2_bbox_tensor = get_output_tensor(bmnet_->m_netinfo->output_names[2], frame_info, m2_scale_to_float);
+    bm::BMNNTensorPtr m1_bbox_tensor = get_output_tensor(bmnet_->m_netinfo->output_names[0], frame_info, m1_scale_to_float);
+    bm::BMNNTensorPtr m3_cls_tensor = get_output_tensor(bmnet_->m_netinfo->output_names[5], frame_info, m3_cls_scale_to_float);
+    bm::BMNNTensorPtr m2_cls_tensor = get_output_tensor(bmnet_->m_netinfo->output_names[3], frame_info, m2_cls_scale_to_float);
+    bm::BMNNTensorPtr m1_cls_tensor = get_output_tensor(bmnet_->m_netinfo->output_names[1], frame_info, m1_cls_scale_to_float);
 #endif
 
 
@@ -598,6 +610,9 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
         std::vector<bm::NetOutputObject> faceRects;
         faceRects.clear();
         std::vector<bmcv_rect_t> bm_rects;
+    #if PLD
+        std::cout<<"nmsProposals size: "<<nmsProposals.size()<<std::endl;
+    #endif
         for (size_t i = 0; i < nmsProposals.size(); ++i) {
             bm::NetOutputObject rect = nmsProposals[i];
             if (rect.score >= 0.5){

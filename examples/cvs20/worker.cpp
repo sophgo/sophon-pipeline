@@ -12,7 +12,7 @@
 
 void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config)
 {
-    bool enable_outputer = WITH_HDMI;
+    bool enable_outputer = false;
 #if WITH_OUTPUTER
     if (bm::start_with(m_output_url, "rtsp://") || bm::start_with(m_output_url, "udp://") ||
         bm::start_with(m_output_url, "tcp://")) {
@@ -45,9 +45,14 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
 #endif
 
             // tracker
+        #if PLD
+            std::cout<<"go to bm_tracker..."<<std::endl;
+        #endif
+        #if WITH_TRACKER
             if (frameInfo.out_datums[frame_idx].obj_rects.size() > 0) {
                 m_chans[ch]->tracker->update(frameInfo.out_datums[frame_idx].obj_rects, frameInfo.out_datums[frame_idx].track_rects);
             }
+        #endif
             // display
 #if USE_QTGUI
             if (ch < m_display_num){
@@ -263,7 +268,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 assert(ret == BM_SUCCESS);
             #if WITH_CONVERTO_TEST
                 bm_image convertoed;
-                ret = bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_FLOAT32, &convertoed, 1, 1, false, true);
+                ret = bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE_SIGNED, &convertoed, 1, 1, false, true);
                 assert(ret == BM_SUCCESS);
                 bmcv_convert_to_attr convert_to_attr;
                 convert_to_attr.alpha_0 = 1;
@@ -336,19 +341,17 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 ret = bmcv_image_jpeg_enc(m_bmctx->handle(), 1, &image1, (void**)&jpeg_data, &out_size, 85);
                 if (ret == BM_SUCCESS) {
                 #if USE_QTGUI && WITH_HDMI //post avpkt directly, rtsp or tcp, cannot be simultaneous with outputer above.
-                    if(got_picture){
-                        bm::NetOutputObject fake_object{100,100,200,200,0.9,0,0};
-                        bm::NetOutputObjects fake_objects{fake_object};
-                        bm::NetOutputDatum fake_datum(fake_objects);
-                        if (ch < m_display_num){
-                            bm::UIFrame jpgframe;
-                            jpgframe.jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size);
-                            jpgframe.chan_id = ch;
-                            jpgframe.h = image1.height;
-                            jpgframe.w = image1.width;
-                            jpgframe.datum = fake_datum;
-                            m_guiReceiver->pushFrame(jpgframe);
-                        }
+                    bm::NetOutputObject fake_object(100,100,200,200);
+                    bm::NetOutputObjects fake_objects{fake_object};
+                    bm::NetOutputDatum fake_datum(fake_objects);
+                    if (ch < m_display_num){
+                        bm::UIFrame jpgframe;
+                        jpgframe.jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size, true);
+                        jpgframe.chan_id = ch;
+                        jpgframe.h = image1.height;
+                        jpgframe.w = image1.width;
+                        jpgframe.datum = fake_datum;
+                        m_guiReceiver->pushFrame(jpgframe);
                     }
                 #else
                     static int ii = 0;
@@ -422,11 +425,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
 
         });
 
-    #if PLD
-        bool repeat = false;
-    #else
-        bool repeat = true
-    #endif
+        bool repeat = true;
         pchan->demuxer->open_stream(urls[i % urls.size()], nullptr, repeat, opts);
         av_dict_free(&opts);
         m_chans[ch] = pchan;
