@@ -107,6 +107,16 @@ void video_pixmap_widget::paintEvent(QPaintEvent *event)
     if (m_jpeg && m_jpeg->size()> 0) { //jpeg draw
         QImage origin;
         origin.loadFromData(m_jpeg->ptr<uint8_t>(), m_jpeg->size());
+    #if 0
+        std::cout<<"================"<<std::endl;
+        std::cout<<"save qt frame"<<std::endl;
+        std::cout<<"================"<<std::endl;
+        static int ii = 0;
+        std::string img_file = "results/qt_frame_" + std::to_string(ii++) + ".jpg";
+        FILE *fp = fopen(img_file.c_str(), "wb");
+        fwrite(m_jpeg->ptr<uint8_t>(), m_jpeg->size(), 1, fp);
+        fclose(fp);
+    #endif
         if (m_netOutputDatum.type == bm::NetOutputDatum::Box) drawBox(origin);
         if (m_netOutputDatum.type == bm::NetOutputDatum::Pose) drawPose(origin);
         QImage img = origin.scaled(geometry().size(), Qt::AspectRatioMode::IgnoreAspectRatio);

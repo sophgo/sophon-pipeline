@@ -48,7 +48,7 @@
 #include "bmutility_image.h"
 #include "bmutility_string.h"
 
-#if PLD
+#if 1
 static std::string shape_to_str(const bm_shape_t& shape) {
     std::string str ="[ ";
     for(int i=0; i<shape.num_dims; i++){
@@ -695,27 +695,32 @@ namespace bm {
                 // if true, bmrt don't alloc mem again.
                 user_mem = true;
             }
+        #if PLD
             bm_profile_t start,end;
             memset(&start, 0, sizeof(bm_profile_t));
             memset(&end, 0, sizeof(bm_profile_t));
             bm_get_profile(m_handle, &start);
+        #endif
             bool ok = bmrt_launch_tensor_ex(m_bmrt, m_netinfo->name, m_inputTensors, m_netinfo->input_num,
                                          m_outputTensors, m_netinfo->output_num, user_mem, true);
-            bm_get_profile(m_handle, &end);
-            auto npu_time = end.tpu_process_time - start.tpu_process_time;
-            std::cout<<"npu time:" << npu_time<<std::endl;
             if (!ok) {
                 std::cout << "bm_launch_tensor() failed=" << std::endl;
                 return -1;
             }
 
             /* wait for inference done */
+        #if BM_THREAD_SYNC
             bm_status_t res = (bm_status_t)bm_thread_sync (m_handle);
             if (res != BM_SUCCESS) {
                 std::cout << "bm_thread_sync: Failed to sync: " << m_netinfo->name << " inference" << std::endl;
                 return -1;
             }
-
+        #if PLD
+            bm_get_profile(m_handle, &end);
+            auto npu_time = end.tpu_process_time - start.tpu_process_time;
+            std::cout<<"npu time:" << npu_time<<std::endl;
+        #endif
+        #endif
 #if 0
             for(int i = 0;i < m_netinfo->output_num; ++i) {
                 auto tensor = m_outputTensors[i];
@@ -729,10 +734,12 @@ namespace bm {
 
         int forward(const bm_tensor_t *input_tensors, int input_num, bm_tensor_t *output_tensors, int output_num)
         {
+        #if PLD
             bm_profile_t start,end;
             memset(&start, 0, sizeof(bm_profile_t));
             memset(&end, 0, sizeof(bm_profile_t));
             bm_get_profile(m_handle, &start);
+        #endif
             bool ok = bmrt_launch_tensor_ex(m_bmrt, m_netinfo->name, input_tensors, input_num,
                     output_tensors, output_num, false, false);
 
@@ -742,14 +749,18 @@ namespace bm {
             }
 
             /* wait for inference done */
+        #if BM_THREAD_SYNC
             bm_status_t res = (bm_status_t)bm_thread_sync (m_handle);
             if (res != BM_SUCCESS) {
                 std::cout << "bm_thread_sync: Failed to sync: " << m_netinfo->name << " inference" << std::endl;
                 return -1;
             }
+        #endif
+        #if PLD
             bm_get_profile(m_handle, &end);
             auto npu_time = end.tpu_process_time - start.tpu_process_time;
             std::cout<<"npu time:" << npu_time<<std::endl;
+        #endif
             return 0;
         }
 
@@ -767,11 +778,13 @@ namespace bm {
             }
 
             /* wait for inference done */
+        #if BM_THREAD_SYNC
             bm_status_t res = (bm_status_t)bm_thread_sync (m_handle);
             if (res != BM_SUCCESS) {
                 std::cout << "bm_thread_sync: Failed to sync: " << m_netinfo->name << " inference" << std::endl;
                 return -1;
             }
+        #endif
 
             return 0;
         }
@@ -788,14 +801,14 @@ namespace bm {
             return std::make_shared<BMNNHandle>(dev_id);
         }
         BMNNHandle(int dev_id = 0) : m_dev_id(dev_id) {
-        #if WITH_DETECTOR | WITH_EXTRACTOR | WITH_ENCODE_JPEG
+        #if WITH_DETECTOR | WITH_EXTRACTOR | WITH_ENCODE_JPEG | WITH_LOAD
             int ret = bm_dev_request(&m_handle, dev_id);
             assert(BM_SUCCESS == ret);
         #endif
         }
 
         ~BMNNHandle() {
-        #if WITH_DETECTOR | WITH_EXTRACTOR | WITH_ENCODE_JPEG
+        #if WITH_DETECTOR | WITH_EXTRACTOR | WITH_ENCODE_JPEG | WITH_LOAD
             bm_dev_free(m_handle);
         #endif
         }
@@ -824,7 +837,7 @@ namespace bm {
 
         BMNNContext(BMNNHandlePtr handle, const std::string& bmodel_file) : m_handlePtr(handle) {
             bm_handle_t hdev = m_handlePtr->handle();
-        #if WITH_DETECTOR | WITH_EXTRACTOR
+        #if WITH_DETECTOR | WITH_EXTRACTOR | WITH_LOAD
             m_bmrt = bmrt_create(hdev);
             if (NULL == m_bmrt) {
                 std::cout << "bmrt_create() failed!" << std::endl;

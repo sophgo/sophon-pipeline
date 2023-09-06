@@ -24,11 +24,7 @@ static inline bool compareBBox(const bm::NetOutputObject &a, const bm::NetOutput
 
 FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num)
 {
-#if A2_SDK//Just to adjust the different stage bmodel, we should improve this code in the future.
-    auto net_name = bmctx->network_name(1); // origin: 0
-#else
-    auto net_name = bmctx->network_name(0); // origin: 0
-#endif
+    auto net_name = "squeezenet"; // origin: 0
     bmctx_ = bmctx;
     anchor_ratios_.push_back(1.0f);
     anchor_scales_.push_back(1);
@@ -45,8 +41,8 @@ FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num)
     assert(bmnet_->inputTensorNum() == 1);
 
     auto tensor = bmnet_->inputTensor(0);
-    m_net_h = 400; // static net
-    m_net_w = 711; // static net
+    m_net_h = tensor->get_shape()->dims[2]; // static net
+    m_net_w = tensor->get_shape()->dims[3]; // static net
 
     MAX_BATCH = tensor->get_shape()->dims[0];
 
@@ -77,11 +73,11 @@ void FaceDetector::calc_resized_HW(int image_h, int image_w, int *p_h, int *p_w)
 
     float vw, vh;
     if (image_h > image_w) {
-        vh = 711.0;
-        vw = 400.0;
+        vh = bmnet_->inputTensor(0)->get_shape()->dims[3];
+        vw = bmnet_->inputTensor(0)->get_shape()->dims[2];
     }else{
-        vh = 400.0;
-        vw = 711.0;
+        vh = bmnet_->inputTensor(0)->get_shape()->dims[2];
+        vw = bmnet_->inputTensor(0)->get_shape()->dims[3];
     }
 
     *p_h = vh;
@@ -496,7 +492,7 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
     float *m3_scores      = (float*)m3_cls_tensor->get_cpu_data();
     float *m2_scores      = (float*)m2_cls_tensor->get_cpu_data();
     float *m1_scores      = (float*)m1_cls_tensor->get_cpu_data();
-    #if PLD_DEBUG_DUMP_DATA
+    #if PLD
         std::cout<<"dump face_detector m3_scores outputs:"<<std::endl;
         for(int kk = 0; kk < 10; kk++){
             std::cout<<*(m3_scores+kk) << " ";
@@ -615,7 +611,7 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
     #endif
         for (size_t i = 0; i < nmsProposals.size(); ++i) {
             bm::NetOutputObject rect = nmsProposals[i];
-            if (rect.score >= 0.5){
+            if (rect.score >= 0.5 && i < 16){
                 faceRects.push_back(rect);
                 bmcv_rect_t bm_rect{rect.x1, rect.y1, rect.x2 - rect.x1, rect.y2 - rect.y1};
                 bm_rects.push_back(bm_rect);
@@ -625,10 +621,9 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
             }
         }
         #if DRAW_DETECTOR
-            std::cout<<"==========================="<<std::endl;
-            std::cout<<"==Drawing detector frames=="<<std::endl;
-            std::cout<<"==========================="<<std::endl;
+        if(bm_rects.size() > 0){
             bmcv_image_draw_rectangle(bmctx_->handle(), frame_info.frames[n].original, bm_rects.size(), bm_rects.data(), 2, 255, 255, 0);
+        }
             uint8_t *jpeg_data=NULL;
             size_t out_size = 0;
             int ret = bmcv_image_jpeg_enc(bmctx_->handle(), 1, &frame_info.frames[n].original, (void**)&jpeg_data, &out_size, 85);
@@ -636,6 +631,9 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
                 static int ii = 0;
                 std::string img_file = "results/drawed_frame_" + std::to_string(ii++) + ".jpg";
                 FILE *fp = fopen(img_file.c_str(), "wb");
+                std::cout<<"==========================="<<std::endl;
+                std::cout<<"==Drawing detector frame" << ii << "=="<<std::endl;
+                std::cout<<"==========================="<<std::endl;
                 fwrite(jpeg_data, out_size, 1, fp);
                 fclose(fp);
             }
@@ -701,19 +699,19 @@ void FaceDetector::generate_proposal(const float *          scores,
                 float pred_h  = std::exp(dh) * bbox_h;
                 facerect.x1 =
                         std::max(std::min(static_cast<double>(width - 1),
-                                          (pred_cx - 0.5 * pred_w) / im_scale_),
+                                          (pred_cx - 0.5 * pred_w) / img_x_scale_),
                                  0.0);
                 facerect.y1 =
                         std::max(std::min(static_cast<double>(height - 1),
-                                          (pred_cy - 0.5 * pred_h) / im_scale_),
+                                          (pred_cy - 0.5 * pred_h) / img_y_scale_),
                                  0.0);
                 facerect.x2 =
                         std::max(std::min(static_cast<double>(width - 1),
-                                          (pred_cx + 0.5 * pred_w) / im_scale_),
+                                          (pred_cx + 0.5 * pred_w) / img_x_scale_),
                                  0.0);
                 facerect.y2 =
                         std::max(std::min(static_cast<double>(height - 1),
-                                          (pred_cy + 0.5 * pred_h) / im_scale_),
+                                          (pred_cy + 0.5 * pred_h) / img_y_scale_),
                                  0.0);
                 if ((facerect.x2 - facerect.x1 + 1 < min_size_) ||
                     (facerect.y2 - facerect.y1 + 1 < min_size_))

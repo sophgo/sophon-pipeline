@@ -61,12 +61,15 @@ function build_app()
     if [ "$1" == "client" ]; then
        cmake -DTARGET_ARCH=x86 -DUSE_SOPHON_FFMPEG=OFF -DUSE_SOPHON_OPENCV=OFF ..
     else
-       cmake $cmake_params ..
+       cmake $cmake_params $3 ..
     fi
     
     make -j4
+    if [ ! -d ../test_execs ]; then
+        mkdir ../test_execs
+    fi
+    cp bin/cvs20 ../test_execs/$4
     cd ..
-    
 }
 
 
@@ -91,14 +94,17 @@ function release_others() {
 
 
 function build_all() {
-    build_app $1 $2
+    build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_HDMI=ON" cvs20_gui
+    build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=ON" cvs20_detector
+    build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DETECTOR=ON" cvs20_detector_gui
+    build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DECODE=OFF" cvs20_widget
     if [ "$?" == "1" ];then
         break
     fi
-    release_others $1
+    # release_others $1
 }
 
 build_all $1 $2 
-
+tar cvf test_execs.tar test_execs
 
 popd

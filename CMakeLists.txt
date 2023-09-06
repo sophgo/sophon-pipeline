@@ -20,28 +20,61 @@ option(HAVE_TRACKER "Enable tracker" ON)
 option(USE_SOPHON_FFMPEG "Use sophon-ffmpeg" ON)
 option(USE_SOPHON_OPENCV "Use sophon-opencv" ON)
 option(CMODEL_MODE "Run in cmodel mode" OFF)
-option(USE_DEBUG "use debug to print result" ON)
+option(USE_DEBUG "use debug to print result" OFF)
+option(USE_QTGUI "Whether has GUI support" OFF)
 option(A2_SDK "use A2 SDK" ON)
+option(PLD "use PLD debug info" OFF)
+option(WITH_DECODE "with decode process" ON)
+option(WITH_HDMI "with hdmi encode" OFF)
+option(WITH_DETECTOR "with detector" OFF)
+option(WITH_EXTRACTOR "with extractor" OFF)
+option(WITH_OUTPUTER "with client outputer" OFF)
 if(A2_SDK)
     add_definitions(-DA2_SDK=1)
 else()
     add_definitions(-DA2_SDK=0)
-    endif()
+endif()
+if(PLD)
+    add_definitions(-DPLD=1)
+else()
+    add_definitions(-DPLD=0)
+endif()
+if(WITH_DECODE)
+    add_definitions(-DWITH_DECODE=1)
+else()
+    add_definitions(-DWITH_DECODE=0)
+endif()
+if(WITH_HDMI)
+    add_definitions(-DWITH_ENCODE_JPEG=1)   #depend on decode
+    add_definitions(-DWITH_HDMI=1)          #depend on encode_jpeg\QT_GUI, a2 hdmi
+else()
+    add_definitions(-DWITH_ENCODE_JPEG=0)   #depend on decode
+    add_definitions(-DWITH_HDMI=0)          #depend on encode_jpeg\QT_GUI, a2 hdmi
+endif()
+if(WITH_DETECTOR)
+    add_definitions(-DWITH_DETECTOR=1)      #depend on decode
+else()
+    add_definitions(-DWITH_DETECTOR=0)      #depend on decode
+endif()
+if(WITH_EXTRACTOR)
+    add_definitions(-DWITH_EXTRACTOR=1)
+else()
+    add_definitions(-DWITH_EXTRACTOR=0)
+endif()
+if(WITH_OUTPUTER)
+    add_definitions(-DWITH_OUTPUTER=1)     #depend on detector, output rtsp flow to pipeline client.
+else()
+    add_definitions(-DWITH_OUTPUTER=0)
+endif()
 
-add_definitions(-DPLD=1)
-add_definitions(-DWITH_DECODE=1)
-add_definitions(-DWITH_ENCODE_JPEG=0)   #depend on decode
-option(USE_QTGUI "Whether has GUI support" ON)
-add_definitions(-DWITH_HDMI=0)          #depend on encode_jpeg\QT_GUI, a2 hdmi
 add_definitions(-DWITH_ENCODE_H264=0)   #depend on decode
 add_definitions(-DWITH_RESIZE_TEST=0)   #depend on decode\encode_jpeg.
 add_definitions(-DWITH_CONVERTO_TEST=0) #depend on decode\encode_jpeg\resize_test.
-add_definitions(-DWITH_DETECTOR=1)      #depend on decode
 add_definitions(-DWITH_FAKEDATA=0)      #depend on detector, feed fake data to postprocess.
 add_definitions(-DDRAW_DETECTOR=0)      #depend on detector. Func: draw boxes and encode.
-add_definitions(-DWITH_EXTRACTOR=0)
 add_definitions(-DDRAR_EXTRACTOR=0)     #depend on extractor (Not implement yet)
-add_definitions(-DWITH_OUTPUTER=0)      #depend on detector, output rtsp flow to pipeline client.
+# add_definitions(-DWITH_LOAD=1)          #load bmodel
+add_definitions(-DBM_THREAD_SYNC=1)     #if use bm_thread_sync
 
 add_compile_options(-Wno-deprecated-declarations -fPIC)
 
@@ -57,8 +90,8 @@ set(COMMON_TOP ${TOP}/modules)
 if (USE_QTGUI)
     if (${TARGET_ARCH} STREQUAL "soc")
 	    #set(QTDIR /opt/qt5.14-18.04-soc)
-	set(QTDIR /home/lihengfang/work/open-source/qtbase-5.14.2-aarch64/)
-	set(Qt5Widgets_DIR /home/lihengfang/work/open-source/qtbase-5.14.2-aarch64/lib/cmake/Qt5Widgets)
+        set(QTDIR /home/lihengfang/work/open-source/qtbase-5.14.2-aarch64/)
+        set(Qt5Widgets_DIR /home/lihengfang/work/open-source/qtbase-5.14.2-aarch64/lib/cmake/Qt5Widgets)
 	#set(Qt5Widgets_DIR /opt/qt5.14-18.04-soc/lib/cmake/Qt5Widgets)
     else()
         # message(STATUS "Qt5_INCLUDE_DIRS: ${Qt5_INCLUDE_DIRS}")

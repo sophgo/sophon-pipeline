@@ -45,10 +45,11 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
 #endif
 
             // tracker
+
+        #if WITH_TRACKER
         #if PLD
             std::cout<<"go to bm_tracker..."<<std::endl;
         #endif
-        #if WITH_TRACKER
             if (frameInfo.out_datums[frame_idx].obj_rects.size() > 0) {
                 m_chans[ch]->tracker->update(frameInfo.out_datums[frame_idx].obj_rects, frameInfo.out_datums[frame_idx].track_rects);
             }
@@ -203,11 +204,10 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         #if WITH_DECODE
             int got_picture = 0;
             AVFrame *frame = av_frame_alloc();
-            static int ddd = 0;
-            ddd++;
-            std::cout<<"decode times: " << ddd << std::endl;
+            // static int ddd = 0;
+            // ddd++;
+            // std::cout<<"decode times: " << ddd << std::endl;
             pchan->decode_video2(pchan->m_decoder, frame, &got_picture, pkt);
-        
         #endif
         
         #if WITH_ENCODE_H264 //need output format=0

@@ -44,6 +44,9 @@ void container_widget::removeChildWindow(video_widget *pWnd)
 
 void container_widget::UpdateWidgetLayout()
 {
+    // std::cout<<"===1===="<<std::endl;
+    // std::cout<<width()<<" "<<height()<<std::endl;
+    // std::cout<<"===1===="<<std::endl;
     int num = mListWidgets.count();
     if (num == 0) return;
     if (num == 1) {
@@ -93,6 +96,10 @@ void container_widget::UpdateWidgetLayout()
         int n = sqrt(num);
         if (n*n < num) n++;
         const QRect &rc = geometry();
+        // std::cout<<"===2===="<<std::endl;
+        // std::cout<<rc.width()<<" "<<rc.height()<<std::endl;
+        // std::cout<<"===2===="<<std::endl;
+
         int ww = rc.width() / n;
         int wh = rc.height() / (num % n ==0 ? num/n: num/n + 1);
 
@@ -100,7 +107,6 @@ void container_widget::UpdateWidgetLayout()
             int row = i / n;
             int col = i % n;
             QRect rcWiget(col * ww, row*wh, ww-1, wh-1);
-
             QWidget *pWidget = mListWidgets.at(i);
             pWidget->setGeometry(rcWiget);
         }

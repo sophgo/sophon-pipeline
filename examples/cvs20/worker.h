@@ -158,7 +158,7 @@ struct TChannel: public bm::NoCopyable {
             }
             *got_picture += 1;
             static int fff = 0;
-            std::cout<<"cout: decoded_format:"<<frame->format << ", times: " << fff++ <<std::endl;
+            // std::cout<<"cout: decoded_format:"<<frame->format << ", times: " << fff++ <<std::endl;
             break;
         }
 
@@ -198,7 +198,7 @@ class OneCardInferApp {
     std::map<int, TChannelPtr> m_chans;
     std::vector<std::string> m_urls;
 public:
-    OneCardInferApp(AppStatis& statis,bm::VideoUIAppPtr gui, bm::TimerQueuePtr tq, bm::BMNNContextPtr ctx, std::string& output_url, 
+    OneCardInferApp(AppStatis& statis,bm::VideoUIAppPtr& gui, bm::TimerQueuePtr tq, bm::BMNNContextPtr ctx, std::string& output_url, 
             int start_index, int num, int skip=0, int feat_delay=1000, int feat_num=8,
             int use_l2_ddrr=0, int stop_frame_num=0, int save_num=0, int display_num=1): m_detectorDelegate(nullptr), m_channel_num(num),
             m_bmctx(ctx), m_appStatis(statis),m_use_l2_ddrr(use_l2_ddrr), m_stop_frame_num(stop_frame_num), m_save_num(save_num), m_display_num(display_num)

@@ -90,6 +90,7 @@ namespace bm {
         }
 
         int pushFrame(UIFrame &frame) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
             m_frameQue.push(frame);
             return 0;
         }

@@ -11,7 +11,7 @@
 #include <numeric>
 
 Resnet::Resnet(bm::BMNNContextPtr bmctx):m_bmctx(bmctx) {
-    auto net_name = bmctx->network_name(0);
+    auto net_name = "resnet";
     m_bmnet = std::make_shared<bm::BMNNNetwork>(m_bmctx->bmrt(), net_name); //resnet-50
 
     assert(m_bmnet != nullptr);

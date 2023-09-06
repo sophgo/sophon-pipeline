@@ -16,11 +16,7 @@
 
 
 FaceExtract::FaceExtract(bm::BMNNContextPtr bmctx):m_bmctx(bmctx) {
-#if A2_SDK
     auto net_name = bmctx->network_name(0);
-#else
-    auto net_name = bmctx->network_name(1);
-#endif
     m_bmnet = std::make_shared<bm::BMNNNetwork>(m_bmctx->bmrt(), net_name); //feature_extract_bmnetc
 
     assert(m_bmnet != nullptr);

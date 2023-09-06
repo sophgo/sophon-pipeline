@@ -24,8 +24,8 @@ class FaceDetector : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs
     bm::BMNNNetworkPtr bmnet_;
     bool               is4N_;
 
-    double             target_size_{400};
-    double             max_size_ {800};
+    double             target_size_{360};
+    double             max_size_ {640};
     double             im_scale_;
     float              nms_threshold_{0.3};
     float              base_threshold_{0.05};
