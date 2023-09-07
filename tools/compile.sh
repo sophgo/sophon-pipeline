@@ -97,7 +97,8 @@ function build_all() {
     build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_HDMI=ON" cvs20_gui
     build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=ON" cvs20_detector
     build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DETECTOR=ON" cvs20_detector_gui
-    build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DECODE=OFF" cvs20_widget
+    # build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DECODE=OFF" cvs20_widget
+    build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON" cvs20_all
     if [ "$?" == "1" ];then
         break
     fi

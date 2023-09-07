@@ -73,8 +73,10 @@ add_definitions(-DWITH_CONVERTO_TEST=0) #depend on decode\encode_jpeg\resize_tes
 add_definitions(-DWITH_FAKEDATA=0)      #depend on detector, feed fake data to postprocess.
 add_definitions(-DDRAW_DETECTOR=0)      #depend on detector. Func: draw boxes and encode.
 add_definitions(-DDRAR_EXTRACTOR=0)     #depend on extractor (Not implement yet)
-# add_definitions(-DWITH_LOAD=1)          #load bmodel
 add_definitions(-DBM_THREAD_SYNC=1)     #if use bm_thread_sync
+add_definitions(-DFLOW_CONTROL=0)       #not implement yet
+add_definitions(-DWITH_PROFILE=0)
+# add_definitions(-DWITH_LOAD=1)          #load bmodel
 
 add_compile_options(-Wno-deprecated-declarations -fPIC)
 

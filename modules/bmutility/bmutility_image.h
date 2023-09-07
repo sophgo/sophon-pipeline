@@ -41,8 +41,8 @@ namespace bm {
 ///////////////////////////////////////////////////////////////////////////
 #define BM_MEM_DDR0 1
 #define BM_MEM_DDR1 2
-#define BM_MEM_DDR2 4
-#define PLD_HEAP 1
+#define BM_MEM_DDR2 2
+#define PLD_HEAP 0
 #ifndef PLD
   #define PLD 1
 #endif

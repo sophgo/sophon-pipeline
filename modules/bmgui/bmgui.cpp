@@ -46,7 +46,12 @@ namespace bm {
         void frame_dispatch_entry() {
             while (m_appInst != nullptr) {
                 std::vector <UIFrame> frames;
+            #if FLOW_CONTROL
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                m_frameQue.pop_front(frames, 1, 1);
+            #else
                 m_frameQue.pop_front(frames, 1, 16);
+            #endif
                 for (auto &it : frames) {
                     video_widget *pWnd = m_pMainWindow->videoWidget(it.chan_id);
                     if (pWnd) {
@@ -59,6 +64,7 @@ namespace bm {
                         }else{
                             pWnd->GetVideoHwnd()->draw_info(it.datum, it.h, it.w);
                         }
+                    
                     }
                 }
             }
@@ -90,7 +96,6 @@ namespace bm {
         }
 
         int pushFrame(UIFrame &frame) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
             m_frameQue.push(frame);
             return 0;
         }

@@ -24,7 +24,11 @@ static inline bool compareBBox(const bm::NetOutputObject &a, const bm::NetOutput
 
 FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num)
 {
+#if A2_SDK
     auto net_name = "squeezenet"; // origin: 0
+#else
+    auto net_name = "squeezenet_bmnetc";
+#endif
     bmctx_ = bmctx;
     anchor_ratios_.push_back(1.0f);
     anchor_scales_.push_back(1);

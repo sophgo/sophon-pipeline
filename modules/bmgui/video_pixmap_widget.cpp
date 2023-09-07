@@ -33,11 +33,15 @@ video_pixmap_widget::video_pixmap_widget(QWidget *parent) :
     ui(new Ui::video_pixmap_widget)
 {
     ui->setupUi(this);
-    setUpdatesEnabled(true);
+// #if FLOW_CONTROL
+//     setUpdatesEnabled(false);
+// #else
+//     setUpdatesEnabled(true);
+// #endif
     m_refreshTimer = new QTimer(this);
     m_refreshTimer->setTimerType(Qt::PreciseTimer);
     connect(m_refreshTimer, SIGNAL(timeout()), this, SLOT(onRefreshTimeout()));
-    m_refreshTimer->setInterval(25);
+    m_refreshTimer->setInterval(2000);
     m_refreshTimer->start();
 }
 
@@ -79,7 +83,6 @@ int video_pixmap_widget::draw_frame(const bm::DataPtr jpeg, const bm::NetOutputD
     std::lock_guard<std::mutex> lck(m_syncLock);
     m_jpeg = jpeg;
     m_netOutputDatum = datum;
-
     return 0;
 }
 
@@ -122,7 +125,6 @@ void video_pixmap_widget::paintEvent(QPaintEvent *event)
         QImage img = origin.scaled(geometry().size(), Qt::AspectRatioMode::IgnoreAspectRatio);
         painter.drawImage(0, 0, img);
     }
-
 }
 
 unsigned char* video_pixmap_widget::avframe_to_rgb32(const AVFrame *src)
@@ -186,6 +188,18 @@ bool video_pixmap_widget::event(QEvent *e) {
 
 void video_pixmap_widget::onRefreshTimeout()
 {
+    // std::cout<<"==============================="<<std::endl;
+    // std::cout<<"Video_pixmap_widget: repaint"<<std::endl;
+    // std::cout<<"==============================="<<std::endl;
+    // auto currentTime = std::chrono::system_clock::now();
+    // auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime.time_since_epoch());
+    // std::time_t now_c = std::chrono::system_clock::to_time_t(currentTime);
+    // std::tm now_tm = *std::localtime(&now_c);
+    // char buffer[80];
+    // std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &now_tm);
+    // int milliseconds = static_cast<int>(timestamp.count() % 1000);
+    // std::cout << "time now: " << buffer << "." << milliseconds << " ms" << std::endl;
+
     repaint();
     m_roi_heatbeat++;
     if (m_roi_heatbeat > 8) {
