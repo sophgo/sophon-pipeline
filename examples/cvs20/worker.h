@@ -109,7 +109,8 @@ struct TChannel: public bm::NoCopyable {
         av_dict_set_int(&opts, "sophon_idx", dev_id, 0x0);
         av_dict_set(&opts, "output_format", "101", 0);//101
         av_dict_set(&opts, "extra_frame_buffer_num", "14", 0);
-    
+        AVRational desiredFrameRate = {30, 1};
+        av_opt_set_q(m_decoder->priv_data, "framerate", desiredFrameRate, 0);
     #if PLD
         std::cout<<"opening decoder!"<<std::endl;
     #endif

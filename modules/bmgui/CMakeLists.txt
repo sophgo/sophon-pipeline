@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.2)
 project(videoui)
 #add_compile_options(-std=c++11)
+set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
@@ -31,4 +32,4 @@ target_link_libraries(bmgui
         )
 
 add_executable(videoui_demo bmgui_unittest.cpp)
-target_link_libraries(videoui_demo bmgui)
+target_link_libraries(videoui_demo bmgui bmutility)

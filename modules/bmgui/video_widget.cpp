@@ -54,9 +54,6 @@ video_widget::video_widget(QWidget *parent, int fit_mode) :
     m_timer = new QTimer(this);
     connect(m_timer, SIGNAL(timeout()), this, SLOT(onTimeout()));
     m_timer->start(1000);
-    #if FLOW_CONTROL
-        std::this_thread::sleep_for(std::chrono::microseconds(1500));
-    #endif
 }
 
 video_widget::~video_widget()

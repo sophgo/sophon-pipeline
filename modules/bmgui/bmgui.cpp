@@ -44,16 +44,23 @@ namespace bm {
         }
 
         void frame_dispatch_entry() {
+            #if FLOW_CONTROL
+                auto pre_ts = std::chrono::high_resolution_clock::now();
+            #endif
             while (m_appInst != nullptr) {
                 std::vector <UIFrame> frames;
-            #if FLOW_CONTROL
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
-                m_frameQue.pop_front(frames, 1, 1);asd
-            #else
                 m_frameQue.pop_front(frames, 1, 16);
-            #endif
                 for (auto &it : frames) {
                     video_widget *pWnd = m_pMainWindow->videoWidget(it.chan_id);
+                #if FLOW_CONTROL
+                    auto current_ts = std::chrono::high_resolution_clock::now();
+                    std::chrono::duration<double> interval = current_ts - pre_ts;
+                    double interval_ms = 1000 * interval.count();
+                    pre_ts = current_ts;
+                    if(interval_ms < 40){
+                        bm::msleep(40 - interval_ms);
+                    }
+                #endif
                     if (pWnd) {
                         if (it.jpeg_data) {
                             pWnd->GetVideoHwnd()->draw_frame(it.jpeg_data, it.datum, it.h, it.w);

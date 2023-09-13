@@ -374,6 +374,8 @@ namespace bm {
         int width;
         int height;
         int image_format=-1;//default jpeg
+        bm_image bmimg_formmap;
+        bool is_mmap = false;
         
         Data() : dsize(0), data(nullptr){
         }
@@ -388,7 +390,8 @@ namespace bm {
         }
 
         virtual ~Data() {
-            if (data)  delete[] data;
+            if (is_mmap) bm_image_destroy_allinone(&bmimg_formmap);
+            else if (data)  delete[] data;
         }
 
         int size() {

@@ -25,10 +25,6 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         for (int frame_idx = 0; frame_idx < frameInfo.frames.size(); ++frame_idx) {
             int ch = frameInfo.frames[frame_idx].chan_id;
 
-            m_appStatis.m_chan_statis[ch]++;
-            m_appStatis.m_statis_lock.lock();
-            m_appStatis.m_total_statis++;
-            m_appStatis.m_statis_lock.unlock();
 #if USE_DEBUG
             std::ostringstream oss;
             oss << " frame index: " << frameInfo.frames[frame_idx].seq << ", detect " << frameInfo.out_datums[frame_idx].obj_rects.size() << " objs.";
@@ -54,6 +50,12 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 m_chans[ch]->tracker->update(frameInfo.out_datums[frame_idx].obj_rects, frameInfo.out_datums[frame_idx].track_rects);
             }
         #endif
+
+            m_appStatis.m_chan_statis[ch]++;
+            m_appStatis.m_statis_lock.lock();
+            m_appStatis.m_total_statis++;
+            m_appStatis.m_statis_lock.unlock();
+
             // display
 #if USE_QTGUI
             if (ch < m_display_num){

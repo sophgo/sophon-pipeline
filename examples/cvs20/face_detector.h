@@ -28,7 +28,7 @@ class FaceDetector : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs
     double             max_size_ {640};
     double             im_scale_;
     float              nms_threshold_{0.3};
-    float              base_threshold_{0.05};
+    float              base_threshold_{0.5};
     std::vector<float> anchor_ratios_;
     std::vector<float> anchor_scales_;
     int                per_nms_topn_{1000};
