@@ -40,42 +40,9 @@ cp -rf sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-opencv_${x.y.z}/lib ${so
 cp -rf sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-opencv_${x.y.z}/include ${soc-sdk}
 ```
 
-### 2.4 准备第三方库
-
-依赖libgflags-dev、libgoogle-glog-dev
-
-#### 2.4.1 准备和构建qemu虚拟环境
-
-```bash
-# 安装qemu
-sudo apt-get install -y qemu-user-static debootstrap
-# 创建文件夹，并构建虚拟环境，映射到rootfs文件夹内
-mkdir rootfs
-cd rootfs
-# 构建 ubuntu 20.04的rootfs
-sudo qemu-debootstrap --arch=arm64 focal .
-sudo chroot . qemu-aarch64-static /bin/bash
-
-# 进入qemu 后，安装libgflags-dev、libgoogle-glog-dev
-apt-get install -y software-properties-common
-apt-add-repository universe
-apt-get update
-apt-get install -y libgflags-dev libgoogle-glog-dev
-
-# 使用exit命令，退出qemu虚拟环境
-exit
+### 2.4 准备第三方库qt-base
+可以自行编译公版qt，也可以下载我们准备好的qt库，下载方式如下：
 ```
-
-#### 2.4.2 拷贝第三方库的头文件和库
-
-```bash
-# 退出qemu虚拟环境后
-# libgoogle-glog-dev
-cp -rf ${rootfs}/usr/lib/aarch64-linux-gnu/libglog* ${soc-sdk}/lib
-cp -rf ${rootfs}/usr/include/glog ${soc-sdk}/include
-# libgflags-dev
-cp -rf ${rootfs}/usr/lib/aarch64-linux-gnu/libgflags* ${soc-sdk}/lib
-cp -rf ${rootfs}/usr/include/gflags ${soc-sdk}/include
+pip3 install dfn
+python3 -m dfn --url 
 ```
-
-> 这里，交叉编译环境和相关依赖环境的准备步骤已经准备完成，接下来可以编译需要在SoC平台上运行的程序。

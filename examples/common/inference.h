@@ -47,7 +47,7 @@ namespace bm {
 
             postprocess_queue_size = 5;
             postprocess_thread_num = 2;
-            batch_num=1;
+            batch_num=4;
         }
 
         int preprocess_queue_size;
@@ -85,19 +85,19 @@ namespace bm {
 
         }
 
-        int init(const DetectorParam &param, std::shared_ptr<DetectorDelegate<T1, T2>> delegate) {
+        int init(const DetectorParam &param, std::shared_ptr<DetectorDelegate<T1, T2>> delegate, std::string delegate_name) {
             m_param = param;
             m_detect_delegate = delegate;
 
             const int underlying_type_std_queue = 0;
             m_preprocessQue = std::make_shared<BlockingQueue<T1>>(
-                "preprocess", underlying_type_std_queue,
+                delegate_name + "_preprocess", underlying_type_std_queue,
                 param.preprocess_queue_size);
             m_postprocessQue = std::make_shared<BlockingQueue<T2>>(
-                "postprocess", underlying_type_std_queue,
+                delegate_name + "_postprocess", underlying_type_std_queue,
                 param.postprocess_queue_size);
             m_forwardQue = std::make_shared<BlockingQueue<T2>>(
-                "inference", underlying_type_std_queue,
+                delegate_name + "_inference", underlying_type_std_queue,
                 param.inference_queue_size);
 
             m_preprocessWorkerPool.init(m_preprocessQue.get(), param.preprocess_thread_num, param.batch_num, param.batch_num);
@@ -107,7 +107,7 @@ namespace bm {
                 this->m_forwardQue->push(frames);
             });
 
-            m_forwardWorkerPool.init(m_forwardQue.get(), param.inference_thread_num, 1, 8);
+            m_forwardWorkerPool.init(m_forwardQue.get(), param.inference_thread_num, param.batch_num, param.batch_num);
             m_forwardWorkerPool.startWork([this, &param](std::vector<T2> &items) {
                 m_detect_delegate->forward(items);
                 this->m_postprocessQue->push(items);

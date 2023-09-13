@@ -22,7 +22,7 @@ extern "C" {
 namespace bm {
     struct UIFrame {
         int chan_id;
-        bm::DataPtr jpeg_data;
+        bm::DataPtr jpeg_data;//todo: rename jpeg_data to image_data.
         AVFrame *avframe {nullptr};
         int h, w;
         NetOutputDatum datum;

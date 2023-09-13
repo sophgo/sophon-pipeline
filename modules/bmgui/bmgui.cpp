@@ -48,7 +48,7 @@ namespace bm {
                 std::vector <UIFrame> frames;
             #if FLOW_CONTROL
                 std::this_thread::sleep_for(std::chrono::milliseconds(500));
-                m_frameQue.pop_front(frames, 1, 1);
+                m_frameQue.pop_front(frames, 1, 1);asd
             #else
                 m_frameQue.pop_front(frames, 1, 16);
             #endif

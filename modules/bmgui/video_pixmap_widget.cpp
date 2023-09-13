@@ -11,7 +11,7 @@
 #include <memory>
 #include "video_pixmap_widget.h"
 #include "ui_video_pixmap_widget.h"
-
+#include "chrono"
 #if 1
 #include "libyuv.h"
 #endif
@@ -41,7 +41,7 @@ video_pixmap_widget::video_pixmap_widget(QWidget *parent) :
     m_refreshTimer = new QTimer(this);
     m_refreshTimer->setTimerType(Qt::PreciseTimer);
     connect(m_refreshTimer, SIGNAL(timeout()), this, SLOT(onRefreshTimeout()));
-    m_refreshTimer->setInterval(2000);
+    m_refreshTimer->setInterval(1);
     m_refreshTimer->start();
 }
 
@@ -107,14 +107,54 @@ void video_pixmap_widget::paintEvent(QPaintEvent *event)
         painter.drawImage(0, 0, img);
     }
 
+
+#if 1//QT_TIMER
+    if (m_jpeg && m_jpeg->size()> 0) { //jpeg draw
+        auto start_load = std::chrono::high_resolution_clock::now();
+        QImage origin;
+        if(m_jpeg->image_format == FORMAT_RGB_PLANAR){
+            origin = QImage(m_jpeg->ptr<uint8_t>(), m_jpeg->width, m_jpeg->height, QImage::Format_RGB888);
+        }else{
+            origin.loadFromData(m_jpeg->ptr<uint8_t>(), m_jpeg->size());
+        }
+        
+        auto end_load = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed_load = end_load - start_load;
+        double seconds_load = 1000 * elapsed_load.count();
+        std::cout << "load time: " << seconds_load << " ms" << std::endl;
+
+        auto start_drawbox = std::chrono::high_resolution_clock::now();
+        if (m_netOutputDatum.type == bm::NetOutputDatum::Box) drawBox(origin);
+        if (m_netOutputDatum.type == bm::NetOutputDatum::Pose) drawPose(origin);
+        auto end_drawbox = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed_drawbox = end_drawbox - start_drawbox;
+        double seconds_drawbox = 1000 * elapsed_drawbox.count();
+        std::cout << "drawbox time: " << seconds_drawbox << " ms" << std::endl;
+
+        // auto start_scale = std::chrono::high_resolution_clock::now();
+        // QImage img = origin.scaled(geometry().size(), Qt::AspectRatioMode::IgnoreAspectRatio);
+        // auto end_scale = std::chrono::high_resolution_clock::now();
+        // std::chrono::duration<double> elapsed_scale = end_scale - start_scale;
+        // double seconds_scale = 1000 * elapsed_scale.count();
+        // std::cout << "scale time: " << seconds_scale << " ms" << std::endl;
+        
+        auto start_drawimg = std::chrono::high_resolution_clock::now();
+        painter.drawImage(0, 0, origin); //img
+        auto end_drawimg = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed_drawimg = end_drawimg - start_drawimg;
+        double seconds_drawimg = 1000 * elapsed_drawimg.count();
+        std::cout << "drawimg time: " << seconds_drawimg << " ms" << std::endl;
+
+    }
+#else
     if (m_jpeg && m_jpeg->size()> 0) { //jpeg draw
         QImage origin;
         origin.loadFromData(m_jpeg->ptr<uint8_t>(), m_jpeg->size());
-    #if 0
-        std::cout<<"================"<<std::endl;
-        std::cout<<"save qt frame"<<std::endl;
-        std::cout<<"================"<<std::endl;
+    #if SAVE_QT_FRAME
         static int ii = 0;
+        std::cout<<"================"<<std::endl;
+        std::cout<<"save qt frame "<<ii<<std::endl;
+        std::cout<<"================"<<std::endl;
         std::string img_file = "results/qt_frame_" + std::to_string(ii++) + ".jpg";
         FILE *fp = fopen(img_file.c_str(), "wb");
         fwrite(m_jpeg->ptr<uint8_t>(), m_jpeg->size(), 1, fp);
@@ -125,6 +165,7 @@ void video_pixmap_widget::paintEvent(QPaintEvent *event)
         QImage img = origin.scaled(geometry().size(), Qt::AspectRatioMode::IgnoreAspectRatio);
         painter.drawImage(0, 0, img);
     }
+#endif
 }
 
 unsigned char* video_pixmap_widget::avframe_to_rgb32(const AVFrame *src)
@@ -222,7 +263,7 @@ void video_pixmap_widget::drawBox(QImage &dst)
     if (m_netOutputDatum.obj_rects.size() > 0) {
         QPainter painter1(&dst);
         QPen redPen(Qt::green);
-        redPen.setWidth(5);
+        redPen.setWidth(3);
         painter1.setPen(redPen);
         for(int i = 0; i < m_netOutputDatum.obj_rects.size(); ++i) {
 
@@ -236,10 +277,10 @@ void video_pixmap_widget::drawBox(QImage &dst)
             QRect rc(pt.x1, pt.y1, pt.x2-pt.x1, pt.y2-pt.y1);
             painter1.drawRect(rc);
 
-            QFont font("Arail", 40);
-            painter1.setFont(font);
-            QString text = QString("%1-%2").arg(pt.class_id).arg(pt.track_id);
-            painter1.drawText(pt.x1-1, pt.y1-4, text);
+            // QFont font("Arail", 40);
+            // painter1.setFont(font);
+            // QString text = QString("%1-%2").arg(pt.class_id).arg(pt.track_id);
+            // painter1.drawText(pt.x1-1, pt.y1-4, text);
 
         }
     }

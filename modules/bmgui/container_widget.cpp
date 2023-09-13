@@ -48,21 +48,27 @@ void container_widget::UpdateWidgetLayout()
     std::cout<<width()<<" "<<height()<<std::endl;
     std::cout<<"===UpdateWidgetLayout===="<<std::endl;
     int manual_h = height();
-    if (width() == 2560 || width() == 1920){
+    int manual_w = width();
+    if (manual_w == 2560 || manual_w == 1920){
         manual_h = 1080;
     }
+//
+    // manual_w = 960;
+    // manual_h = 540;
+//
+
     int num = mListWidgets.count();
     if (num == 0) return;
     if (num == 1) {
         QWidget *pWidget = mListWidgets.at(0);
-        pWidget->setGeometry(QRect(0, 0, width(), manual_h));
-        // pWidget->setGeometry(QRect(0, 0, width(), height()));
+        pWidget->setGeometry(QRect(0, 0, manual_w, manual_h));
+        // pWidget->setGeometry(QRect(0, 0, manual_w, height()));
     }else if (num == 13) {
         int n = 4;
         QRect rc = geometry();
         int ww = rc.width() / n;
         int wh = rc.height() / n;
-        rc.setWidth(width());
+        rc.setWidth(manual_w);
         rc.setHeight(manual_h);
         for (int i = 0; i < num; ++i) {
             if (i < 5) {
@@ -102,7 +108,7 @@ void container_widget::UpdateWidgetLayout()
         int n = sqrt(num);
         if (n*n < num) n++;
         QRect rc = geometry();
-        rc.setWidth(width());
+        rc.setWidth(manual_w);
         rc.setHeight(manual_h);
         // std::cout<<"===2===="<<std::endl;
         // std::cout<<rc.width()<<" "<<rc.height()<<std::endl;

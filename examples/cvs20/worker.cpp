@@ -137,12 +137,18 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
 
 #if WITH_DETECTOR
     param.batch_num = m_detectorDelegate->get_max_batch();
-    m_inferPipe.init(param, m_detectorDelegate);
+    m_inferPipe.init(param, m_detectorDelegate, "detector");
 #endif
     //feature
+    cv::Mat feature_mat;
 #if WITH_EXTRACTOR
     param.batch_num = m_featureDelegate->get_max_batch();
-    m_featurePipe.init(param, m_featureDelegate);
+    m_featurePipe.init(param, m_featureDelegate, "extractor");
+#if USE_SOPHON_OPENCV
+    feature_mat = cv::imread("face.jpeg", cv::IMREAD_COLOR, m_dev_id);
+#else
+    feature_mat = cv::imread("face.jpeg", cv::IMREAD_COLOR);
+#endif
 #endif
 
     for(int i = 0; i < m_channel_num; ++i) {
@@ -198,7 +204,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             if (pchan->outputer) pchan->outputer->CloseOutputStream();
         });
 
-        pchan->demuxer->set_read_Frame_callback([this, pchan, ch](AVPacket* pkt){
+        pchan->demuxer->set_read_Frame_callback([this, pchan, ch, feature_mat](AVPacket* pkt){
             int ret = 0;
 
         #if WITH_DECODE
@@ -208,6 +214,11 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             // ddd++;
             // std::cout<<"decode times: " << ddd << std::endl;
             pchan->decode_video2(pchan->m_decoder, frame, &got_picture, pkt);
+            if(got_picture){
+                m_appStatis.m_statis_lock.lock();
+                m_appStatis.m_total_decode++;
+                m_appStatis.m_statis_lock.unlock();
+            }
         #endif
         
         #if WITH_ENCODE_H264 //need output format=0
@@ -340,7 +351,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 size_t out_size = 0;
                 ret = bmcv_image_jpeg_enc(m_bmctx->handle(), 1, &image1, (void**)&jpeg_data, &out_size, 85);
                 if (ret == BM_SUCCESS) {
-                #if USE_QTGUI && WITH_HDMI //post avpkt directly, rtsp or tcp, cannot be simultaneous with outputer above.
+                #if USE_QTGUI && WITH_HDMI
                     bm::NetOutputObject fake_object(100,100,200,200);
                     bm::NetOutputObjects fake_objects{fake_object};
                     bm::NetOutputDatum fake_datum(fake_objects);
@@ -355,6 +366,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     }
                 #else
                     static int ii = 0;
+                    std::cout<<"==saving decoded frames "<<ii<<std::endl;
                     std::string img_file = "results/decoded_frame_" + std::to_string(ii++) + ".jpg";
                     FILE *fp = fopen(img_file.c_str(), "wb");
                     fwrite(jpeg_data, out_size, 1, fp);
@@ -387,9 +399,6 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     fbi.avpkt = av_packet_alloc();
                     av_frame_ref(fbi.avframe, frame);
                     av_packet_ref(fbi.avpkt, pkt);
-                    m_appStatis.m_statis_lock.lock();
-                    m_appStatis.m_total_decode++;
-                    m_appStatis.m_statis_lock.unlock();
                     m_inferPipe.push_frame(&fbi);
                 }
             }
@@ -405,9 +414,9 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     featureFrame.chan_id = ch;
                     featureFrame.seq++;
 #if USE_SOPHON_OPENCV
-                    featureFrame.img = cv::imread("face.jpeg", cv::IMREAD_COLOR, m_dev_id);
+                    featureFrame.img = feature_mat;
 #else
-                    featureFrame.img = cv::imread("face.jpeg", cv::IMREAD_COLOR);
+                    featureFrame.img = feature_mat; //todo: read image buffer instead of jpg.
 #endif
                     if (featureFrame.img.empty()) {
                         printf("ERROR:Can't find face.jpg in workdir!\n");

@@ -59,14 +59,13 @@ FaceDetector::~FaceDetector()
 }
 
 void FaceDetector::calc_resized_HW(int image_h, int image_w, int *p_h, int *p_w) {
+#if DYNAMIC_SIZE
     int im_size_min = std::min(image_h, image_w);
     int im_size_max = std::max(image_h, image_w);
     im_scale_  = target_size_ / im_size_min;
     if (im_scale_ * im_size_max > max_size_) {
         im_scale_ = max_size_ / im_size_max;
     }
-
-#if DYNAMIC_SIZE
 
     img_x_scale_ = im_scale_;
     img_y_scale_ =  im_scale_;
@@ -165,15 +164,41 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             ret = bmcv_image_vpp_convert(handle, 1, image1, &resized_imgs[i], NULL, BMCV_INTER_LINEAR);
             assert(BM_SUCCESS == ret);
 
+
+#if USE_QTGUI
+            bm_image image2;
+            int image2_h = image1.height / 2;
+            int image2_w = image1.width / 2;
+        #if USE_JPEG
             uint8_t *jpeg_data=NULL;
             size_t out_size = 0;
-#if USE_QTGUI
-            bmcv_image_jpeg_enc(handle, 1, &image1, (void**)&jpeg_data, &out_size, 85);
-#endif
+            bm_image_create(handle, image2_h, image2_w, image1.image_format, image1.data_type, &image2, NULL);
+            bmcv_image_vpp_convert(handle, 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
+            bmcv_image_jpeg_enc(handle, 1, &image2, (void**)&jpeg_data, &out_size, 85);
             frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size);
+        #else
+            bm_image_create(handle, image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, NULL);
+            bmcv_image_vpp_convert(handle, 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
+            int plane_num = bm_image_get_plane_num(image2);
+            int plane_size[1];
+            assert(0 == bm_image_get_byte_size(image2, plane_size));
+            uint8_t *buffers_image2[1]={0};
+            buffers_image2[0] = new uint8_t[plane_size[0]];
+            assert(BM_SUCCESS == bm_image_copy_device_to_host(image2, (void**)buffers_image2));//RGB
+            frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(buffers_image2[0], plane_size[0]);
+            frames[start_idx + i].jpeg_data->height = image2.height;
+            frames[start_idx + i].jpeg_data->width = image2.width;
+            frames[start_idx + i].jpeg_data->image_format = FORMAT_RGB_PLANAR;
+        #endif
+            frames[start_idx + i].height= image2.height;
+            frames[start_idx + i].width = image2.width;
+            img_qt_x_scale_ = ((float)image1.width / (float)image2.width);
+            img_qt_y_scale_ = ((float)image1.height / (float)image2.height);
+            bm_image_destroy_allinone(&image2);
+#else
             frames[start_idx + i].height= image1.height;
             frames[start_idx + i].width = image1.width;
-
+#endif
             av_frame_unref(frames[start_idx + i].avframe);
             av_frame_free(&frames[start_idx + i].avframe);
         #if DRAW_DETECTOR
@@ -703,19 +728,19 @@ void FaceDetector::generate_proposal(const float *          scores,
                 float pred_h  = std::exp(dh) * bbox_h;
                 facerect.x1 =
                         std::max(std::min(static_cast<double>(width - 1),
-                                          (pred_cx - 0.5 * pred_w) / img_x_scale_),
+                                          (pred_cx - 0.5 * pred_w) / img_x_scale_ / img_qt_x_scale_),
                                  0.0);
                 facerect.y1 =
                         std::max(std::min(static_cast<double>(height - 1),
-                                          (pred_cy - 0.5 * pred_h) / img_y_scale_),
+                                          (pred_cy - 0.5 * pred_h) / img_y_scale_ / img_qt_y_scale_),
                                  0.0);
                 facerect.x2 =
                         std::max(std::min(static_cast<double>(width - 1),
-                                          (pred_cx + 0.5 * pred_w) / img_x_scale_),
+                                          (pred_cx + 0.5 * pred_w) / img_x_scale_ / img_qt_x_scale_),
                                  0.0);
                 facerect.y2 =
                         std::max(std::min(static_cast<double>(height - 1),
-                                          (pred_cy + 0.5 * pred_h) / img_y_scale_),
+                                          (pred_cy + 0.5 * pred_h) / img_y_scale_ / img_qt_y_scale_),
                                  0.0);
                 if ((facerect.x2 - facerect.x1 + 1 < min_size_) ||
                     (facerect.y2 - facerect.y1 + 1 < min_size_))

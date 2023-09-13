@@ -41,7 +41,7 @@ namespace bm {
 ///////////////////////////////////////////////////////////////////////////
 #define BM_MEM_DDR0 1
 #define BM_MEM_DDR1 2
-#define BM_MEM_DDR2 2
+#define BM_MEM_DDR2 4
 #define PLD_HEAP 0
 #ifndef PLD
   #define PLD 1
@@ -387,7 +387,11 @@ struct BMImage {
       #if PLD_HEAP
         bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR0);
       #else
+      #if A2_SDK
+        bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR1);
+      #else
         bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR2);
+      #endif
       #endif
         int size = in->height * stride[0];
         if (data_four_denominator != -1) {
@@ -398,6 +402,8 @@ struct BMImage {
         } else {
           #if PLD_HEAP
             bm_malloc_device_byte_heap(handle, &input_addr[0], BM_MEM_DDR0, size);
+          #elif A2_SDK
+            bm_malloc_device_byte_heap(handle, &input_addr[0], BM_MEM_DDR1, size);
           #else
             bm_malloc_device_byte_heap(handle, &input_addr[0], BM_MEM_DDR2, size);
           #endif
@@ -411,6 +417,8 @@ struct BMImage {
             } else {
               #if PLD_HEAP
                 bm_malloc_device_byte_heap(handle, &input_addr[1], BM_MEM_DDR0, size);
+              #elif A2_SDK
+                bm_malloc_device_byte_heap(handle, &input_addr[1], BM_MEM_DDR1, size);
               #else
                 bm_malloc_device_byte_heap(handle, &input_addr[1], BM_MEM_DDR2, size);
               #endif
@@ -425,6 +433,8 @@ struct BMImage {
             } else {
               #if PLD_HEAP
                 bm_malloc_device_byte_heap(handle, &input_addr[2], BM_MEM_DDR0, size);
+              #elif A2_SDK
+                bm_malloc_device_byte_heap(handle, &input_addr[2], BM_MEM_DDR1, size);
               #else
                 bm_malloc_device_byte_heap(handle, &input_addr[2], BM_MEM_DDR2, size);
               #endif

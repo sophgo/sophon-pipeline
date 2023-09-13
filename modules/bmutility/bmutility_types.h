@@ -370,6 +370,11 @@ namespace bm {
         size_t dsize;
         uint8_t *data;
 
+        //for image data
+        int width;
+        int height;
+        int image_format=-1;//default jpeg
+        
         Data() : dsize(0), data(nullptr){
         }
 

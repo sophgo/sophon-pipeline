@@ -236,7 +236,10 @@ int main(int argc, char *argv[])
                     bm_heap_stat& heap = bm_dev_stat.heap_stat[hi];
                     printf("heap %d, mem_used/mem_total: %d/%d, usage: %f\n", hi, heap.mem_used, heap.mem_total, (float)heap.mem_used/(float)heap.mem_total);
                 }
-                int vpu_usage[6], jpu_usage[5], vpp_usage[5] = {0};
+                int vpu_usage[6], jpu_usage[5], vpp_usage[5];
+                memset(vpu_usage, 0, sizeof(int)*6);
+                memset(jpu_usage, 0, sizeof(int)*5);
+                memset(vpp_usage, 0, sizeof(int)*5);
                 bm_get_vpu_instant_usage(dev_handle, vpu_usage);
                 bm_get_jpu_core_usage(dev_handle, jpu_usage);
                 bm_get_vpp_instant_usage(dev_handle, vpp_usage);
@@ -259,12 +262,14 @@ int main(int argc, char *argv[])
     uint64_t timer_id;
     tqp->create_timer(1000, [&appStatis, &card_num](){
         int ch = 0;
+        appStatis.m_total_decode_fpsPtr->update(appStatis.m_total_decode);
         appStatis.m_chan_det_fpsPtr->update(appStatis.m_chan_statis[ch]);
         appStatis.m_total_det_fpsPtr->update(appStatis.m_total_statis);
 
         appStatis.m_chan_feat_fpsPtr->update(appStatis.m_chan_feat_stat[ch]);
         appStatis.m_total_feat_fpsPtr->update(appStatis.m_total_feat_stat);
 
+        double decodefps = appStatis.m_total_decode_fpsPtr->getSpeed();
         double chanfps = appStatis.m_chan_det_fpsPtr->getSpeed();
         double totalfps = appStatis.m_total_det_fpsPtr->getSpeed();
 
@@ -287,6 +292,7 @@ int main(int argc, char *argv[])
                 feat_totalfps, ch, feat_chanfps);
         printf("==========================\n");
     #endif
+        std::cout << "total decode fps = " << decodefps << std::endl;
         std::cout << "[" << bm::timeToString(time(0)) << "] det ([SUCCESS: "
         << appStatis.m_total_statis << "/" << appStatis.m_total_decode << "]total fps ="
         << std::setiosflags(std::ios::fixed) << std::setprecision(1) << totalfps

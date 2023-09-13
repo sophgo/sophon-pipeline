@@ -18,7 +18,7 @@ endif()
 
 option(HAVE_TRACKER "Enable tracker" ON)
 option(USE_SOPHON_FFMPEG "Use sophon-ffmpeg" ON)
-option(USE_SOPHON_OPENCV "Use sophon-opencv" ON)
+option(USE_SOPHON_OPENCV "Use sophon-opencv" OFF)
 option(CMODEL_MODE "Run in cmodel mode" OFF)
 option(USE_DEBUG "use debug to print result" OFF)
 option(USE_QTGUI "Whether has GUI support" OFF)
@@ -47,6 +47,9 @@ endif()
 if(WITH_HDMI)
     add_definitions(-DWITH_ENCODE_JPEG=1)   #depend on decode
     add_definitions(-DWITH_HDMI=1)          #depend on encode_jpeg\QT_GUI, a2 hdmi
+elseif(WITH_ENCODE)
+    add_definitions(-DWITH_ENCODE_JPEG=1)   #depend on decode
+    add_definitions(-DWITH_HDMI=0)          #depend on encode_jpeg\QT_GUI, a2 hdmi
 else()
     add_definitions(-DWITH_ENCODE_JPEG=0)   #depend on decode
     add_definitions(-DWITH_HDMI=0)          #depend on encode_jpeg\QT_GUI, a2 hdmi
@@ -75,7 +78,9 @@ add_definitions(-DDRAW_DETECTOR=0)      #depend on detector. Func: draw boxes an
 add_definitions(-DDRAR_EXTRACTOR=0)     #depend on extractor (Not implement yet)
 add_definitions(-DBM_THREAD_SYNC=1)     #if use bm_thread_sync
 add_definitions(-DFLOW_CONTROL=0)       #not implement yet
-add_definitions(-DWITH_PROFILE=0)
+add_definitions(-DWITH_PROFILE=0)       #tpu/cpu/mem profile
+add_definitions(-DSAVE_QT_FRAME=0)
+# add_definitions(-DPRINT_QUEUE=1)        #print blocking queue name and pop size
 # add_definitions(-DWITH_LOAD=1)          #load bmodel
 
 add_compile_options(-Wno-deprecated-declarations -fPIC)
@@ -92,8 +97,8 @@ set(COMMON_TOP ${TOP}/modules)
 if (USE_QTGUI)
     if (${TARGET_ARCH} STREQUAL "soc")
 	    #set(QTDIR /opt/qt5.14-18.04-soc)
-        set(QTDIR /home/lihengfang/work/open-source/qtbase-5.14.2-aarch64/)
-        set(Qt5Widgets_DIR /home/lihengfang/work/open-source/qtbase-5.14.2-aarch64/lib/cmake/Qt5Widgets)
+        set(QTDIR ${QT_PATH})
+        set(Qt5Widgets_DIR ${QT_PATH}/lib/cmake/Qt5Widgets)
 	#set(Qt5Widgets_DIR /opt/qt5.14-18.04-soc/lib/cmake/Qt5Widgets)
     else()
         # message(STATUS "Qt5_INCLUDE_DIRS: ${Qt5_INCLUDE_DIRS}")
@@ -151,10 +156,8 @@ if (${TARGET_ARCH} STREQUAL "x86")
 elseif (${TARGET_ARCH} STREQUAL "soc")
     set(libsophon_inc_dirs ${LIBSOPHON_TOP}/include
     CACHE INTERNAL "")
-
-    if(A2_SDK)
+    if (A2_SDK)
         set(sophon_opencv_inc_dirs  /home/lihengfang/work/open-source/opencv-3.4.16/build/install/include) #official opencv
-        # set(sophon_opencv_inc_dirs /home/lihengfang/work/sophon_media/buildit/_CPack_Packages/Linux/TGZ/sophon_media-soc_1.0.0_aarch64/opt/sophon/sophon-opencv_1.0.0/include/opencv4/) #sophgo opencv
     else()
         set(sophon_opencv_inc_dirs  ${LIBSOPHON_TOP}/include/opencv4)
     endif()
@@ -165,7 +168,7 @@ endif()
 
 message("====================")
 message("USING official OPENCV")
-message("PATH: ${OpenCV_INCLUDE_DIRS}, ${OpenCV_LIBS}")
+message("PATH: ${sophon_opencv_inc_dirs}, ${OpenCV_LIBS}")
 
 set(sophon_ffmpeg_link_libs avfilter avformat avcodec avutil avdevice)# swresample swscale
 set(sophon_opencv_link_libs opencv_core opencv_imgproc opencv_imgcodecs)#opencv_videoio opencv_dnn
@@ -202,9 +205,8 @@ elseif (${TARGET_ARCH} STREQUAL "arm64")
 
 elseif (${TARGET_ARCH} STREQUAL "soc")
     set(sophon_ffmpeg_link_dirs ${LIBSOPHON_TOP}/lib)
-    if(A2_SDK)
+    if (A2_SDK)
         set(sophon_opencv_link_dirs /home/lihengfang/work/bsp-solutions/palladium/athena2/bin/opencv/) #official opencv
-        # set(sophon_opencv_link_dirs /home/lihengfang/work/a2_evb/ramdisk/initramfs/glibc_arm64/test_pack_cvs20/sophon_opencv_libs) #sophgo opencv
     else()
         set(sophon_opencv_link_dirs ${LIBSOPHON_TOP}/lib)
     endif()
@@ -224,14 +226,18 @@ else()
 endif()
 
 if (USE_SOPHON_OPENCV)
+    add_definitions(-DUSE_SOPHON_OPENCV=1)
     set(opencv_inc_dirs ${sophon_opencv_inc_dirs})
     set(opencv_link_dirs ${sophon_opencv_link_dirs})
     set(opencv_link_libs ${sophon_opencv_link_libs})
 else()
-    find_package(OpenCV REQUIRED)
-    set(opencv_inc_dirs ${OpenCV_INCLUDE_DIRS})
-    set(opencv_link_dirs ${OpenCV_LIBRARY_DIRS})
-    set(opencv_link_libs ${OpenCV_LIBS})
+    # find_package(OpenCV REQUIRED)
+    # set(opencv_inc_dirs ${OpenCV_INCLUDE_DIRS})
+    # set(opencv_link_dirs ${OpenCV_LIBRARY_DIRS})
+    # set(opencv_link_libs ${OpenCV_LIBS})
+    set(opencv_inc_dirs ${sophon_opencv_inc_dirs})
+    set(opencv_link_dirs ${sophon_opencv_link_dirs})
+    set(opencv_link_libs ${sophon_opencv_link_libs})
 endif()
 
 

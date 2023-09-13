@@ -195,6 +195,7 @@ public:
 struct AppStatis {
     int m_channel_num;
     std::mutex m_statis_lock;
+    bm::StatToolPtr m_total_decode_fpsPtr;
     bm::StatToolPtr m_chan_det_fpsPtr;
     bm::StatToolPtr m_total_det_fpsPtr;
     bm::StatToolPtr m_chan_feat_fpsPtr;
@@ -209,6 +210,7 @@ struct AppStatis {
 
 
     AppStatis(int num):m_channel_num(num) {
+        m_total_decode_fpsPtr = bm::StatTool::create(5);
         m_chan_det_fpsPtr = bm::StatTool::create(5);
         m_total_det_fpsPtr = bm::StatTool::create(5);
         m_chan_feat_fpsPtr = bm::StatTool::create(5);

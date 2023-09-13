@@ -304,15 +304,31 @@ public:
         m_work_item_func = fn;
 
         for (int i = 0; i < m_thread_num; ++i) {
-            auto pth = new std::thread([this] {
+            auto pth = new std::thread([this, i] {
+                int count = 0;
                 while (true) {
                     std::vector<T> items;
-                    //if (m_work_que->size() < 4) { bm::usleep(10); continue; }
+
+                    if (m_work_que->size() < m_min_pop_num) { 
+                        bm::usleep(1000); 
+                    #if PRINT_QUEUE
+                        if(count++ % 1000 == 0){
+                            std::cout<<"thread "<< i <<", queue: "<< m_work_que->name() << ", queue empty!!! queue size = " << m_work_que->size() << std::endl;
+                            count = 1;
+                        }
+                    #endif
+                        continue; 
+                    }
+                    int queue_size_start = m_work_que->size();
                     if (m_work_que->pop_front(items, m_min_pop_num, m_max_pop_num) != 0) {
                         break;
                     }
                     if (items.empty())
                         break;
+                    int queue_size_end = m_work_que->size();
+                #if PRINT_QUEUE
+                    std::cout<<"thread "<< i <<", poping queue: "<< m_work_que->name() << ", poped size = " << queue_size_start - queue_size_end << std::endl;
+                #endif
                     m_work_item_func(items);
                 }
             });

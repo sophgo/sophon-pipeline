@@ -16,7 +16,11 @@
 
 
 FaceExtract::FaceExtract(bm::BMNNContextPtr bmctx):m_bmctx(bmctx) {
-    auto net_name = bmctx->network_name(0);
+#if A2_SDK
+    auto net_name = "resnet";
+#else
+    std::string net_name = "feature_extract_bmnetc";
+#endif
     m_bmnet = std::make_shared<bm::BMNNNetwork>(m_bmctx->bmrt(), net_name); //feature_extract_bmnetc
 
     assert(m_bmnet != nullptr);
@@ -80,11 +84,7 @@ int FaceExtract::preprocess(std::vector<bm::FeatureFrame> &frames, std::vector<b
             int strides[1]={(int)frames[start_idx + i].img.step};
             ret = bm_image_create(handle, height, width, FORMAT_BGR_PACKED, DATA_TYPE_EXT_1N_BYTE, &image1, strides);
             assert(ret == 0);
-        #if PLD
             ret = bm_image_alloc_dev_mem(image1, BMCV_HEAP_ANY);
-        #else
-            ret = bm_image_alloc_dev_mem(image1, BMCV_IMAGE_FOR_IN);
-        #endif
             assert(ret == 0);
             auto frame = frames[start_idx + i].img;
             void *buffers[4]={0};
@@ -118,17 +118,18 @@ int FaceExtract::preprocess(std::vector<bm::FeatureFrame> &frames, std::vector<b
             delete [] buffers_image1[0];
             std::cout<<std::endl<<"========================="<<std::endl;
         #endif
-        #if 1 // PLD
-            std::cout<<"convert packed to plannar"<<std::endl;
+        #if 1 //PLD
+            // std::cout<<"convert packed to plannar"<<std::endl;
             bm_image image_planar;
             int strides_planar[3];
             strides_planar[0]=strides_planar[1]=strides_planar[2] = FFALIGN(width, 64);
             assert(0 == bm_image_create(handle, height, width, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &image_planar, strides_planar));
             assert(0 == bmcv_image_storage_convert(handle, 1, &image1, &image_planar));
-            std::cout<<"this is face_extract.cpp:100 bmcv_image_vpp_convert"<<std::endl;
+            // std::cout<<"this is face_extract.cpp:100 bmcv_image_vpp_convert"<<std::endl;
             ret = bmcv_image_vpp_convert(handle, 1, image_planar, &resized_imgs[i], NULL, BMCV_INTER_LINEAR);   
             //ret = bmcv_image_vpp_convert(handle, 1, image1, &resized_imgs[i], NULL, BMCV_INTER_LINEAR);   
             assert(ret == 0);
+            bm_image_destroy_allinone(&image_planar);
         #endif
         #if PLD_DEBUG_DUMP_DATA
             std::cout<<"resized_:data:============="<<std::endl;
@@ -304,7 +305,7 @@ void FaceExtract::extract_facefeature_cpu(bm::FeatureFrameInfo &frame_info) {
     #if 0//A2_SDK
         bm::BMNNTensorPtr output_tensor = get_output_tensor("mobilenetv20_output_flatten0_reshape0_Reshape_f32", frame_info, m_bmnet->get_output_scale(0));
     #else
-        bm::BMNNTensorPtr output_tensor = get_output_tensor("fc1_scale", frame_info, m_bmnet->get_output_scale(0));
+        bm::BMNNTensorPtr output_tensor = get_output_tensor(m_bmnet->m_netinfo->output_names[0], frame_info, m_bmnet->get_output_scale(0));
     #endif
         const void *out_data = (const void *) output_tensor->get_cpu_data();
         auto output_shape = output_tensor->get_shape();
