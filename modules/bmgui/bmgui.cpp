@@ -57,8 +57,9 @@ namespace bm {
                     std::chrono::duration<double> interval = current_ts - pre_ts;
                     double interval_ms = 1000 * interval.count();
                     pre_ts = current_ts;
-                    if(interval_ms < 40){
-                        bm::msleep(40 - interval_ms);
+                    if(std::abs(interval_ms - 25) > 5){
+                        // std::cout<<"sleep "<< 25 - interval_ms <<std::endl;
+                        bm::msleep(25 - interval_ms);
                     }
                 #endif
                     if (pWnd) {
@@ -103,6 +104,7 @@ namespace bm {
         }
 
         int pushFrame(UIFrame &frame) {
+            // std::cout<<"m_frameQue size: "<<m_frameQue.size()<<std::endl;
             m_frameQue.push(frame);
             return 0;
         }

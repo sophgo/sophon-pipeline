@@ -36,7 +36,7 @@ video_pixmap_widget::video_pixmap_widget(QWidget *parent) :
     m_refreshTimer = new QTimer(this);
     m_refreshTimer->setTimerType(Qt::PreciseTimer);
     connect(m_refreshTimer, SIGNAL(timeout()), this, SLOT(onRefreshTimeout()));
-    m_refreshTimer->setInterval(40);
+    m_refreshTimer->setInterval(25);
     m_refreshTimer->start();
 }
 
@@ -102,7 +102,7 @@ void video_pixmap_widget::paintEvent(QPaintEvent *event)
         painter.drawImage(0, 0, img);
     }
 
-
+#define QT_TIMER 0
 #if 1//QT_TIMER
     if (m_jpeg && m_jpeg->size()> 0) { //jpeg draw
     #if QT_TIMER
@@ -132,6 +132,8 @@ void video_pixmap_widget::paintEvent(QPaintEvent *event)
         double seconds_drawbox = 1000 * elapsed_drawbox.count();
         std::cout << "drawbox time: " << seconds_drawbox << " ms" << std::endl;
     #endif
+    
+        //todo: if need scale we should scale
         // auto start_scale = std::chrono::high_resolution_clock::now();
         // QImage img = origin.scaled(geometry().size(), Qt::AspectRatioMode::IgnoreAspectRatio);
         // auto end_scale = std::chrono::high_resolution_clock::now();
@@ -142,7 +144,7 @@ void video_pixmap_widget::paintEvent(QPaintEvent *event)
     #if QT_TIMER
         auto start_drawimg = std::chrono::high_resolution_clock::now();
     #endif
-        painter.drawImage(0, 0, origin); //img
+        painter.drawImage(0, 0, origin); //origin
     #if QT_TIMER
         auto end_drawimg = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_drawimg = end_drawimg - start_drawimg;

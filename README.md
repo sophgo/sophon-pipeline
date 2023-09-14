@@ -67,7 +67,7 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev
 # 若编译需要x86平台上运行的程序：
 ./tools/compile.sh x86 
 # 若编译需要SoC平台上运行的程序，需要先根据2.2.2节准备好相关依赖，再运行下述命令进行编译：
-./tools/compile.sh soc ${soc-sdk} 
+./tools/compile.sh soc ${soc-sdk} ${qt-sdk}
 ````
 
 编译完成后，demo程序将保存在`${SOPHON_PIPELINE}/release/${APP}/${PLATFORM}`文件夹下。
@@ -75,5 +75,4 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev
 ## 3 运行方法
 
 ---
-- [cvs10](./docs/cvs10.md)
-- [cvs11](./docs/cvs11.md)
+- [cvs20](./docs/cvs20.md)

@@ -52,7 +52,7 @@ private:
                 } while (m_limit > 0 && this->size_impl() >= m_limit && !m_stop);
             }
         } else if (this->size_impl() >= m_warning && !m_stop && this->size_impl() % 100 == 0) {
-            //std::cout << "WARNING: " << m_name << " queue_size is " << this->size_impl() << std::endl;
+            std::cout << "WARNING: " << m_name << " queue_size is " << this->size_impl() << std::endl;
         }
 
         if (m_type == 0)
@@ -64,7 +64,7 @@ private:
     }
 
 public:
-    BlockingQueue(const std::string& name="" ,int type=0, int limit = 0, int warning = 32)
+    BlockingQueue(const std::string& name="" ,int type=0, int limit = 64, int warning = 32)
         : m_stop(false), m_limit(limit), m_drop_fn(nullptr), m_warning(warning) {
         m_name = name;
         m_type = type;

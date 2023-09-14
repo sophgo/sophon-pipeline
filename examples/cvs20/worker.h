@@ -194,6 +194,9 @@ class OneCardInferApp {
     int m_display_num;
     FILE *outputFile;
     bm::BMInferencePipe<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo> m_inferPipe;
+    //skip frame queue regather
+    std::queue<bm::skipedFrameinfo> m_skipframe_queue[16]; //todo: set size by channel_num;
+
     bm::BMInferencePipe<bm::FeatureFrame, bm::FeatureFrameInfo> m_featurePipe;
 
     std::map<int, TChannelPtr> m_chans;

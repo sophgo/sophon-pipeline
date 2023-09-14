@@ -113,7 +113,7 @@ namespace bm {
                 this->m_postprocessQue->push(items);
             });
 
-            m_postprocessWorkerPool.init(m_postprocessQue.get(), param.postprocess_thread_num, 1, 8);
+            m_postprocessWorkerPool.init(m_postprocessQue.get(), param.postprocess_thread_num, 1, param.batch_num);
             m_postprocessWorkerPool.startWork([this, &param](std::vector<T2> &items) {
                 m_detect_delegate->postprocess(items);
             });

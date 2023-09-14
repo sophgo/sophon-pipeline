@@ -16,7 +16,7 @@
 
 
 FaceExtract::FaceExtract(bm::BMNNContextPtr bmctx):m_bmctx(bmctx) {
-#if A2_SDK
+#if 1
     auto net_name = "resnet";
 #else
     std::string net_name = "feature_extract_bmnetc";

@@ -24,7 +24,7 @@ static inline bool compareBBox(const bm::NetOutputObject &a, const bm::NetOutput
 
 FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num)
 {
-#if A2_SDK
+#if 1
     auto net_name = "squeezenet"; // origin: 0
 #else
     auto net_name = "squeezenet_bmnetc";
@@ -167,7 +167,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
 
 #if USE_QTGUI
             bm_image image2;
-            int image2_h = 540;
+            int image2_h = 720;
             int image2_w = 1280;
         #if USE_JPEG
             uint8_t *jpeg_data=NULL;
@@ -178,17 +178,17 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size);
         #else
             bm_image_create(handle, image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, NULL);
-            auto start_convert = std::chrono::high_resolution_clock::now();
+            // auto start_convert = std::chrono::high_resolution_clock::now();
             bmcv_image_vpp_convert(handle, 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
-            auto end_convert = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> elapsed_convert = end_convert - start_convert;
-            double seconds_convert = 1000 * elapsed_convert.count();
-            std::cout << "vpp convert time: " << seconds_convert << " ms" << std::endl;
+            // auto end_convert = std::chrono::high_resolution_clock::now();
+            // std::chrono::duration<double> elapsed_convert = end_convert - start_convert;
+            // double seconds_convert = 1000 * elapsed_convert.count();
+            // std::cout << "vpp convert time: " << seconds_convert << " ms" << std::endl;
             int plane_num = bm_image_get_plane_num(image2);
             int plane_size[1];
             assert(0 == bm_image_get_byte_size(image2, plane_size));
             uint8_t *buffers_image2[1]={0};
-            auto start_copy = std::chrono::high_resolution_clock::now();
+            // auto start_copy = std::chrono::high_resolution_clock::now();
         #define USE_MMAP 1
         #if USE_D2S
             buffers_image2[0] = new uint8_t[plane_size[0]];
@@ -201,10 +201,10 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             buffers_image2[0] = (uint8_t*)addr;
             bm_mem_invalidate_device_mem(handle, &image2_dmem);
         #endif
-            auto end_copy = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> elapsed_copy = end_copy - start_copy;
-            double seconds_copy = 1000 * elapsed_copy.count();
-            std::cout << "copy time: " << seconds_copy << " ms" << std::endl;
+            // auto end_copy = std::chrono::high_resolution_clock::now();
+            // std::chrono::duration<double> elapsed_copy = end_copy - start_copy;
+            // double seconds_copy = 1000 * elapsed_copy.count();
+            // std::cout << "copy time: " << seconds_copy << " ms" << std::endl;
             frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(buffers_image2[0], plane_size[0]);
         #if USE_MMAP
             frames[start_idx + i].jpeg_data->bmimg_formmap = image2;

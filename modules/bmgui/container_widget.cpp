@@ -49,9 +49,9 @@ void container_widget::UpdateWidgetLayout()
     std::cout<<"===UpdateWidgetLayout===="<<std::endl;
     int manual_h = height();
     int manual_w = width();
-    if (manual_w == 2560 || manual_w == 1920){
-        manual_h = 1080;
-    }
+    // if (manual_w == 2560 || manual_w == 1920){
+    //     manual_h = 1080;
+    // }
 //
     // manual_w = 960;
     // manual_h = 540;

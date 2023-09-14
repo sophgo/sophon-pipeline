@@ -63,6 +63,11 @@ namespace bm {
         std::vector<bm::NetOutputDatum> out_datums;
     };
 
+struct skipedFrameinfo{
+    AVPacket *avpkt;
+    AVFrame *avframe;
+    bm::DataPtr img_data;
+};
 struct cvs10FrameBaseInfo {
     int chan_id;
     uint64_t seq;
@@ -76,6 +81,7 @@ struct cvs10FrameBaseInfo {
     bm_image original, resized;
     int width, height, original_width, original_height;
     bool skip;
+    std::queue<skipedFrameinfo> skip_frame_queue;
 
     cvs10FrameBaseInfo() : chan_id(0), seq(0), jpeg_data(nullptr), skip(false) {
         memset(&resized, 0, sizeof(bm_image));

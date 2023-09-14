@@ -52,13 +52,28 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         #endif
 
             m_appStatis.m_chan_statis[ch]++;
+            m_appStatis.m_chan_statis[ch]+=frameInfo.frames[frame_idx].skip_frame_queue.size();
             m_appStatis.m_statis_lock.lock();
             m_appStatis.m_total_statis++;
+            m_appStatis.m_total_statis+=frameInfo.frames[frame_idx].skip_frame_queue.size();
             m_appStatis.m_statis_lock.unlock();
 
             // display
 #if USE_QTGUI
             if (ch < m_display_num){
+                while(!frameInfo.frames[frame_idx].skip_frame_queue.empty()){
+                    auto skip_frame = frameInfo.frames[frame_idx].skip_frame_queue.front();
+                    frameInfo.frames[frame_idx].skip_frame_queue.pop();
+                    bm::UIFrame skip_ui_frame;
+                    skip_ui_frame.jpeg_data = skip_frame.img_data;
+                    skip_ui_frame.chan_id = ch;
+                    skip_ui_frame.h = frameInfo.frames[frame_idx].height;
+                    skip_ui_frame.w = frameInfo.frames[frame_idx].width;
+                    skip_ui_frame.datum = frameInfo.out_datums[frame_idx];
+                    // std::cout<<"push skiped frame!!!"<<std::endl;
+                    m_guiReceiver->pushFrame(skip_ui_frame);
+                }
+                    // std::cout<<"push key frame!!!"<<std::endl;
                 bm::UIFrame jpgframe;
                 jpgframe.jpeg_data = frameInfo.frames[frame_idx].jpeg_data;
                 jpgframe.chan_id = ch;
@@ -384,15 +399,72 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         #endif
         #if WITH_DETECTOR
             if (got_picture) {
+            #if 1
+                pchan->seq++;
+                if(pchan->seq % (m_skipN + 1) != 0){
+                    //push frame to skip frame queue
+                    bm::skipedFrameinfo skip_fbi;
+                    
+                #if USE_QTGUI
+                    // auto start_skip = std::chrono::high_resolution_clock::now();
+                    //same part in face_detector.cpp.
+                        bm_image image1;
+                        bm::BMImage::from_avframe(m_bmctx->handle(), frame, image1, true);
+                        bm_image image2;
+                        int image2_h = 720;
+                        int image2_w = 1280;
+                        bm_image_create(m_bmctx->handle(), image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, NULL);
+                        bmcv_image_vpp_convert(m_bmctx->handle(), 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
+                        bm_image_destroy_allinone(&image1);
+                        int plane_num = bm_image_get_plane_num(image2);
+                        int plane_size[1];
+                        assert(0 == bm_image_get_byte_size(image2, plane_size));
+                        uint8_t *buffers_image2[1]={0};
+                        unsigned long long addr;
+                        bm_device_mem_t image2_dmem;
+                        bm_image_get_device_mem(image2, &image2_dmem);
+                        bm_mem_mmap_device_mem(m_bmctx->handle(), &image2_dmem, &addr);
+                        buffers_image2[0] = (uint8_t*)addr;
+                        bm_mem_invalidate_device_mem(m_bmctx->handle(), &image2_dmem);
+                        skip_fbi.img_data = std::make_shared<bm::Data>(buffers_image2[0], plane_size[0]);
+                        skip_fbi.img_data->bmimg_formmap = image2;
+                        skip_fbi.img_data->is_mmap = true;
+                        skip_fbi.img_data->height = image2.height;
+                        skip_fbi.img_data->width = image2.width;
+                        skip_fbi.img_data->image_format = FORMAT_RGB_PLANAR;
+                    // auto end_skip = std::chrono::high_resolution_clock::now();
+                    // std::chrono::duration<double> elapsed_skip = end_skip - start_skip;
+                    // double seconds_skip = 1000 * elapsed_skip.count();
+                    // std::cout << "skip time: " << seconds_skip << " ms" << std::endl;
+                #else //pipeline client
+                    skip_fbi.avpkt = av_packet_alloc();
+                    av_packet_ref(skip_fbi.avpkt, pkt);
+                #endif
+                    m_skipframe_queue[ch].push(skip_fbi);
+                }else{
+                    bm::cvs10FrameBaseInfo fbi;
+                    fbi.seq = pchan->seq;
+                    fbi.chan_id = ch;
+                    fbi.pkt_id = 0;
+                    // std::cout<<"m_skip_frame_queue size: "<<m_skipframe_queue[ch].size()<<std::endl;
+                    while(!m_skipframe_queue[ch].empty()){
+                        fbi.skip_frame_queue.push(m_skipframe_queue[ch].front());
+                        m_skipframe_queue[ch].pop();
+                    }
+                    fbi.avframe = av_frame_alloc();
+                    fbi.avpkt = av_packet_alloc();
+                    av_frame_ref(fbi.avframe, frame);
+                    av_packet_ref(fbi.avpkt, pkt);
+                    m_inferPipe.push_frame(&fbi);
+                }
+            #else // old skip strategy
                 bm::cvs10FrameBaseInfo fbi;
                 fbi.seq = pchan->seq++;
                 fbi.chan_id = ch;
                 fbi.pkt_id = 0;
-
                 if (m_skipN > 0) {
                     if (fbi.seq % (m_skipN + 1) != 0) fbi.skip = true;
                 }
-
 #if 0
                 if (ch == 0) std::cout << " seq = " << fbi.seq << " skip= " << fbi.skip << std::endl;
 #endif
@@ -403,6 +475,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     av_packet_ref(fbi.avpkt, pkt);
                     m_inferPipe.push_frame(&fbi);
                 }
+            #endif
             }
         #endif
         #if WITH_DECODE
