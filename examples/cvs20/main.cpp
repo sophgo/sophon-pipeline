@@ -226,9 +226,9 @@ int main(int argc, char *argv[])
             while(true){
                 bm_dev_stat_t bm_dev_stat;
                 bm_get_stat(dev_handle, &bm_dev_stat);
-                flush_console(0, dev_id * 10, 150, 12);
-                printf("\033\033[H");
-                printf("\033[%d;%dH", dev_id*10, 0); 
+                // flush_console(0, dev_id * 10, 150, 12);
+                // printf("\033\033[H");
+                // printf("\033[%d;%dH", dev_id*10, 0); 
                 printf("=====Card %d, bitmask: %ld, profile %d======\n", dev_id, misc_info.chipid_bit_mask, profile_cnt++);
                 printf("tpu_util: %d\%\n", bm_dev_stat.tpu_util);
                 printf("mem_used/mem_total: %d/%d, usage: %f\n", bm_dev_stat.mem_used, bm_dev_stat.mem_total, (float)bm_dev_stat.mem_used/(float)bm_dev_stat.mem_total);
@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
                 printf("vpp_usage: %d, %d, %d, %d, avg: %f\%\n", vpp_usage[0], vpp_usage[1], vpp_usage[2], vpp_usage[3], cal_avg_usage(vpp_usage, 5));
                 printf("==========================\n\n\n");
                 // fflush(stdout);
-                usleep(100000);
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             }
         });
     #endif
@@ -262,9 +262,9 @@ int main(int argc, char *argv[])
     uint64_t timer_id;
     tqp->create_timer(1000, [&appStatis, &card_num](){
         int ch = 0;
-        // appStatis.m_total_decode_fpsPtr->update(appStatis.m_total_decode);
-        // double decodefps = appStatis.m_total_decode_fpsPtr->getSpeed();
-        // std::cout << "total decode fps = " << decodefps << std::endl;
+        appStatis.m_total_decode_fpsPtr->update(appStatis.m_total_decode);
+        double decodefps = appStatis.m_total_decode_fpsPtr->getSpeed();
+        std::cout << "total decode fps = " << decodefps << std::endl;
 
 
         appStatis.m_chan_det_fpsPtr->update(appStatis.m_chan_statis[ch]);
@@ -279,8 +279,8 @@ int main(int argc, char *argv[])
         double feat_chanfps = appStatis.m_chan_feat_fpsPtr->getSpeed();
         double feat_totalfps = appStatis.m_total_feat_fpsPtr->getSpeed();
     #if WITH_PROFILE
-        printf("\033\033[H");
-        printf("\033[%d;%dH", 80, 0); 
+        // printf("\033\033[H");
+        // printf("\033[%d;%dH", 80, 0); 
         double cpu_usage = get_cpu_usage();
         printf("==========================\n");
         printf("[cpu_usage: %lf]          \n", cpu_usage);

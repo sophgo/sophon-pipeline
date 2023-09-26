@@ -15,7 +15,7 @@
 #include "stream_pusher.h"
 #include "configuration_cvs.h"
 #include "face_detector.h"
-#include "bm_tracker.h"
+// #include "bm_tracker.h"
 #include "common_types.h"
 #include "ff_video_encode.h"
 #ifndef WITH_DECODE
@@ -36,7 +36,7 @@ struct TChannel: public bm::NoCopyable {
     uint64_t seq;
     bm::StreamDemuxer *demuxer;
     bm::FfmpegOutputer *outputer;
-    std::shared_ptr<bm::BMTracker> tracker;
+    // std::shared_ptr<bm::BMTracker> tracker;
     uint64_t m_last_feature_time=0; // last do feature time
     VideoEnc_FFMPEG writer;
 
@@ -45,7 +45,7 @@ struct TChannel: public bm::NoCopyable {
 
     TChannel():channel_id(0), seq(0), demuxer(nullptr) {
 
-         tracker = bm::BMTracker::create();
+        //  tracker = bm::BMTracker::create();
          m_last_feature_time = 0;
          outputer = nullptr;
     }

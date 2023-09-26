@@ -51,6 +51,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             }
         #endif
 
+            // std::cout<<"skip_frame_queue size: "<<frameInfo.frames[frame_idx].skip_frame_queue.size()<<std::endl;
             m_appStatis.m_chan_statis[ch]++;
             m_appStatis.m_chan_statis[ch]+=frameInfo.frames[frame_idx].skip_frame_queue.size();
             m_appStatis.m_statis_lock.lock();
@@ -91,9 +92,6 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
 
                 AVPacket sei_pkt;
                 av_init_packet(&sei_pkt);
-                AVPacket *pkt1 = frameInfo.frames[frame_idx].avpkt;
-                av_packet_copy_props(&sei_pkt, pkt1);
-                sei_pkt.stream_index = pkt1->stream_index;
 
                 //AVCodecID codec_id = m_chans[ch]->decoder->get_video_codec_id();
 
@@ -108,12 +106,25 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     sei_pkt.buf = buf;
 
                 } 
-
+                
+                while(!frameInfo.frames[frame_idx].skip_frame_queue.empty()){
+                    auto reff = frameInfo.frames[frame_idx].skip_frame_queue.front();
+                    av_packet_copy_props(&sei_pkt, reff.avpkt);
+                    sei_pkt.stream_index = reff.avpkt->stream_index;
+                    m_chans[ch]->outputer->InputPacket(&sei_pkt);
+                    m_chans[ch]->outputer->InputPacket(reff.avpkt);
+                    if (reff.avpkt){
+                        av_packet_unref(reff.avpkt);
+                        av_packet_free(&reff.avpkt);
+                    }
+                    frameInfo.frames[frame_idx].skip_frame_queue.pop();
+                }
+                AVPacket *pkt1 = frameInfo.frames[frame_idx].avpkt;
+                av_packet_copy_props(&sei_pkt, pkt1);
+                sei_pkt.stream_index = pkt1->stream_index;
                 m_chans[ch]->outputer->InputPacket(&sei_pkt);
                 m_chans[ch]->outputer->InputPacket(frameInfo.frames[frame_idx].avpkt);
                 av_packet_unref(&sei_pkt);
-
-                                
             }
 
             m_frame_count += 1;
@@ -436,7 +447,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     // std::chrono::duration<double> elapsed_skip = end_skip - start_skip;
                     // double seconds_skip = 1000 * elapsed_skip.count();
                     // std::cout << "skip time: " << seconds_skip << " ms" << std::endl;
-                #else //pipeline client
+                #elif WITH_OUTPUTER //pipeline client
                     skip_fbi.avpkt = av_packet_alloc();
                     av_packet_ref(skip_fbi.avpkt, pkt);
                 #endif

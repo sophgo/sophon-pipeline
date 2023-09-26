@@ -15,7 +15,6 @@
 #define _BM_WRAPPER_HPP_
 
 #include "bmruntime_interface.h"
-#include "bmcv_api.h"
 #if A2_SDK
 extern "C" {
     #include "bmcv_api_ext.h"

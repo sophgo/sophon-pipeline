@@ -79,8 +79,6 @@ private:
     std::mutex m_syncLock;
     int m_roi_heatbeat{0};
     bm::DataPtr m_jpeg;
-
-
 };
 
 #endif // VIDEO_PIXMAP_WIDGET_H

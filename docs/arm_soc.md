@@ -44,5 +44,5 @@ cp -rf sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-opencv_${x.y.z}/include 
 可以自行编译公版qt，也可以下载我们准备好的qt库，下载方式如下：
 ```
 pip3 install dfn
-python3 -m dfn --url 
+python3 -m dfn --url http://disk-sophgo-vip.quickconnect.to/sharing/PxpsFEvEc
 ```

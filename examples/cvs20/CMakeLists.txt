@@ -22,9 +22,9 @@ message("====================================")
 message("====================================")
 message("path: ${opencv_link_libs}")
 if (USE_QTGUI)
-    target_link_libraries(cvs20 bmutility ${opencv_link_libs} ${ffmpeg_link_libs} ${libsophon_link_libs} bmtracker bmgui jsoncpp)
+    target_link_libraries(cvs20 bmutility ${opencv_link_libs} ${ffmpeg_link_libs} ${libsophon_link_libs} bmgui jsoncpp)#bmtracker
 else()
-    target_link_libraries(cvs20 bmutility ${opencv_link_libs} ${ffmpeg_link_libs} ${libsophon_link_libs} bmtracker jsoncpp pthread)
+    target_link_libraries(cvs20 bmutility ${opencv_link_libs} ${ffmpeg_link_libs} ${libsophon_link_libs} jsoncpp pthread)#bmtracker
 endif()
 
 

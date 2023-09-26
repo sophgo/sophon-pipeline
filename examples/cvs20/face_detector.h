@@ -38,8 +38,8 @@ class FaceDetector : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs
     int                anchor_num_;
     double             img_x_scale_;
     double             img_y_scale_;
-    double             img_qt_x_scale_;
-    double             img_qt_y_scale_;
+    double             img_qt_x_scale_ = 1;
+    double             img_qt_y_scale_ = 1;
     int  m_net_h, m_net_w;
     int MAX_BATCH = 1;
     int resize_num_;

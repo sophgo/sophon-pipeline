@@ -666,7 +666,7 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
     #endif
         for (size_t i = 0; i < nmsProposals.size(); ++i) {
             bm::NetOutputObject rect = nmsProposals[i];
-            if (rect.score >= 0.9 && i < 16){
+            if (rect.score >= 0.6 && i < 16){
                 faceRects.push_back(rect);
                 bmcv_rect_t bm_rect{rect.x1, rect.y1, rect.x2 - rect.x1, rect.y2 - rect.y1};
                 bm_rects.push_back(bm_rect);

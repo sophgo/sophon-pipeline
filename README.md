@@ -32,23 +32,7 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 
 ### 2.1 环境准备
 
-如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装 `libsophon`、`sophon-opencv`和`sophon-ffmpeg`。`libsophon`的安装可参考《LIBSOPHON使用手册.pdf》，`sophon-opencv`和`sophon-ffmpeg`的安装可参考《MULTIMEDIA使用手册.pdf》。注：需要获取《LIBSOPHON使用手册.pdf》和《MULTIMEDIA使用手册.pdf》，请联系技术支持。
-
-### 2.2 依赖安装
-
-sophon-pipeline主要依赖 
-
-- libsophon
-- sophon-ffmpeg
-- sophon-opencv
-
-#### 2.2.1 x86 PCIe平台
-
-> 相关依赖：
-```bash
-sudo apt-get install -y libgflags-dev libgoogle-glog-dev
-```
-
+目前只支持soc模式
 #### 2.2.2 arm SoC平台
 
 对于arm SoC平台，内部已经集成了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，位于`/opt/sophon/`下。
@@ -64,13 +48,11 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev
 #### 2.3.1 各个平台编译
 
 ```` bash
-# 若编译需要x86平台上运行的程序：
-./tools/compile.sh x86 
 # 若编译需要SoC平台上运行的程序，需要先根据2.2.2节准备好相关依赖，再运行下述命令进行编译：
 ./tools/compile.sh soc ${soc-sdk} ${qt-sdk}
 ````
 
-编译完成后，demo程序将保存在`${SOPHON_PIPELINE}/release/${APP}/${PLATFORM}`文件夹下。
+编译完成后，可执行程序程序将保存在`${SOPHON_PIPELINE}/test_execs/`文件夹下。
 
 ## 3 运行方法
 

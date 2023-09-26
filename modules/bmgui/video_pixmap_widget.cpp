@@ -133,24 +133,37 @@ void video_pixmap_widget::paintEvent(QPaintEvent *event)
         std::cout << "drawbox time: " << seconds_drawbox << " ms" << std::endl;
     #endif
     
-        //todo: if need scale we should scale
-        // auto start_scale = std::chrono::high_resolution_clock::now();
-        // QImage img = origin.scaled(geometry().size(), Qt::AspectRatioMode::IgnoreAspectRatio);
-        // auto end_scale = std::chrono::high_resolution_clock::now();
-        // std::chrono::duration<double> elapsed_scale = end_scale - start_scale;
-        // double seconds_scale = 1000 * elapsed_scale.count();
-        // std::cout << "scale time: " << seconds_scale << " ms" << std::endl;
-        
-    #if QT_TIMER
-        auto start_drawimg = std::chrono::high_resolution_clock::now();
-    #endif
-        painter.drawImage(0, 0, origin); //origin
-    #if QT_TIMER
-        auto end_drawimg = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed_drawimg = end_drawimg - start_drawimg;
-        double seconds_drawimg = 1000 * elapsed_drawimg.count();
-        std::cout << "drawimg time: " << seconds_drawimg << " ms" << std::endl;
-    #endif
+        if(origin.width() == geometry().height() && origin.width() == geometry().width()){
+        #if QT_TIMER
+            auto start_drawimg = std::chrono::high_resolution_clock::now();
+        #endif
+            painter.drawImage(0, 0, origin); //origin
+        #if QT_TIMER
+            auto end_drawimg = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> elapsed_drawimg = end_drawimg - start_drawimg;
+            double seconds_drawimg = 1000 * elapsed_drawimg.count();
+            std::cout << "drawimg time: " << seconds_drawimg << " ms" << std::endl;
+        #endif
+        }else{ // scale frame to geometry
+        #if QT_TIMER
+            auto start_scale = std::chrono::high_resolution_clock::now();
+        #endif
+            QImage img = origin.scaled(geometry().size(), Qt::AspectRatioMode::IgnoreAspectRatio);
+        #if QT_TIMER
+            auto end_scale = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> elapsed_scale = end_scale - start_scale;
+            double seconds_scale = 1000 * elapsed_scale.count();
+            std::cout << "scale time: " << seconds_scale << " ms" << std::endl;
+            auto start_drawimg = std::chrono::high_resolution_clock::now();
+        #endif
+            painter.drawImage(0, 0, img); //origin
+        #if QT_TIMER
+            auto end_drawimg = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> elapsed_drawimg = end_drawimg - start_drawimg;
+            double seconds_drawimg = 1000 * elapsed_drawimg.count();
+            std::cout << "drawimg time: " << seconds_drawimg << " ms" << std::endl;
+        #endif
+        }
     }
 #else
     if (m_jpeg && m_jpeg->size()> 0) { //jpeg draw

@@ -1,5 +1,4 @@
 builddir=cmake-build-debug
-
 root_dir=$(cd `dirname $BASH_SOURCE[0]`/../ && pwd)
 pushd $root_dir
 
@@ -60,6 +59,8 @@ function build_app()
         cmake_params="$cmake_params -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-aarch64-linux.cmake -DSDK_PATH=${sdk_path}"
     elif [ "$target_arch" == "mips64" ];then
         cmake_params="$cmake_params -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-mips64-linux.cmake"
+    else 
+        cmake_params="$cmake_params -DA2_SDK=off" 
     fi
     
     if [ "$1" == "client" ]; then
@@ -98,20 +99,28 @@ function release_others() {
 
 
 function build_all() {
-    # build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DECODE=ON -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF" cvs20_decode
-    # build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON" cvs20_all
-    # build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=OFF" cvs20_detector
-    # build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=ON" cvs20_extractor
+    build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DECODE=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF" cvs20_widget $3
+    build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DECODE=ON -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF" cvs20_decode
+    build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON" cvs20_all
+    build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=OFF" cvs20_detector
+    build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=ON" cvs20_extractor
     build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON" cvs20_all_gui $3
-    # build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DWITH_ENCODE=ON -DWITH_HDMI=ON" cvs20_gui $3
-    # build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DWITH_ENCODE=ON -DWITH_HDMI=OFF" cvs20_enc $3
-    # build_app $1 /home/lihengfang/work/sophon-pipeline/soc-sdk-230501 "-DA2_SDK=OFF -DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON -DUSE_SOPHON_OPENCV=ON" cvs20_all_se5
+    build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DWITH_ENCODE=ON -DWITH_HDMI=ON" cvs20_gui $3
+    build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DWITH_ENCODE=ON -DWITH_HDMI=OFF" cvs20_enc $3
+    build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON -DWITH_OUTPUTER=ON" cvs20_all_client
+    # build_app $1 /home/lihengfang/work/sophon-pipeline/soc-sdk-230501 \
+    # "-DA2_SDK=OFF -DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON -DUSE_SOPHON_OPENCV=ON" \
+    # cvs20_all_se5
     # build_app $1 /home/lihengfang/work/sophon-pipeline/soc-sdk-230501 \
     # "-DA2_SDK=OFF -DUSE_QTGUI=ON -DWITH_ENCODE=ON -DWITH_HDMI=ON -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DUSE_SOPHON_OPENCV=ON" \
     # cvs20_gui_se5 ~/work/sophon-QT/HDMIDemo/install/
     # build_app $1 /home/lihengfang/work/sophon-pipeline/soc-sdk-230501 \
     # "-DA2_SDK=OFF -DUSE_QTGUI=ON -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON -DUSE_SOPHON_OPENCV=ON" \
     # cvs20_all_gui_se5 ~/work/sophon-QT/HDMIDemo/install/
+    # build_app $1 /home/lihengfang/work/sophon-pipeline/soc-sdk-230501 \
+    # "-DA2_SDK=OFF -DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON -DUSE_SOPHON_OPENCV=ON -DWITH_OUTPUTER=ON" \
+    # cvs20_all_client_se5
+
     if [ "$?" == "1" ];then
         break
     fi
@@ -120,5 +129,6 @@ function build_all() {
 
 build_all $1 $2 $3
 tar cvf test_execs.tar test_execs
+cp -r test_execs release/cvs20/
 
 popd
