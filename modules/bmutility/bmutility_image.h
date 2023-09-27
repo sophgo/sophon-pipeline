@@ -137,16 +137,15 @@ struct BMImage {
     int stride[3] = {0};
     int img_w_real = img_w * data_size;
     if (FORMAT_RGB_PLANAR == img_format ||
-        FORMAT_RGB_PACKED == img_format ||
-        FORMAT_BGR_PLANAR == img_format ||
-        FORMAT_BGR_PACKED == img_format || 
-        FORMAT_RGBP_SEPARATE == img_format || 
-        FORMAT_BGRP_SEPARATE == img_format) {
-    #if PLD
-      stride[0] = stride[1] = stride[2] = FFALIGN(img_w_real, align);
-    #else
+        FORMAT_BGR_PLANAR == img_format ) {
       stride[0] = FFALIGN(img_w_real, align);
-    #endif
+    }else if(FORMAT_RGB_PACKED == img_format ||
+             FORMAT_BGR_PACKED == img_format){
+      stride[0] = FFALIGN(3 * img_w_real, align);
+    }
+     else if(FORMAT_RGBP_SEPARATE == img_format || 
+              FORMAT_BGRP_SEPARATE == img_format){
+      stride[0] = stride[1] = stride[2] = FFALIGN(img_w_real, align);
     } else if (FORMAT_YUV420P == img_format) {
       stride[0] = FFALIGN(img_w_real, align);
       stride[1] = stride[2] = FFALIGN((int)ceil((float)img_w_real / 2), align);
