@@ -16,9 +16,7 @@
 
 #include "bmruntime_interface.h"
 #include "bmcv_api.h"
-extern "C" {
-    #include "bmcv_api_ext.h"
-}
+#include "bmcv_api_ext.h"
 #include "bmlib_runtime.h"
 #include <sys/time.h>
 #include <iostream>
@@ -133,7 +131,7 @@ static inline void bmBufferDeviceMemFree(void *opaque, uint8_t *data)
     testTranscoed->buf0 = NULL;
 
     int ret =  0;
-    ret = bm_image_destroy(testTranscoed->bmImg);
+    ret = bm_image_destroy(*(testTranscoed->bmImg));
     if(testTranscoed->bmImg){
         free(testTranscoed->bmImg);
         testTranscoed->bmImg =NULL;
@@ -284,8 +282,7 @@ static inline bm_status_t bm_image_from_frame (bm_handle_t       &bm_handle,
 		     in.width,
 		     FORMAT_COMPRESSED,
 		     DATA_TYPE_EXT_1N_BYTE,
-		     &cmp_bmimg,
-         NULL);
+		     &cmp_bmimg);
 
     /* calculate physical address of avframe */
     bm_device_mem_t input_addr[4];
@@ -304,13 +301,12 @@ static inline bm_status_t bm_image_from_frame (bm_handle_t       &bm_handle,
 		   in.width,
 		   FORMAT_YUV420P,
 		   DATA_TYPE_EXT_1N_BYTE,
-		   &out,
-       NULL);
+		   &out);
 
-    bm_image_alloc_dev_mem(out, BMCV_HEAP_ANY);
+    bm_image_dev_mem_alloc(out);
     bmcv_rect_t crop_rect = {0, 0, in.width, in.height};
-    bmcv_image_vpp_convert(bm_handle, 1, cmp_bmimg, &out, &crop_rect, BMCV_INTER_LINEAR);
-    bm_image_destroy(&cmp_bmimg);
+    bmcv_image_vpp_convert(bm_handle, 1, cmp_bmimg, &out, &crop_rect);
+    bm_image_destroy(cmp_bmimg);
   } else { /* UNCOMPRESSED NV12 FORMAT */
     /* sanity check */
     if ((0 == in.height) || (0 == in.width) || \
@@ -492,12 +488,12 @@ static inline bm_status_t bm_image_create_batch (bm_handle_t              handle
     if (stride != NULL)
         bm_image_create(handle, img_h, img_w, img_format, data_type, &image[i], stride);
     else
-        bm_image_create(handle, img_h, img_w, img_format, data_type, &image[i], stride);
+        bm_image_create(handle, img_h, img_w, img_format, data_type, &image[i]);
   }
 
   // alloc continuous memory for multi-batch
   if (-1 == heap_mask)
-      res = bm_image_alloc_contiguous_mem (batch_num, image, BMCV_HEAP_ANY);
+      res = bm_image_alloc_contiguous_mem (batch_num, image);
   else
       res = bm_image_alloc_contiguous_mem_heap_mask (batch_num, image, heap_mask);
   return res;
@@ -520,7 +516,7 @@ static inline bm_status_t bm_image_destroy_batch (bm_image *image, int batch_num
 
   // deinit bm image
   for (int i = 0; i < batch_num; i++) {
-    bm_image_destroy (&image[i]);
+    bm_image_destroy (image[i]);
   }
 
   return res;

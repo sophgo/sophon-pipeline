@@ -11,9 +11,7 @@
 #define SOPHON_PIPELINE_RESNET50_H
 
 #include "inference.h"
-extern "C" {
-    #include "bmcv_api_ext.h"
-}
+#include "bmcv_api_ext.h"
 #include "common_types.h"
 
 class Resnet : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo>  {

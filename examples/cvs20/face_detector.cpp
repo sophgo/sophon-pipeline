@@ -121,10 +121,10 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             if ((frames[start_idx + i].chan_id < resize_num_) || (resize_num_ == -1)){
                 bm_image cvs20_image1;
                 bm::BMImage::from_avframe(handle, frames[start_idx + i].avframe, cvs20_image1, true);
-                ret = bmcv_image_vpp_convert(handle, 1, cvs20_image1, &cvs20_resized_imgs[i], NULL, BMCV_INTER_LINEAR);
+                ret = bmcv_image_vpp_convert(handle, 1, cvs20_image1, &cvs20_resized_imgs[i]);
                 assert(BM_SUCCESS == ret);
 
-                bm_image_destroy(&cvs20_image1);
+                bm_image_destroy(cvs20_image1);
             }
         }
 
@@ -141,7 +141,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
         for(int i = 0;i < num; ++i) {
             bm_image image1;
             bm::BMImage::from_avframe(handle, frames[start_idx + i].avframe, image1, true);
-            ret = bmcv_image_vpp_convert(handle, 1, image1, &resized_imgs[i], NULL, BMCV_INTER_LINEAR);
+            ret = bmcv_image_vpp_convert(handle, 1, image1, &resized_imgs[i]);
             assert(BM_SUCCESS == ret);
 
             uint8_t *jpeg_data=NULL;
@@ -157,7 +157,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             av_frame_free(&frames[start_idx + i].avframe);
 
             finfo.frames.push_back(frames[start_idx + i]);
-            bm_image_destroy(&image1);
+            bm_image_destroy(image1);
 #ifdef DEBUG
             if (frames[start_idx].chan_id == 0)
                  std::cout << "[" << frames[start_idx].chan_id << "]total index =" << start_idx + i << std::endl;
@@ -206,7 +206,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
         ret = bmcv_image_convert_to(bmctx_->handle(), num, convert_to_attr, resized_imgs, convertto_imgs);
         assert(ret == 0);
 
-        bm_image_detach_contiguous_mem(num, convertto_imgs);
+        bm_image_dettach_contiguous_mem(num, convertto_imgs);
 
         finfo.input_tensors.push_back(input_tensor);
 

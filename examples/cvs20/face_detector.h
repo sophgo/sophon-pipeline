@@ -11,9 +11,7 @@
 #define SOPHON_PIPELINE_FACE_DETECTOR_H
 
 #include "inference.h"
-extern "C" {
-    #include "bmcv_api_ext.h"
-}
+#include "bmcv_api_ext.h"
 #include "common_types.h"
 #include "bmutility_basemodel.hpp"
 

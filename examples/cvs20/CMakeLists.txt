@@ -16,9 +16,6 @@ link_directories(${ffmpeg_link_dirs} ${libsophon_link_dirs} ${opencv_link_dirs})
 
 
 add_executable(cvs20 ${src_files})
-message("====================================")
-message("====================================")
-message("path: ${opencv_link_libs}")
 if (USE_QTGUI)
     target_link_libraries(cvs20 bmutility ${opencv_link_libs} ${ffmpeg_link_libs} ${libsophon_link_libs} bmtracker bmgui jsoncpp)
 else()

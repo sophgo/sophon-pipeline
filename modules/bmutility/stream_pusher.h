@@ -24,7 +24,7 @@ extern "C" {
 #include "libavformat/avformat.h"
 #include "libavutil/avutil.h"
 #include "libavutil/time.h"
-#include <libavutil/opt.h>
+
 }
 #endif
 
@@ -73,19 +73,6 @@ namespace bm {
                 av_dict_set(&opts, "rtsp_transport", "tcp", 0);
                 av_dict_set(&opts, "muxdelay", "0.1", 0);
             }
-            // av_dict_set
-            // m_ofmt_ctx->oformat = {
-            //     .p.name            = "rtsp",
-            //     .p.long_name       = NULL_IF_CONFIG_SMALL("RTSP output"),
-            //     .priv_data_size    = sizeof(RTSPState),
-            //     .p.audio_codec     = AV_CODEC_ID_AAC,
-            //     .p.video_codec     = AV_CODEC_ID_MPEG4,
-            //     .write_header      = rtsp_write_header,
-            //     .write_packet      = rtsp_write_packet,
-            //     .write_trailer     = rtsp_write_close,
-            //     .p.flags           = AVFMT_NOFILE | AVFMT_GLOBALHEADER,
-            //     .p.priv_class      = &rtsp_muxer_class,
-            // };
 
             //Write file header
             ret = avformat_write_header(m_ofmt_ctx, &opts);
@@ -226,7 +213,7 @@ namespace bm {
                     }
                 }
 
-                // m_ofmt_ctx->oformat->flags |= AVFMT_TS_NONSTRICT;
+                m_ofmt_ctx->oformat->flags |= AVFMT_TS_NONSTRICT;
             }
 
             if (!m_ofmt_ctx) {

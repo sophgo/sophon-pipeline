@@ -107,8 +107,7 @@ enum {	shortcut_zoom_normal 	= Qt::CTRL + Qt::Key_Z,
 inline void convertToShow(const cv::Mat &src, cv::Mat &dst, bool toRGB = true)
 {
     const int src_depth = src.depth();
-    CV_Assert(src_depth != CV_16S && src_depth != CV_32S);
-   //#CV_Assert(src_depth != CV_16F && src_depth != CV_32S);
+    CV_Assert(src_depth != CV_16F && src_depth != CV_32S);
     cv::Mat tmp;
     switch(src_depth)
     {
