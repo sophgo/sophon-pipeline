@@ -172,14 +172,14 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
         #if USE_JPEG
             uint8_t *jpeg_data=NULL;
             size_t out_size = 0;
-            // bm::BMImage::create_batch(handle, image2_h, image2_w, image1.image_format, image1.data_type, &image2, 1);
-            bm_image_create(handle, image2_h, image2_w, image1.image_format, image1.data_type, &image2, NULL);
+            bm::BMImage::create_batch(handle, image2_h, image2_w, image1.image_format, image1.data_type, &image2, 1);
+            // bm_image_create(handle, image2_h, image2_w, image1.image_format, image1.data_type, &image2, NULL);
             bmcv_image_vpp_convert(handle, 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
             bmcv_image_jpeg_enc(handle, 1, &image2, (void**)&jpeg_data, &out_size, 85);
             frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size);
         #else
-            // bm::BMImage::create_batch(handle, image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, 1);
-            bm_image_create(handle, image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, NULL);
+            bm::BMImage::create_batch(handle, image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, 1);
+            // bm_image_create(handle, image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, NULL);
             // auto start_convert = std::chrono::high_resolution_clock::now();
             bmcv_image_vpp_convert(handle, 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
             // auto end_convert = std::chrono::high_resolution_clock::now();

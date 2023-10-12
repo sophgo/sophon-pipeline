@@ -12,6 +12,7 @@
 #include "thread_queue.h"
 #include "mainwindow.h"
 #include "video_widget.h"
+#include "chrono"
 
 namespace bm {
     class VideoUIAppQT: public VideoUIApp {
@@ -22,7 +23,8 @@ namespace bm {
         mainwindow *m_pMainWindow;
         BlockingQueue <UIFrame> m_frameQue;
         std::shared_ptr <std::thread> m_pFrameDispatchThread;
-
+        int m_channel_num = 0;
+        float flow_control_interval = 40;
         void uithread_entry(int num) {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 6, 0))
             QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -52,14 +54,14 @@ namespace bm {
                 m_frameQue.pop_front(frames, 1, 16);
                 for (auto &it : frames) {
                     video_widget *pWnd = m_pMainWindow->videoWidget(it.chan_id);
-                #if FLOW_CONTROL
+                #if FLOW_CONTROL // todo: control for each channel
                     auto current_ts = std::chrono::high_resolution_clock::now();
                     std::chrono::duration<double> interval = current_ts - pre_ts;
                     double interval_ms = 1000 * interval.count();
                     pre_ts = current_ts;
-                    if(std::abs(interval_ms - 25) > 5){
-                        // std::cout<<"sleep "<< 25 - interval_ms <<std::endl;
-                        bm::msleep(25 - interval_ms);
+                    if((flow_control_interval - interval_ms) > 1.0){
+                        // std::cout<<"sleep "<< flow_control_interval - interval_ms <<std::endl;
+                        bm::msleep(flow_control_interval - interval_ms);
                     }
                 #endif
                     if (pWnd) {
@@ -94,6 +96,8 @@ namespace bm {
         }
 
         int bootUI(int num) {
+            m_channel_num = num;
+            flow_control_interval /= m_channel_num;
             m_pUIThread = std::make_shared<std::thread>(&VideoUIAppQT::uithread_entry, this, num);
             assert(m_pUIThread != nullptr);
             return 0;

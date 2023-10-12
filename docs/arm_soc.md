@@ -38,11 +38,18 @@ cp -rf sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-ffmpeg_${x.y.z}/lib ${so
 cp -rf sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-ffmpeg_${x.y.z}/include ${soc-sdk}
 cp -rf sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-opencv_${x.y.z}/lib ${soc-sdk}
 cp -rf sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-opencv_${x.y.z}/include ${soc-sdk}
+
+cd ${soc-sdk}
+pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/a2_bringup/official_opencv.tar.gz
+tar xvf official_opencv.tar.gz
 ```
 
-### 2.4 准备第三方库qt-base
-可以自行编译公版qt，也可以下载我们准备好的qt库，下载方式如下：
-```
+### 2.4 准备第三方库qtbase
+可以自行编译公版qt，也可以下载我们准备好的qtbase库，下载方式如下：
+```bash
 pip3 install dfn
 python3 -m dfn --url http://disk-sophgo-vip.quickconnect.to/sharing/PxpsFEvEc
+sudo apt install unzip #如果有unzip可以跳过这步
+unzip qtbase.zip #qtbase-5.14.2-aarch64
 ```

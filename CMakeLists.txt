@@ -32,6 +32,7 @@ option(WITH_HDMI "with hdmi encode" OFF)
 option(WITH_DETECTOR "with detector" OFF)
 option(WITH_EXTRACTOR "with extractor" OFF)
 option(WITH_OUTPUTER "with client outputer" OFF)
+option(USE_OFFICIAL_OPENCV "use official opencv" ON)
 if(A2_SDK)
     add_definitions(-DA2_SDK=1)
 else()
@@ -80,7 +81,7 @@ add_definitions(-DWITH_FAKEDATA=0)      #depend on detector, feed fake data to p
 add_definitions(-DDRAW_DETECTOR=0)      #depend on detector. Func: draw boxes and encode.
 add_definitions(-DDRAR_EXTRACTOR=0)     #depend on extractor (Not implement yet)
 add_definitions(-DBM_THREAD_SYNC=1)     #if use bm_thread_sync
-add_definitions(-DFLOW_CONTROL=1)       #not implement yet
+add_definitions(-DFLOW_CONTROL=0)       #flow control
 add_definitions(-DWITH_PROFILE=0)       #tpu/cpu/mem profile
 add_definitions(-DSAVE_QT_FRAME=0)
 # add_definitions(-DPRINT_QUEUE=1)        #print blocking queue name and pop size
@@ -159,8 +160,8 @@ if (${TARGET_ARCH} STREQUAL "x86")
 elseif (${TARGET_ARCH} STREQUAL "soc")
     set(libsophon_inc_dirs ${LIBSOPHON_TOP}/include
     CACHE INTERNAL "")
-    if (A2_SDK)
-        set(sophon_opencv_inc_dirs  /home/lihengfang/work/open-source/opencv-3.4.16/build/install/include) #official opencv
+    if (USE_OFFICIAL_OPENCV)
+        set(sophon_opencv_inc_dirs  ${LIBSOPHON_TOP}/official_opencv/include) #official opencv
     else()
         set(sophon_opencv_inc_dirs  ${LIBSOPHON_TOP}/include/opencv4)
     endif()
@@ -171,7 +172,7 @@ endif()
 
 message("====================")
 message("USING official OPENCV")
-message("PATH: ${sophon_opencv_inc_dirs}, ${OpenCV_LIBS}")
+message("PATH:${USE_OFFICIAL_OPENCV} ${sophon_opencv_inc_dirs}, ${OpenCV_LIBS}")
 
 set(sophon_ffmpeg_link_libs avfilter avformat avcodec avutil avdevice)# swresample swscale
 set(sophon_opencv_link_libs opencv_core opencv_imgproc opencv_imgcodecs)#opencv_videoio opencv_dnn
@@ -208,8 +209,8 @@ elseif (${TARGET_ARCH} STREQUAL "arm64")
 
 elseif (${TARGET_ARCH} STREQUAL "soc")
     set(sophon_ffmpeg_link_dirs ${LIBSOPHON_TOP}/lib)
-    if (A2_SDK)
-        set(sophon_opencv_link_dirs /home/lihengfang/work/bsp-solutions/palladium/athena2/bin/opencv/) #official opencv
+    if (USE_OFFICIAL_OPENCV)
+        set(sophon_opencv_link_dirs ${LIBSOPHON_TOP}/official_opencv/lib) #official opencv
     else()
         set(sophon_opencv_link_dirs ${LIBSOPHON_TOP}/lib)
     endif()

@@ -16,6 +16,9 @@
 #include "libyuv.h"
 #endif
 
+#ifndef AUTO_PAINT
+#define AUTO_PAINT 1
+#endif
 template<typename T>
 inline int intRound(const T a)
 {
@@ -33,11 +36,13 @@ video_pixmap_widget::video_pixmap_widget(QWidget *parent) :
     ui(new Ui::video_pixmap_widget)
 {
     ui->setupUi(this);
-    m_refreshTimer = new QTimer(this);
-    m_refreshTimer->setTimerType(Qt::PreciseTimer);
-    connect(m_refreshTimer, SIGNAL(timeout()), this, SLOT(onRefreshTimeout()));
-    m_refreshTimer->setInterval(25);
-    m_refreshTimer->start();
+    #if AUTO_PAINT
+        m_refreshTimer = new QTimer(this);
+        m_refreshTimer->setTimerType(Qt::PreciseTimer);
+        connect(m_refreshTimer, SIGNAL(timeout()), this, SLOT(onRefreshTimeout()));
+        m_refreshTimer->setInterval(40);
+        m_refreshTimer->start();
+    #endif
 }
 
 video_pixmap_widget::~video_pixmap_widget()
@@ -66,6 +71,7 @@ int video_pixmap_widget::draw_frame(const AVFrame *frame, bool bUpdate)
 
     av_frame_ref(m_avframe, frame);
 
+    m_updated = true;
     if (bUpdate) {
         //QEvent *e = new QEvent(BM_UPDATE_VIDEO);
         //QCoreApplication::postEvent(this, e);
@@ -75,9 +81,20 @@ int video_pixmap_widget::draw_frame(const AVFrame *frame, bool bUpdate)
 
 int video_pixmap_widget::draw_frame(const bm::DataPtr jpeg, const bm::NetOutputDatum& datum, int h, int w)
 {
-    std::lock_guard<std::mutex> lck(m_syncLock);
+    #if AUTO_PAINT
+        std::lock_guard<std::mutex> lck(m_syncLock);
+    #endif
     m_jpeg = jpeg;
     m_netOutputDatum = datum;
+    // std::cout<<"m_jpeg = jpeg"<<std::endl;
+    m_updated_lock.lock();
+    m_updated = true;
+    m_updated_lock.unlock();
+    
+    #if !AUTO_PAINT
+        // std::cout<<"repaint!!!"<<std::endl;
+        repaint();
+    #endif
     return 0;
 }
 
@@ -90,6 +107,7 @@ int video_pixmap_widget::draw_info(const bm::NetOutputDatum& info, int h, int w)
 
 void video_pixmap_widget::paintEvent(QPaintEvent *event)
 {
+    // std::cout<<"paintevent!!!"<<std::endl;
     QPainter painter(this);
     std::lock_guard<std::mutex> lck(m_syncLock);
     if (m_avframe != nullptr) {
@@ -249,7 +267,7 @@ bool video_pixmap_widget::event(QEvent *e) {
 void video_pixmap_widget::onRefreshTimeout()
 {
     // std::cout<<"==============================="<<std::endl;
-    // std::cout<<"Video_pixmap_widget: repaint"<<std::endl;
+    // std::cout<<"Video_pixmap_widget: onRefreshTimeout"<<std::endl;
     // std::cout<<"==============================="<<std::endl;
     // auto currentTime = std::chrono::system_clock::now();
     // auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime.time_since_epoch());
@@ -260,7 +278,14 @@ void video_pixmap_widget::onRefreshTimeout()
     // int milliseconds = static_cast<int>(timestamp.count() % 1000);
     // std::cout << "time now: " << buffer << "." << milliseconds << " ms" << std::endl;
 
-    repaint();
+    m_updated_lock.lock();
+    if(m_updated){
+        m_updated_lock.unlock();
+        repaint();
+        m_updated_lock.lock();
+        m_updated = false;
+    }
+    m_updated_lock.unlock();
     m_roi_heatbeat++;
     if (m_roi_heatbeat > 8) {
         m_roi_heatbeat = 0;

@@ -78,6 +78,8 @@ private:
     QTimer *m_refreshTimer;
     std::mutex m_syncLock;
     int m_roi_heatbeat{0};
+    bool m_updated;
+    std::mutex m_updated_lock;
     bm::DataPtr m_jpeg;
 };
 
