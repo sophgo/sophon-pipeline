@@ -32,7 +32,6 @@ option(WITH_HDMI "with hdmi encode" OFF)
 option(WITH_DETECTOR "with detector" OFF)
 option(WITH_EXTRACTOR "with extractor" OFF)
 option(WITH_OUTPUTER "with client outputer" OFF)
-option(USE_OFFICIAL_OPENCV "use official opencv" ON)
 if(A2_SDK)
     add_definitions(-DA2_SDK=1)
 else()
@@ -160,7 +159,7 @@ if (${TARGET_ARCH} STREQUAL "x86")
 elseif (${TARGET_ARCH} STREQUAL "soc")
     set(libsophon_inc_dirs ${LIBSOPHON_TOP}/include
     CACHE INTERNAL "")
-    if (A2_SDK AND USE_OFFICIAL_OPENCV)
+    if (A2_SDK AND (NOT USE_SOPHON_OPENCV))
         set(sophon_opencv_inc_dirs  ${LIBSOPHON_TOP}/official_opencv/include) #official opencv
     else()
         set(sophon_opencv_inc_dirs  ${LIBSOPHON_TOP}/include/opencv4)
@@ -172,7 +171,7 @@ endif()
 
 message("====================")
 message("USING official OPENCV")
-message("PATH:${USE_OFFICIAL_OPENCV} ${sophon_opencv_inc_dirs}, ${OpenCV_LIBS}")
+message("USE_SOPHON_OPENCV: ${USE_SOPHON_OPENCV} ${sophon_opencv_inc_dirs}, ${OpenCV_LIBS}")
 
 set(sophon_ffmpeg_link_libs avfilter avformat avcodec avutil avdevice)# swresample swscale
 set(sophon_opencv_link_libs opencv_core opencv_imgproc opencv_imgcodecs)#opencv_videoio opencv_dnn
@@ -209,7 +208,7 @@ elseif (${TARGET_ARCH} STREQUAL "arm64")
 
 elseif (${TARGET_ARCH} STREQUAL "soc")
     set(sophon_ffmpeg_link_dirs ${LIBSOPHON_TOP}/lib)
-    if (A2_SDK AND USE_OFFICIAL_OPENCV)
+    if (A2_SDK AND (NOT USE_SOPHON_OPENCV))
         set(sophon_opencv_link_dirs ${LIBSOPHON_TOP}/official_opencv/lib) #official opencv
     else()
         set(sophon_opencv_link_dirs ${LIBSOPHON_TOP}/lib)
