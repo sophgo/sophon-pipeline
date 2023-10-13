@@ -24,7 +24,7 @@ namespace bm {
         BlockingQueue <UIFrame> m_frameQue[MAX_CHAN_NUM];
         std::shared_ptr <std::thread> m_pFrameDispatchThread[MAX_CHAN_NUM];
         int m_channel_num = 0;
-        float flow_control_interval = 40;
+        float flow_control_interval = 30;
         void uithread_entry(int num) {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 6, 0))
             QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -54,7 +54,7 @@ namespace bm {
             #endif
             while (m_appInst != nullptr) {
                 std::vector <UIFrame> frames;
-                m_frameQue[chan_id].pop_front(frames, 1, 16, 40);
+                m_frameQue[chan_id].pop_front(frames, 1, 16);
                 for (auto &it : frames) {
                     assert(chan_id == it.chan_id);
                     video_widget *pWnd = m_pMainWindow->videoWidget(it.chan_id);
