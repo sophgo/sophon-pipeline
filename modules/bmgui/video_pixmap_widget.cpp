@@ -17,7 +17,7 @@
 #endif
 
 #ifndef AUTO_PAINT
-#define AUTO_PAINT 1
+#define AUTO_PAINT 1 //todo: manual paint has bug.
 #endif
 template<typename T>
 inline int intRound(const T a)
@@ -40,7 +40,7 @@ video_pixmap_widget::video_pixmap_widget(QWidget *parent) :
         m_refreshTimer = new QTimer(this);
         m_refreshTimer->setTimerType(Qt::PreciseTimer);
         connect(m_refreshTimer, SIGNAL(timeout()), this, SLOT(onRefreshTimeout()));
-        m_refreshTimer->setInterval(40);
+        m_refreshTimer->setInterval(20);
         m_refreshTimer->start();
     #endif
 }
@@ -94,6 +94,7 @@ int video_pixmap_widget::draw_frame(const bm::DataPtr jpeg, const bm::NetOutputD
     #if !AUTO_PAINT
         // std::cout<<"repaint!!!"<<std::endl;
         repaint();
+        // update();
     #endif
     return 0;
 }
@@ -108,8 +109,8 @@ int video_pixmap_widget::draw_info(const bm::NetOutputDatum& info, int h, int w)
 void video_pixmap_widget::paintEvent(QPaintEvent *event)
 {
     // std::cout<<"paintevent!!!"<<std::endl;
-    QPainter painter(this);
     std::lock_guard<std::mutex> lck(m_syncLock);
+    QPainter painter(this);    
     if (m_avframe != nullptr) {
         std::unique_ptr<uint8_t> ptr (avframe_to_rgb32(m_avframe));
         QImage origin = QImage(ptr.get(), m_avframe->width, m_avframe->height, QImage::Format_RGB32);

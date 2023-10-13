@@ -99,22 +99,22 @@ function release_others() {
 
 
 function build_all() {
-    # build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DECODE=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF" cvs20_widget $3
-    # build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DECODE=ON -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF" cvs20_decode
-    # build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON" cvs20_all
-    # build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=OFF" cvs20_detector
-    # build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=ON" cvs20_extractor
+    build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DECODE=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF" cvs20_widget $3
+    build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DECODE=ON -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF" cvs20_decode
+    build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON" cvs20_all
+    build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=OFF" cvs20_detector
+    build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=ON" cvs20_extractor
     build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON" cvs20_all_gui $3
-    # build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DWITH_ENCODE=ON -DWITH_HDMI=ON" cvs20_gui $3
-    # build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DWITH_ENCODE=ON -DWITH_HDMI=OFF" cvs20_enc $3
-    # build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON -DWITH_OUTPUTER=ON" cvs20_all_client
+    build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DWITH_ENCODE=ON -DWITH_HDMI=ON" cvs20_gui $3
+    build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DWITH_ENCODE=ON -DWITH_HDMI=OFF" cvs20_enc $3
+    build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON -DWITH_OUTPUTER=ON" cvs20_all_client
 
     # build_app $1 /home/lihengfang/work/sophon-pipeline/soc-sdk-230501 \
     # "-DA2_SDK=OFF -DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON -DUSE_SOPHON_OPENCV=ON" \
     # cvs20_all_se5
-    build_app $1 /home/lihengfang/work/sophon-pipeline/soc-sdk-230501 \
-    "-DA2_SDK=OFF -DUSE_QTGUI=ON -DWITH_ENCODE=ON -DWITH_HDMI=ON -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DUSE_SOPHON_OPENCV=ON" \
-    cvs20_gui_se5 ~/work/sophon-QT/HDMIDemo/install/
+    # build_app $1 /home/lihengfang/work/sophon-pipeline/soc-sdk-230501 \
+    # "-DA2_SDK=OFF -DUSE_QTGUI=ON -DWITH_ENCODE=ON -DWITH_HDMI=ON -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DUSE_SOPHON_OPENCV=ON" \
+    # cvs20_gui_se5 ~/work/sophon-QT/HDMIDemo/install/
     # build_app $1 /home/lihengfang/work/sophon-pipeline/soc-sdk-230501 \
     # "-DA2_SDK=OFF -DUSE_QTGUI=ON -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON -DUSE_SOPHON_OPENCV=ON" \
     # cvs20_all_gui_se5 ~/work/sophon-QT/HDMIDemo/install/

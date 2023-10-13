@@ -191,7 +191,8 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             assert(0 == bm_image_get_byte_size(image2, plane_size));
             uint8_t *buffers_image2[1]={0};
             // auto start_copy = std::chrono::high_resolution_clock::now();
-        #define USE_MMAP 1
+        #define USE_MMAP 0 //todo:mmap may has bug, fix it.
+        #define USE_D2S !USE_MMAP
         #if USE_D2S
             buffers_image2[0] = new uint8_t[plane_size[0]];
             assert(BM_SUCCESS == bm_image_copy_device_to_host(image2, (void**)buffers_image2));//RGB

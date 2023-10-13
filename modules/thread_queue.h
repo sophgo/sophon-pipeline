@@ -64,7 +64,7 @@ private:
     }
 
 public:
-    BlockingQueue(const std::string& name="" ,int type=0, int limit = 64, int warning = 32)
+    BlockingQueue(const std::string& name="" ,int type=0, int limit = 256, int warning = 32)
         : m_stop(false), m_limit(limit), m_drop_fn(nullptr), m_warning(warning) {
         m_name = name;
         m_type = type;

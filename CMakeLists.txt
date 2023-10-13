@@ -81,7 +81,7 @@ add_definitions(-DWITH_FAKEDATA=0)      #depend on detector, feed fake data to p
 add_definitions(-DDRAW_DETECTOR=0)      #depend on detector. Func: draw boxes and encode.
 add_definitions(-DDRAR_EXTRACTOR=0)     #depend on extractor (Not implement yet)
 add_definitions(-DBM_THREAD_SYNC=1)     #if use bm_thread_sync
-add_definitions(-DFLOW_CONTROL=0)       #flow control
+add_definitions(-DFLOW_CONTROL=1)       #flow control
 add_definitions(-DWITH_PROFILE=0)       #tpu/cpu/mem profile
 add_definitions(-DSAVE_QT_FRAME=0)
 # add_definitions(-DPRINT_QUEUE=1)        #print blocking queue name and pop size
@@ -160,7 +160,7 @@ if (${TARGET_ARCH} STREQUAL "x86")
 elseif (${TARGET_ARCH} STREQUAL "soc")
     set(libsophon_inc_dirs ${LIBSOPHON_TOP}/include
     CACHE INTERNAL "")
-    if (USE_OFFICIAL_OPENCV)
+    if (A2_SDK AND USE_OFFICIAL_OPENCV)
         set(sophon_opencv_inc_dirs  ${LIBSOPHON_TOP}/official_opencv/include) #official opencv
     else()
         set(sophon_opencv_inc_dirs  ${LIBSOPHON_TOP}/include/opencv4)
@@ -209,7 +209,7 @@ elseif (${TARGET_ARCH} STREQUAL "arm64")
 
 elseif (${TARGET_ARCH} STREQUAL "soc")
     set(sophon_ffmpeg_link_dirs ${LIBSOPHON_TOP}/lib)
-    if (USE_OFFICIAL_OPENCV)
+    if (A2_SDK AND USE_OFFICIAL_OPENCV)
         set(sophon_opencv_link_dirs ${LIBSOPHON_TOP}/official_opencv/lib) #official opencv
     else()
         set(sophon_opencv_link_dirs ${LIBSOPHON_TOP}/lib)
