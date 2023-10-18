@@ -516,7 +516,7 @@ struct BMImage {
       input_addr[3] = bm_mem_from_device((unsigned long long) in.data[5], size);
       ret = bm_image_attach(cmp_bmimg, input_addr);
       assert(BM_SUCCESS == ret);
-
+      
       if (!bToYUV420p) {
         out = cmp_bmimg;
       } else {

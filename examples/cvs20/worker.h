@@ -107,10 +107,13 @@ struct TChannel: public bm::NoCopyable {
         //for PCIE
         AVDictionary* opts = NULL;
         av_dict_set_int(&opts, "sophon_idx", dev_id, 0x0);
-        av_dict_set(&opts, "output_format", "101", 0);//101
-        av_dict_set(&opts, "extra_frame_buffer_num", "14", 0);
-        AVRational desiredFrameRate = {30, 1};
-        av_opt_set_q(m_decoder->priv_data, "framerate", desiredFrameRate, 0);
+        av_dict_set(&opts, "extra_frame_buffer_num", "6", 0); //6 37%，12 41%
+    #if WITH_ENCODE_H264
+        av_dict_set(&opts, "cbcr_interleave", "0", 0);
+        av_dict_set(&opts, "output_format", "0", 0);
+    #else
+        av_dict_set(&opts, "output_format", "101", 0);
+    #endif
     #if PLD
         std::cout<<"opening decoder!"<<std::endl;
     #endif
@@ -128,7 +131,19 @@ struct TChannel: public bm::NoCopyable {
     {
         int ret;
         *got_picture = 0;
+    #define DECODE_TIMER 0
+    #if DECODE_TIMER
+        auto start_send = std::chrono::high_resolution_clock::now();
+    #endif
         ret = avcodec_send_packet(dec_ctx, pkt);
+        
+    #if DECODE_TIMER
+        auto end_send = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed_send = end_send - start_send;
+        double seconds_send = 1000 * elapsed_send.count();
+        std::cout << "send time: " << seconds_send << " ms" << std::endl;
+    #endif
+
         if (ret == AVERROR_EOF) {
             ret = 0;
         }
@@ -140,7 +155,16 @@ struct TChannel: public bm::NoCopyable {
         }
 
         while (ret >= 0) {
+    #if DECODE_TIMER
+        auto start_receive = std::chrono::high_resolution_clock::now();
+    #endif
             ret = avcodec_receive_frame(dec_ctx, frame);
+    #if DECODE_TIMER
+        auto end_receive = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed_receive = end_receive - start_receive;
+        double seconds_receive = 1000 * elapsed_receive.count();
+        std::cout << "receive time: " << seconds_receive << " ms" << std::endl;
+    #endif
             if (ret == AVERROR(EAGAIN)) {
 # if USE_DEBUG
                 printf("need more data!\n");

@@ -176,6 +176,8 @@ int main(int argc, char *argv[])
     }
 #endif
 
+    // bmlib_log_set_level(BMLIB_LOG_INFO);
+    
     bm::TimerQueuePtr tqp = bm::TimerQueue::create();
     int start_chan_index = 0;
     std::vector<OneCardInferAppPtr> apps;
@@ -202,7 +204,7 @@ int main(int argc, char *argv[])
     #if WITH_DETECTOR
         std::shared_ptr<bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo>> detector;
         if (MODEL_FACE_DETECT == model_type) {
-            detector = std::make_shared<FaceDetector>(contextPtr, resize_num);
+            detector = std::make_shared<FaceDetector>(contextPtr, resize_num, display_num);
         }else if (MODEL_RESNET50 == model_type) {
             detector = std::make_shared<Resnet>(contextPtr);
         }
@@ -266,6 +268,9 @@ int main(int argc, char *argv[])
         double decodefps = appStatis.m_total_decode_fpsPtr->getSpeed();
         std::cout << "total decode fps = " << decodefps << std::endl;
 
+        appStatis.m_total_encode_fpsPtr->update(appStatis.m_total_encode);
+        double encodefps = appStatis.m_total_encode_fpsPtr->getSpeed();
+        std::cout << "total encode fps = " << encodefps << std::endl;
 
         appStatis.m_chan_det_fpsPtr->update(appStatis.m_chan_statis[ch]);
         appStatis.m_total_det_fpsPtr->update(appStatis.m_total_statis);

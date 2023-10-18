@@ -22,7 +22,7 @@ static inline bool compareBBox(const bm::NetOutputObject &a, const bm::NetOutput
     return a.score > b.score;
 }
 
-FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num)
+FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num, int display_num)
 {
 #if 1
     auto net_name = "squeezenet"; // origin: 0
@@ -51,6 +51,7 @@ FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num)
     MAX_BATCH = tensor->get_shape()->dims[0];
 
     resize_num_ = resize_num;
+    m_display_num = display_num;
 }
 
 FaceDetector::~FaceDetector()
@@ -166,64 +167,76 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
 
 
 #if USE_QTGUI
-            bm_image image2;
-            int image2_h = 720;
-            int image2_w = 1280;
-        #if USE_JPEG
-            uint8_t *jpeg_data=NULL;
-            size_t out_size = 0;
-            bm::BMImage::create_batch(handle, image2_h, image2_w, image1.image_format, image1.data_type, &image2, 1);
-            // bm_image_create(handle, image2_h, image2_w, image1.image_format, image1.data_type, &image2, NULL);
-            bmcv_image_vpp_convert(handle, 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
-            bmcv_image_jpeg_enc(handle, 1, &image2, (void**)&jpeg_data, &out_size, 85);
-            frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size);
-        #else
-            bm::BMImage::create_batch(handle, image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, 1);
-            // bm_image_create(handle, image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, NULL);
-            // auto start_convert = std::chrono::high_resolution_clock::now();
-            bmcv_image_vpp_convert(handle, 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
-            // auto end_convert = std::chrono::high_resolution_clock::now();
-            // std::chrono::duration<double> elapsed_convert = end_convert - start_convert;
-            // double seconds_convert = 1000 * elapsed_convert.count();
-            // std::cout << "vpp convert time: " << seconds_convert << " ms" << std::endl;
-            int plane_num = bm_image_get_plane_num(image2);
-            int plane_size[1];
-            assert(0 == bm_image_get_byte_size(image2, plane_size));
-            uint8_t *buffers_image2[1]={0};
-            // auto start_copy = std::chrono::high_resolution_clock::now();
-        #define USE_MMAP 0 //todo:mmap may has bug, fix it.
-        #define USE_D2S !USE_MMAP
-        #if USE_D2S
-            buffers_image2[0] = new uint8_t[plane_size[0]];
-            assert(BM_SUCCESS == bm_image_copy_device_to_host(image2, (void**)buffers_image2));//RGB
-        #elif USE_MMAP
-            unsigned long long addr;
-            bm_device_mem_t image2_dmem;
-            bm_image_get_device_mem(image2, &image2_dmem);
-            bm_mem_mmap_device_mem(handle, &image2_dmem, &addr);
-            buffers_image2[0] = (uint8_t*)addr;
-            bm_mem_invalidate_device_mem(handle, &image2_dmem);
-        #endif
-            // auto end_copy = std::chrono::high_resolution_clock::now();
-            // std::chrono::duration<double> elapsed_copy = end_copy - start_copy;
-            // double seconds_copy = 1000 * elapsed_copy.count();
-            // std::cout << "copy time: " << seconds_copy << " ms" << std::endl;
-            frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(buffers_image2[0], plane_size[0]);
-        #if USE_MMAP
-            frames[start_idx + i].jpeg_data->bmimg_formmap = image2;
-            frames[start_idx + i].jpeg_data->is_mmap = true;
-        #endif
-            frames[start_idx + i].jpeg_data->height = image2.height;
-            frames[start_idx + i].jpeg_data->width = image2.width;
-            frames[start_idx + i].jpeg_data->image_format = FORMAT_RGB_PLANAR;
-        #endif
-            frames[start_idx + i].height= image2.height;
-            frames[start_idx + i].width = image2.width;
-            img_qt_x_scale_ = ((float)image1.width / (float)image2.width);
-            img_qt_y_scale_ = ((float)image1.height / (float)image2.height);
-        #if USE_D2S
-            bm_image_destroy_allinone(&image2);
-        #endif
+            if(frames[start_idx + i].chan_id < m_display_num){
+                bm_image image2;
+            #if HDMI_4K
+                int image2_h = 540;
+                int image2_w = 960;
+            #elif HDMI_2K
+                int image2_h = 360;
+                int image2_w = 640;
+            #elif HDMI_1080P
+                int image2_h = 270;
+                int image2_w = 480;
+            #else
+                int image2_h = 1080;
+                int image2_w = 1920;
+            #endif
+            #if USE_JPEG
+                uint8_t *jpeg_data=NULL;
+                size_t out_size = 0;
+                bm::BMImage::create_batch(handle, image2_h, image2_w, image1.image_format, image1.data_type, &image2, 1);
+                // bm_image_create(handle, image2_h, image2_w, image1.image_format, image1.data_type, &image2, NULL);
+                bmcv_image_vpp_convert(handle, 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
+                bmcv_image_jpeg_enc(handle, 1, &image2, (void**)&jpeg_data, &out_size, 85);
+                frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size);
+            #else
+                bm::BMImage::create_batch(handle, image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, 1);
+                // bm_image_create(handle, image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, NULL);
+                // auto start_convert = std::chrono::high_resolution_clock::now();
+                bmcv_image_vpp_convert(handle, 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
+                // auto end_convert = std::chrono::high_resolution_clock::now();
+                // std::chrono::duration<double> elapsed_convert = end_convert - start_convert;
+                // double seconds_convert = 1000 * elapsed_convert.count();
+                // std::cout << "vpp convert time: " << seconds_convert << " ms" << std::endl;
+                int plane_num = bm_image_get_plane_num(image2);
+                int plane_size[1];
+                assert(0 == bm_image_get_byte_size(image2, plane_size));
+                uint8_t *buffers_image2[1]={0};
+                // auto start_copy = std::chrono::high_resolution_clock::now();
+            #define USE_MMAP 1 //todo:mmap may has bug, fix it.
+            #define USE_D2S !USE_MMAP
+            #if USE_D2S
+                buffers_image2[0] = new uint8_t[plane_size[0]];
+                assert(BM_SUCCESS == bm_image_copy_device_to_host(image2, (void**)buffers_image2));//RGB
+            #elif USE_MMAP
+                unsigned long long addr;
+                bm_device_mem_t image2_dmem;
+                bm_image_get_device_mem(image2, &image2_dmem);
+                bm_mem_mmap_device_mem(handle, &image2_dmem, &addr);
+                buffers_image2[0] = (uint8_t*)addr;
+            #endif
+                // auto end_copy = std::chrono::high_resolution_clock::now();
+                // std::chrono::duration<double> elapsed_copy = end_copy - start_copy;
+                // double seconds_copy = 1000 * elapsed_copy.count();
+                // std::cout << "copy time: " << seconds_copy << " ms" << std::endl;
+                frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(buffers_image2[0], plane_size[0]);
+            #if USE_MMAP
+                frames[start_idx + i].jpeg_data->bmimg_formmap = image2;
+                frames[start_idx + i].jpeg_data->is_mmap = true;
+            #endif
+                frames[start_idx + i].jpeg_data->height = image2.height;
+                frames[start_idx + i].jpeg_data->width = image2.width;
+                frames[start_idx + i].jpeg_data->image_format = FORMAT_RGB_PLANAR;
+            #endif
+                frames[start_idx + i].height= image2.height;
+                frames[start_idx + i].width = image2.width;
+                img_qt_x_scale_ = ((float)image1.width / (float)image2.width);
+                img_qt_y_scale_ = ((float)image1.height / (float)image2.height);
+            #if USE_D2S
+                bm_image_destroy_allinone(&image2);
+            #endif
+            }
 #else
             frames[start_idx + i].height= image1.height;
             frames[start_idx + i].width = image1.width;

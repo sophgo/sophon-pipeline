@@ -376,7 +376,6 @@ namespace bm {
         int image_format=-1;//default jpeg
         bm_image bmimg_formmap;
         bool is_mmap = false;
-        
         Data() : dsize(0), data(nullptr){
         }
 
@@ -390,7 +389,14 @@ namespace bm {
         }
 
         virtual ~Data() {
-            if (is_mmap) bm_image_destroy_allinone(&bmimg_formmap);
+            if (is_mmap) {
+                bm_handle_t handle = bm_image_get_handle(&bmimg_formmap);
+                bm_device_mem_t image2_dmem;
+                bm_image_get_device_mem(bmimg_formmap, &image2_dmem);
+                bm_mem_invalidate_device_mem(handle, &image2_dmem);
+                bm_mem_unmap_device_mem(handle, data, dsize);
+                bm_image_destroy_allinone(&bmimg_formmap);
+            }
             else if (data)  delete[] data;
         }
 

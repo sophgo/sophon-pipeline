@@ -34,7 +34,7 @@ private:
 
     void wait_and_push_one(T &&data) {
         if (m_limit > 0 && this->size_impl() >= m_limit && !m_stop) {
-# if USE_DEBUG
+# if 1//USE_DEBUG
             std::cout << "WARNING: " << m_name << " queue_size(" << this->size_impl() << ") > "
                       << m_limit << std::endl;
 # endif
@@ -64,7 +64,7 @@ private:
     }
 
 public:
-    BlockingQueue(const std::string& name="" ,int type=0, int limit = 256, int warning = 32)
+    BlockingQueue(const std::string& name="default" ,int type=0, int limit = 64, int warning = 32)
         : m_stop(false), m_limit(limit), m_drop_fn(nullptr), m_warning(warning) {
         m_name = name;
         m_type = type;

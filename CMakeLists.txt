@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.2)
 project(sophon-pipeline_v0.2.0)
+# set(CMAKE_CXX_FLAGS "-O3")
 
 if (NOT DEFINED TARGET_ARCH)
     set(TARGET_ARCH x86)
@@ -32,6 +33,17 @@ option(WITH_HDMI "with hdmi encode" OFF)
 option(WITH_DETECTOR "with detector" OFF)
 option(WITH_EXTRACTOR "with extractor" OFF)
 option(WITH_OUTPUTER "with client outputer" OFF)
+option(HDMI_1080P "1920*1080 hdmi" OFF)
+option(HDMI_2K "2560*1440 hdmi" ON)
+option(HDMI_4K "3840*2160 hdmi" OFF)
+if(HDMI_1080P)
+    add_definitions(-DHDMI_1080P=1)
+elseif(HDMI_2K)
+    add_definitions(-DHDMI_2K=1)
+elseif(HDMI_4K)
+    add_definitions(-DHDMI_4K=1)
+endif()
+
 if(A2_SDK)
     add_definitions(-DA2_SDK=1)
 else()
@@ -51,7 +63,11 @@ if(WITH_HDMI)
     add_definitions(-DWITH_ENCODE_JPEG=1)   #depend on decode
     add_definitions(-DWITH_HDMI=1)          #depend on encode_jpeg\QT_GUI, a2 hdmi
 elseif(WITH_ENCODE)
-    add_definitions(-DWITH_ENCODE_JPEG=1)   #depend on decode
+    if(ENC_JPEG)
+        add_definitions(-DWITH_ENCODE_JPEG=1)   #depend on decode
+    elseif(ENC_H264)
+        add_definitions(-DWITH_ENCODE_H264=1)   #depend on decode
+    endif()
     add_definitions(-DWITH_HDMI=0)          #depend on encode_jpeg\QT_GUI, a2 hdmi
 else()
     add_definitions(-DWITH_ENCODE_JPEG=0)   #depend on decode
@@ -73,7 +89,6 @@ else()
     add_definitions(-DWITH_OUTPUTER=0)
 endif()
 
-add_definitions(-DWITH_ENCODE_H264=0)   #depend on decode
 add_definitions(-DWITH_RESIZE_TEST=0)   #depend on decode\encode_jpeg.
 add_definitions(-DWITH_CONVERTO_TEST=0) #depend on decode\encode_jpeg\resize_test.
 add_definitions(-DWITH_FAKEDATA=0)      #depend on detector, feed fake data to postprocess.

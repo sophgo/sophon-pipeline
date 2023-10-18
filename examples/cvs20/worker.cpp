@@ -52,11 +52,11 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         #endif
 
             // std::cout<<"skip_frame_queue size: "<<frameInfo.frames[frame_idx].skip_frame_queue.size()<<std::endl;
-            m_appStatis.m_chan_statis[ch]++;
-            m_appStatis.m_chan_statis[ch]+=frameInfo.frames[frame_idx].skip_frame_queue.size();
             m_appStatis.m_statis_lock.lock();
+            m_appStatis.m_chan_statis[ch]++;
+            // m_appStatis.m_chan_statis[ch]+=frameInfo.frames[frame_idx].skip_frame_queue.size();
             m_appStatis.m_total_statis++;
-            m_appStatis.m_total_statis+=frameInfo.frames[frame_idx].skip_frame_queue.size();
+            // m_appStatis.m_total_statis+=frameInfo.frames[frame_idx].skip_frame_queue.size();
             m_appStatis.m_statis_lock.unlock();
 
             // display
@@ -171,6 +171,8 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
     cv::Mat feature_mat;
 #if WITH_EXTRACTOR
     param.batch_num = m_featureDelegate->get_max_batch();
+    param.preprocess_thread_num = 2;
+    param.preprocess_queue_size = 8;
     m_featurePipe.init(param, m_featureDelegate, "extractor");
 #if USE_SOPHON_OPENCV
     feature_mat = cv::imread("face.jpeg", cv::IMREAD_COLOR, m_dev_id);
@@ -243,174 +245,15 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             // std::cout<<"decode times: " << ddd << std::endl;
             pchan->decode_video2(pchan->m_decoder, frame, &got_picture, pkt);
             if(got_picture){
-                m_appStatis.m_statis_lock.lock();
+                m_appStatis.m_statis_decode_lock.lock();
                 m_appStatis.m_total_decode++;
-                m_appStatis.m_statis_lock.unlock();
+                m_appStatis.m_statis_decode_lock.unlock();
             }
         #endif
-        
-        #if WITH_ENCODE_H264 //need output format=0
-            if(got_picture){
-                #define STEP_ALIGNMENT 32
-                int stride = (frame->width + STEP_ALIGNMENT - 1) & ~(STEP_ALIGNMENT - 1);
-                int buffer_size = av_image_get_buffer_size(
-                                        (AVPixelFormat)frame->format, frame->width, frame->height, 32
-                                    );
-                uint8_t *yuv_buffer = (uint8_t *)av_malloc(buffer_size);
-                if (!yuv_buffer) {
-                    fprintf(stderr, "Could not allocate buffer for YUV data\n");
-                    av_frame_free(&frame);
-                    return;
-                }
-                av_image_copy_to_buffer(
-                    yuv_buffer, buffer_size,
-                    (const uint8_t * const *)frame->data, frame->linesize,
-                    (AVPixelFormat)frame->format, frame->width, frame->height, 32
-                );
-                if(!pchan->writer.is_opened){
-                    std::string output_path = "results/output_" + std::to_string(pchan->channel_id) + ".h264";
-                    int ret_writer = pchan->writer.openEnc(output_path.c_str(), 
-                                                                0, 
-                                                                AV_CODEC_ID_H264, 
-                                                                25, 
-                                                                frame->width, 
-                                                                frame->height, 
-                                                                frame->format, 
-                                                                25*frame->width*frame->height/8, 
-                                                                0);
-                    if (ret_writer !=0 ) {
-                        av_log(NULL, AV_LOG_ERROR,"writer.openEnc failed\n");
-                        return;
-                    }
-                    pchan->writer.is_opened = true;
-                    pchan->writer.writeFrame(yuv_buffer, stride, frame->width, frame->height);
-                } else{
-                    pchan->writer.writeFrame(yuv_buffer, stride, frame->width, frame->height);
-                }
-            }
-        #endif
-        #if WITH_ENCODE_JPEG //save decoded avframe
-            if (got_picture){
 
-                bm_image image1;
-                bm::BMImage::from_avframe(m_bmctx->handle(), frame, image1, true);
-                bm_image* image_for_enc;
-            #if WITH_RESIZE_TEST
-                int test_resize_h = 400;
-                int test_resize_w = 711;
-                int test_align = 64;
-                bm_image resized;
-                ret = bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &resized, 1, test_align);
-                assert(ret == BM_SUCCESS);
-                std::cout<<"Now, bmcv_image_vpp_convert: "<<std::endl;
-                ret = bmcv_image_vpp_convert(m_bmctx->handle(), 1, image1, &resized, NULL, BMCV_INTER_LINEAR);
-                assert(ret == BM_SUCCESS);
-            #if WITH_CONVERTO_TEST
-                bm_image convertoed;
-                ret = bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE_SIGNED, &convertoed, 1, 1, false, true);
-                assert(ret == BM_SUCCESS);
-                bmcv_convert_to_attr convert_to_attr;
-                convert_to_attr.alpha_0 = 1;
-                convert_to_attr.alpha_1 = 1;
-                convert_to_attr.alpha_2 = 1;
-                convert_to_attr.beta_0  = -123.0f;
-                convert_to_attr.beta_1  = -117.0f;
-                convert_to_attr.beta_2  = -104.0f;
-                std::cout<<"Now, bmcv_image_convert_to: "<<std::endl;
-                ret = bmcv_image_convert_to(m_bmctx->handle(), 1, convert_to_attr, &resized, &convertoed);
-                assert(ret == BM_SUCCESS);
-                std::cout<<"calculate converto data:=="<<std::endl;
-                bm_image resized_;
-                bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &resized_, 1, 1);
-                bmcv_copy_to_atrr_t copy_to_attr{0,0,0,0,0,0};
-                bmcv_image_copy_to(m_bmctx->handle(), copy_to_attr, resized, resized_);
-                compare_resize_converto(resized_, convertoed, convert_to_attr);
-                // bm_image_dump_size(resized, 50);
-                // bm_image_dump_size(resized_, 50);
-                ret = bm_image_destroy_allinone(&resized_);
-                assert(ret == BM_SUCCESS);
-                // assert(ret == BM_SUCCESS);
-                ret = bm_image_destroy_allinone(&convertoed);
-                assert(ret == BM_SUCCESS);
-            #endif
-                #if PLD
-                    std::cout<<"=========================="<<std::endl;
-                    std::cout<<"==saving resized frames!=="<<std::endl;
-                    std::cout<<"=========================="<<std::endl;
-                #endif
-                uint8_t *jpeg_data_resized=NULL;
-                size_t out_size_resized = 0;
-                bm_image resized_yuv420;
-                ret = bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_YUV420P, DATA_TYPE_EXT_1N_BYTE, &resized_yuv420, 1, test_align);
-                assert(ret == BM_SUCCESS);
-                ret = bmcv_image_storage_convert(m_bmctx->handle(), 1, &resized, &resized_yuv420);
-                assert(ret == BM_SUCCESS);
-
-                // cv::Mat resized_mat;
-                // cv::bmcv::toMAT(&resized_yuv420, resized_mat);
-                // static int cc = 0;
-                // std::string cvimg_file = "results/cvmat_resized_" + std::to_string(cc++) + ".jpg";
-                // cv::imwrite(cvimg_file, resized_mat);      //400 711  
-                bm_image_format_info_t  info;
-                bm_image_get_format_info(&resized_yuv420, &info);
-
-                ret = bmcv_image_jpeg_enc(m_bmctx->handle(), 1, &resized_yuv420, (void**)&jpeg_data_resized, &out_size_resized, 85);
-                if (ret == BM_SUCCESS) {
-                    static int ii = 0;
-                    std::string img_file = "results/resized_frame_" + std::to_string(ii++) + ".jpg";
-                    FILE *fp = fopen(img_file.c_str(), "wb");
-                    fwrite(jpeg_data_resized, out_size_resized, 1, fp);
-                    fclose(fp);
-                } else{
-                    std::cout<<"bmcv_image_jpeg_enc resized failed!"<<std::endl;
-                }
-                free(jpeg_data_resized);
-                ret = bm_image_destroy_allinone(&resized);
-                assert(ret == BM_SUCCESS);
-                ret = bm_image_destroy_allinone(&resized_yuv420);
-                assert(ret == BM_SUCCESS);
-            #endif
-                #if PLD
-                    std::cout<<"=========================="<<std::endl;
-                    std::cout<<"==saving decoded frames!=="<<std::endl;
-                    std::cout<<"=========================="<<std::endl;
-                #endif
-                uint8_t *jpeg_data=NULL;
-                size_t out_size = 0;
-                ret = bmcv_image_jpeg_enc(m_bmctx->handle(), 1, &image1, (void**)&jpeg_data, &out_size, 85);
-                if (ret == BM_SUCCESS) {
-                #if USE_QTGUI && WITH_HDMI
-                    bm::NetOutputObject fake_object(100,100,200,200);
-                    bm::NetOutputObjects fake_objects{fake_object};
-                    bm::NetOutputDatum fake_datum(fake_objects);
-                    if (ch < m_display_num){
-                        bm::UIFrame jpgframe;
-                        jpgframe.jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size, true);
-                        jpgframe.chan_id = ch;
-                        jpgframe.h = image1.height;
-                        jpgframe.w = image1.width;
-                        jpgframe.datum = fake_datum;
-                        m_guiReceiver->pushFrame(jpgframe);
-                    }
-                #else
-                    static int ii = 0;
-                    std::cout<<"==saving decoded frames "<<ii<<std::endl;
-                    std::string img_file = "results/decoded_frame_" + std::to_string(ii++) + ".jpg";
-                    FILE *fp = fopen(img_file.c_str(), "wb");
-                    fwrite(jpeg_data, out_size, 1, fp);
-                    fclose(fp);
-                #endif
-                } else{
-                    std::cout<<"bmcv_image_jpeg_enc decoded failed!"<<std::endl;
-                }
-                free(jpeg_data);
-                ret = bm_image_destroy_allinone(&image1);
-                assert(ret == BM_SUCCESS);
-            }
-        #endif
         #if WITH_DETECTOR
             if (got_picture) {
-            #if 1
+            #if 1 //new frame skip strategy
                 pchan->seq++;
                 if(pchan->seq % (m_skipN + 1) != 0){
                     //push frame to skip frame queue
@@ -419,11 +262,23 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 #if USE_QTGUI
                     // auto start_skip = std::chrono::high_resolution_clock::now();
                     //same part in face_detector.cpp.
+                    if(ch < m_display_num){
                         bm_image image1;
                         bm::BMImage::from_avframe(m_bmctx->handle(), frame, image1, true);
                         bm_image image2;
-                        int image2_h = 720;
-                        int image2_w = 1280;
+                        #if HDMI_4K
+                            int image2_h = 540;
+                            int image2_w = 960;
+                        #elif HDMI_2K
+                            int image2_h = 360;
+                            int image2_w = 640;
+                        #elif HDMI_1080P
+                            int image2_h = 270;
+                            int image2_w = 480;
+                        #else
+                            int image2_h = 1080;
+                            int image2_w = 1920;
+                        #endif
                         bm_image_create(m_bmctx->handle(), image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, NULL);
                         bmcv_image_vpp_convert(m_bmctx->handle(), 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
                         bm_image_destroy_allinone(&image1);
@@ -431,18 +286,30 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                         int plane_size[1];
                         assert(0 == bm_image_get_byte_size(image2, plane_size));
                         uint8_t *buffers_image2[1]={0};
+                    #define USE_MMAP 1 //todo:mmap may has bug, fix it.
+                    #define USE_D2S !USE_MMAP
+                    #if USE_D2S
+                        buffers_image2[0] = new uint8_t[plane_size[0]];
+                        assert(BM_SUCCESS == bm_image_copy_device_to_host(image2, (void**)buffers_image2));//RGB
+                    #elif USE_MMAP
                         unsigned long long addr;
                         bm_device_mem_t image2_dmem;
                         bm_image_get_device_mem(image2, &image2_dmem);
                         bm_mem_mmap_device_mem(m_bmctx->handle(), &image2_dmem, &addr);
                         buffers_image2[0] = (uint8_t*)addr;
-                        bm_mem_invalidate_device_mem(m_bmctx->handle(), &image2_dmem);
+                    #endif
                         skip_fbi.img_data = std::make_shared<bm::Data>(buffers_image2[0], plane_size[0]);
+                    #if USE_MMAP
                         skip_fbi.img_data->bmimg_formmap = image2;
                         skip_fbi.img_data->is_mmap = true;
+                    #endif
                         skip_fbi.img_data->height = image2.height;
                         skip_fbi.img_data->width = image2.width;
                         skip_fbi.img_data->image_format = FORMAT_RGB_PLANAR;
+                    #if USE_D2S
+                        bm_image_destroy_allinone(&image2);
+                    #endif
+                    }
                     // auto end_skip = std::chrono::high_resolution_clock::now();
                     // std::chrono::duration<double> elapsed_skip = end_skip - start_skip;
                     // double seconds_skip = 1000 * elapsed_skip.count();
@@ -489,6 +356,195 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             #endif
             }
         #endif
+
+        #if WITH_ENCODE_H264 //need output format=0
+            if(got_picture && ch < m_save_num){
+            #if !FF_ENCODE_WRITE_AVFRAME
+                #define STEP_ALIGNMENT 32
+                int stride = (frame->width + STEP_ALIGNMENT - 1) & ~(STEP_ALIGNMENT - 1);
+                int buffer_size = av_image_get_buffer_size(
+                                        (AVPixelFormat)frame->format, frame->width, frame->height, 32
+                                    );
+                uint8_t *yuv_buffer = (uint8_t *)av_malloc(buffer_size);
+                if (!yuv_buffer) {
+                    fprintf(stderr, "Could not allocate buffer for YUV data\n");
+                    av_frame_free(&frame);
+                    return;
+                }
+                av_image_copy_to_buffer(
+                    yuv_buffer, buffer_size,
+                    (const uint8_t * const *)frame->data, frame->linesize,
+                    (AVPixelFormat)frame->format, frame->width, frame->height, 32
+                );
+            #endif
+                if(!pchan->writer.is_opened){
+                    std::string output_path = "results/output_" + std::to_string(pchan->channel_id) + ".h264";
+                    int ret_writer = pchan->writer.openEnc(output_path.c_str(), 
+                                                                0, 
+                                                                AV_CODEC_ID_H264, 
+                                                                25, 
+                                                                frame->width, 
+                                                                frame->height, 
+                                                                frame->format, 
+                                                                25*frame->width*frame->height/8, 
+                                                                0);
+                    if (ret_writer != 0) {
+                        av_log(NULL, AV_LOG_ERROR,"writer.openEnc failed\n");
+                        return;
+                    }
+                    pchan->writer.is_opened = true;
+                #if FF_ENCODE_WRITE_AVFRAME
+                    pchan->writer.writeFrame(frame);
+                #else
+                    pchan->writer.writeFrame(yuv_buffer, stride, frame->width, frame->height);
+                #endif
+                } else{
+                #if FF_ENCODE_WRITE_AVFRAME
+                    pchan->writer.writeFrame(frame);
+                #else
+                    pchan->writer.writeFrame(yuv_buffer, stride, frame->width, frame->height);
+                #endif
+                }
+            #if !FF_ENCODE_WRITE_AVFRAME
+                if (yuv_buffer) {
+                    av_free(yuv_buffer);
+                    yuv_buffer = NULL;
+                }
+            #endif
+                m_appStatis.m_statis_encode_lock.lock();
+                m_appStatis.m_total_encode++;
+                m_appStatis.m_statis_encode_lock.unlock();
+            }
+        #endif
+        #if WITH_ENCODE_JPEG //save decoded avframe
+            if (ch < m_save_num && got_picture){
+                bm_image image1;
+                bm::BMImage::from_avframe(m_bmctx->handle(), frame, image1, true);
+                bm_image* image_for_enc;
+            #if WITH_RESIZE_TEST
+                int test_resize_h = 360;
+                int test_resize_w = 640;
+                int test_align = 64;
+                bm_image resized;
+                ret = bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &resized, 1, test_align);
+                assert(ret == BM_SUCCESS);
+                // std::cout<<"Now, bmcv_image_vpp_convert: "<<std::endl;
+                ret = bmcv_image_vpp_convert(m_bmctx->handle(), 1, image1, &resized, NULL, BMCV_INTER_LINEAR);
+                assert(ret == BM_SUCCESS);
+            #if WITH_CONVERTO_TEST
+                bm_image convertoed;
+                ret = bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE_SIGNED, &convertoed, 1, 1, false, true);
+                assert(ret == BM_SUCCESS);
+                bmcv_convert_to_attr convert_to_attr;
+                convert_to_attr.alpha_0 = 1;
+                convert_to_attr.alpha_1 = 1;
+                convert_to_attr.alpha_2 = 1;
+                convert_to_attr.beta_0  = -123.0f;
+                convert_to_attr.beta_1  = -117.0f;
+                convert_to_attr.beta_2  = -104.0f;
+                // std::cout<<"Now, bmcv_image_convert_to: "<<std::endl;
+                ret = bmcv_image_convert_to(m_bmctx->handle(), 1, convert_to_attr, &resized, &convertoed);
+                assert(ret == BM_SUCCESS);
+                // std::cout<<"calculate converto data:=="<<std::endl;
+                bm_image resized_;
+                bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &resized_, 1, 1);
+                bmcv_copy_to_atrr_t copy_to_attr{0,0,0,0,0,0};
+                bmcv_image_copy_to(m_bmctx->handle(), copy_to_attr, resized, resized_);
+                compare_resize_converto(resized_, convertoed, convert_to_attr);
+                // bm_image_dump_size(resized, 50);
+                // bm_image_dump_size(resized_, 50);
+                ret = bm_image_destroy_allinone(&resized_);
+                assert(ret == BM_SUCCESS);
+                // assert(ret == BM_SUCCESS);
+                ret = bm_image_destroy_allinone(&convertoed);
+                assert(ret == BM_SUCCESS);
+            #endif
+            #if SAVE_RESIZED_FRAMES
+                #if PLD
+                    std::cout<<"=========================="<<std::endl;
+                    std::cout<<"==saving resized frames!=="<<std::endl;
+                    std::cout<<"=========================="<<std::endl;
+                #endif
+                uint8_t *jpeg_data_resized=NULL;
+                size_t out_size_resized = 0;
+                bm_image resized_yuv420;
+                ret = bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_YUV420P, DATA_TYPE_EXT_1N_BYTE, &resized_yuv420, 1, test_align);
+                assert(ret == BM_SUCCESS);
+                ret = bmcv_image_storage_convert(m_bmctx->handle(), 1, &resized, &resized_yuv420);
+                assert(ret == BM_SUCCESS);
+                // cv::Mat resized_mat;
+                // cv::bmcv::toMAT(&resized_yuv420, resized_mat);
+                // static int cc = 0;
+                // std::string cvimg_file = "results/cvmat_resized_" + std::to_string(cc++) + ".jpg";
+                // cv::imwrite(cvimg_file, resized_mat);      //400 711  
+                bm_image_format_info_t  info;
+                bm_image_get_format_info(&resized_yuv420, &info);
+
+                ret = bmcv_image_jpeg_enc(m_bmctx->handle(), 1, &resized_yuv420, (void**)&jpeg_data_resized, &out_size_resized, 85);
+                if (ret == BM_SUCCESS) {
+                    static int ii = 0;
+                    std::string img_file = "results/resized_frame_" + std::to_string(ii++) + ".jpg";
+                    FILE *fp = fopen(img_file.c_str(), "wb");
+                    fwrite(jpeg_data_resized, out_size_resized, 1, fp);
+                    fclose(fp);
+                } else{
+                    std::cout<<"bmcv_image_jpeg_enc resized failed!"<<std::endl;
+                }
+                free(jpeg_data_resized);
+                ret = bm_image_destroy_allinone(&resized_yuv420);
+                assert(ret == BM_SUCCESS);
+            #endif
+                ret = bm_image_destroy_allinone(&resized);
+                assert(ret == BM_SUCCESS);
+            #endif
+
+            #if 1//OUTPUT OR SAVE_ENCODED_FRAMES
+                #if PLD
+                    std::cout<<"=========================="<<std::endl;
+                    std::cout<<"==saving decoded frames!=="<<std::endl;
+                    std::cout<<"=========================="<<std::endl;
+                #endif
+                uint8_t *jpeg_data=NULL;
+                size_t out_size = 0;
+                ret = bmcv_image_jpeg_enc(m_bmctx->handle(), 1, &image1, (void**)&jpeg_data, &out_size, 85);
+                if (ret == BM_SUCCESS) {
+                #if USE_QTGUI && WITH_HDMI
+                    bm::NetOutputObject fake_object(100,100,200,200);
+                    bm::NetOutputObjects fake_objects{fake_object};
+                    bm::NetOutputDatum fake_datum(fake_objects);
+                    if (ch < m_display_num){
+                        bm::UIFrame jpgframe;
+                        jpgframe.jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size, true);
+                        jpgframe.chan_id = ch;
+                        jpgframe.h = image1.height;
+                        jpgframe.w = image1.width;
+                        jpgframe.datum = fake_datum;
+                        m_guiReceiver->pushFrame(jpgframe);
+                    }
+                #else
+                    static int ii = 0;
+                    if(ii > 10){
+                        ii = 0;
+                    }
+                    // std::cout<<"==saving decoded frames "<<ii<<std::endl;
+                    std::string img_file = "results/ch" + std::to_string(ch) + "_" + std::to_string(ii++) + ".jpg";
+                    FILE *fp = fopen(img_file.c_str(), "wb");
+                    fwrite(jpeg_data, out_size, 1, fp);
+                    fclose(fp);
+                #endif
+                    m_appStatis.m_statis_encode_lock.lock();
+                    m_appStatis.m_total_encode++;
+                    m_appStatis.m_statis_encode_lock.unlock();
+                } else{
+                    std::cout<<"bmcv_image_jpeg_enc decoded failed!"<<std::endl;
+                }
+                free(jpeg_data);
+            #endif
+                ret = bm_image_destroy_allinone(&image1);
+                assert(ret == BM_SUCCESS);
+            }
+        #endif
+        
         #if WITH_DECODE
             av_frame_free(&frame);
         #endif

@@ -19,7 +19,7 @@ extern "C" {
 #include "libavutil/opt.h"
 #include "libavutil/pixdesc.h"
 }
-
+#define FF_ENCODE_WRITE_AVFRAME 1
 #define STEP_ALIGNMENT 32
 #ifdef WIN32
 #define strcasecmp stricmp
@@ -39,7 +39,11 @@ public:
     int  openEnc(const char* filename, int soc_idx, int codecId, int framerate,
                  int width, int height,int inputformat,int bitrate, int roi_enable);
     void closeEnc();
+#if FF_ENCODE_WRITE_AVFRAME
+    int  writeFrame(const AVFrame* frame);
+#else
     int  writeFrame(const uint8_t* data, int step, int width, int height);
+#endif
     int  flush_encoder();
     bool is_opened = false;
 private:

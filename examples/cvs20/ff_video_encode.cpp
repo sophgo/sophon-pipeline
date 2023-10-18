@@ -115,6 +115,39 @@ int VideoEnc_FFMPEG::openEnc(const char* filename, int soc_idx, int codecId, int
     return 0;
 }
 
+#if FF_ENCODE_WRITE_AVFRAME
+int VideoEnc_FFMPEG::writeFrame(const AVFrame* frame){ //do not use 
+    AVPacket enc_pkt;
+    enc_pkt.data = NULL;
+    enc_pkt.size = 0;
+    av_init_packet(&enc_pkt);
+    int ret = avcodec_send_frame(enc_ctx, frame);
+    if (ret < 0)
+        return ret;
+    ret = avcodec_receive_packet(enc_ctx, &enc_pkt);
+    if (ret < 0){
+        av_log(NULL, AV_LOG_WARNING, "No output from encoder\n");
+        return ret;
+    }
+    // if (got_output == 0) {
+    //     av_log(NULL, AV_LOG_WARNING, "No output from encoder\n");
+    //     return -1;
+    // }
+
+    /* prepare packet for muxing */
+    av_log(NULL, AV_LOG_DEBUG, "enc_pkt.pts=%ld, enc_pkt.dts=%ld\n",
+           enc_pkt.pts, enc_pkt.dts);
+    av_packet_rescale_ts(&enc_pkt, enc_ctx->time_base,out_stream->time_base);
+    av_log(NULL, AV_LOG_DEBUG, "rescaled enc_pkt.pts=%ld, enc_pkt.dts=%ld\n",
+           enc_pkt.pts,enc_pkt.dts);
+
+    av_log(NULL, AV_LOG_DEBUG, "Muxing frame\n");
+
+    /* mux encoded frame */
+    ret = av_interleaved_write_frame(ofmt_ctx, &enc_pkt);
+    return ret;
+}
+#else
 /* data is alligned with 32 */
 int VideoEnc_FFMPEG::writeFrame(const uint8_t* data, int step, int width, int height)
 {
@@ -253,7 +286,7 @@ int VideoEnc_FFMPEG::writeFrame(const uint8_t* data, int step, int width, int he
     ret = av_interleaved_write_frame(ofmt_ctx, &enc_pkt);
     return ret;
 }
-
+#endif
 int  VideoEnc_FFMPEG::flush_encoder()
 {
     int ret;
