@@ -66,14 +66,15 @@
 
 ### 3.2 运行方法
 
-  > **NOTE**  
-  > face_recognition_1684 int8模型NAS云盘下载地址：[face_recognition_1684.bmodel](http://219.142.246.77:65000/sharing/SguTxdtTf)
-  >
-  > face_recognition_1684X int8模型NAS云盘下载地址：[face_recognition_1684x.bmodel](http://219.142.246.77:65000/sharing/1egR6hEjU)
-  >
-  > face_recognition_1684X fp16模型NAS云盘下载地址：[face_recognition_1684x_fp16.bmodel](http://219.142.246.77:65000/sharing/lROpB2hzn)
-  >
-  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
+测试视频下载方式：
+```bash
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/common/elevator-1080p-25fps-4000kbps.h264
+```
+
+模型下载方式：
+```bash
+python3 -m dfss --url=sophon-pipeline/models/face_recognition.tar.gz 
+```
 
 参数说明
 

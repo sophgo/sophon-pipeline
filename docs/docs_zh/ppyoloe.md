@@ -67,16 +67,16 @@
 
 ### 3.2 运行方法
 
-  > **NOTE**  
-  >
-  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
+测试视频下载方式：
+```bash
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/common/elevator-1080p-25fps-4000kbps.h264
+```
 
-PP-YOLO系列模型列表及NAS云盘下载地址
 
-| 模型类型       | BM1684 int8模型                                              | BM1684X int8模型                                             | BM1684X fp16模型                                             |
-| -------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| ppyoloe_s      | [ppyoloe_s_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/rH1C0Htqp) | [ppyoloe_s_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/9JO3A4vhw) | [ppyoloe_s_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/4m6mPbanQ) |
-| ppyoloe_plus_s | [ppyoloe_plus_s_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/p3V402J73) | [ppyoloe_plus_s_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/xEj8GatV2) | [ppyoloe_plus_s_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/WEWsAtkuJ) |
+PP-YOLO系列模型下载方式：
+```bash
+python3 -m dfss --url=sophon-pipeline/models/ppyoloe.tar.gz 
+```
 
 参数说明
 

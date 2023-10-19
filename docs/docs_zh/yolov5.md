@@ -69,22 +69,23 @@
 
 ### 3.2 运行方法
 
-  > **NOTE**  
-  >
-  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
-  >
-  > tpukernel动态库下载地址：[libbm1684x_kernel_module.so](http://219.142.246.77:65000/sharing/IANenG525)
+测试视频下载：
+```
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/common/elevator-1080p-25fps-4000kbps.h264
+```
+ 
+tpukernel动态库地址：[libbm1684x_kernel_module.so](https://github.com/sophgo/sophon-demo/blob/release/sample/YOLOv5_opt/tpu_kernel_module/libbm1684x_kernel_module.so)
 
-YOLO系列模型列表及NAS云盘下载地址
+YOLO系列模型列表及下载方式
 
-| model_type | BM1684 int8模型                                              | BM1684X int8模型                                             | BM1684X fp16模型                                             |
-| ---------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| yolov5s    | [yolov5s_3output_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/XN0Xjko3l) | [yolov5s_3output_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/4KXV0r0bV) | [yolov5s_3output_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/9Rchhp0rl) |
-| yolov6s    | [yolov6s_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/lHh7Xc70U) | [yolov6s_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/gtpPKFDSG) | [yolov6s_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/FsRFOU1Ng) |
-| yolov7     | [yolov7_3output_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/RFT8S9b4Y) | [yolov7_3output_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/CH139AIZF) | [yolov7_3output_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/CJ7ph33Ys) |
-| yolov8s    | [yolov8s_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/LqcrsJzz6) | [yolov8s_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/FdGTy4VEA) | [yolov8s_640_fp16_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/Tn1Jtev8e) |
-| yolov5s_opt🚀 | - |[yolov5s_tpukernel_int8_4b.bmodel](http://219.142.246.77:65000/sharing/3p9xqqe39) | [yolov5s_tpukernel_fp16_4b.bmodel](http://219.142.246.77:65000/sharing/thyCbllqf) |
-| yolov7_opt🚀 | - |[yolov7_tpukernel_int8_4b.bmodel](http://219.142.246.77:65000/sharing/6XkwiGLuA) | [yolov7_tpukernel_fp16_4b.bmodel](http://219.142.246.77:65000/sharing/yy7uPazv7) |
+| model_type     | 模型下载方式 |
+| ----------     | --------    |
+| yolov5s        | python3 -m dfss --url=sophon-pipeline/models/yolov5.tar.gz           |
+| yolov6s        | python3 -m dfss --url=sophon-pipeline/models/yolov6.tar.gz           |
+| yolov7         | python3 -m dfss --url=sophon-pipeline/models/yolov7.tar.gz           |
+| yolov8s        | python3 -m dfss --url=sophon-pipeline/models/yolov8.tar.gz           |
+| yolov5s_opt🚀  | python3 -m dfss --url=sophon-pipeline/models/yolov5_opt.tar.gz        |
+| yolov7_opt🚀  |  python3 -m dfss --url=sophon-pipeline/models/yolov7_opt.tar.gz        |
 
 > 注意：在json配置中需选择使用模型对应的model_type，否则可能会影响检测精度。
 >

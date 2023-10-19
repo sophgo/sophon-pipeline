@@ -86,12 +86,15 @@ Play streams from this server using the URL
 
 ### 3.2 运行方法
 
-  > **NOTE**  
-  > video_stitch_1684X模型NAS云盘下载地址：[yolov5s_3output_640_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/4KXV0r0bV)
-  >
-  > video_stitch_1684模型NAS云盘下载地址：[yolov5s_3output_640_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/XN0Xjko3l)
-  >
-  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
+测试视频下载方式：
+```bash
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/common/elevator-1080p-25fps-4000kbps.h264
+```
+
+模型下载方式：
+```bash
+python3 -m dfss --url=sophon-pipeline/models/yolov5.tar.gz 
+```
 
 参数说明
 

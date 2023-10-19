@@ -69,15 +69,13 @@
 
   > **NOTE**  
   >
-  > 测试视频下载地址：[elevator-1080p-25fps-4000kbps.h264](http://219.142.246.77:65000/sharing/tU6pYuuau)
+  > 测试视频下载: 
+  >```python3 -m dfss --url=open@sophgo.com:sophon-pipeline/common/elevator-1080p-25fps-4000kbps.h264```
 
-PP-YOLO系列模型列表及NAS云盘下载地址
-
-| 模型类型         | BM1684 int8模型                                              | BM1684X int8模型                                             |
-| ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| yolact_base      | [yolact_base_54_800000_onnx_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/Bg5I8pXBU) | [yolact_base_54_800000_onnx_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/8wY8ZJgP2) |
-| yolact_darknet53 | [yolact_darknet53_54_800000_onnx_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/ou2U2648j) | [yolact_darknet53_54_800000_onnx_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/Ux8ifvw7c) |
-| yolact_resnet50  | [yolact_resnet50_54_800000_onnx_int8_4b_BM1684.bmodel](http://219.142.246.77:65000/sharing/WaE6IMpc0) | [yolact_resnet50_54_800000_onnx_int8_4b_BM1684X.bmodel](http://219.142.246.77:65000/sharing/nWrfxF9uo) |
+模型下载：
+```bash
+python3 -m dfss --url=sophon-pipeline/models/yolact.tar.gz   
+```
 
 参数说明
 
