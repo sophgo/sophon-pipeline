@@ -24,7 +24,7 @@ namespace bm {
         BlockingQueue <UIFrame> m_frameQue[MAX_CHAN_NUM];
         std::shared_ptr <std::thread> m_pFrameDispatchThread[MAX_CHAN_NUM];
         int m_channel_num = 0;
-        float flow_control_interval = 30;
+        float flow_control_interval = 20;
         void uithread_entry(int num) {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 6, 0))
             QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -63,7 +63,7 @@ namespace bm {
                     std::chrono::duration<double> interval = current_ts - pre_ts;
                     double interval_ms = 1000 * interval.count();
                     pre_ts = current_ts;
-                    if((flow_control_interval - interval_ms) > 1.0){
+                    if((flow_control_interval - interval_ms) > 0.1){
                         // std::cout<<"sleep "<< flow_control_interval - interval_ms <<std::endl;
                         bm::msleep(flow_control_interval - interval_ms);
                     }

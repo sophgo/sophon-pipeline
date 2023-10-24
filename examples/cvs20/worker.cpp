@@ -380,14 +380,13 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 if(!pchan->writer.is_opened){
                     std::string output_path = "results/output_" + std::to_string(pchan->channel_id) + ".h264";
                     int ret_writer = pchan->writer.openEnc(output_path.c_str(), 
-                                                                0, 
-                                                                AV_CODEC_ID_H264, 
+                                                                "h264_bm", 
+                                                                0,
                                                                 25, 
                                                                 frame->width, 
                                                                 frame->height, 
                                                                 frame->format, 
-                                                                25*frame->width*frame->height/8, 
-                                                                0);
+                                                                4000);
                     if (ret_writer != 0) {
                         av_log(NULL, AV_LOG_ERROR,"writer.openEnc failed\n");
                         return;

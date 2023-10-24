@@ -104,8 +104,9 @@ function build_all() {
     # build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=ON" cvs20_extractor
     # build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DWITH_ENCODE=ON -DWITH_HDMI=ON" cvs20_gui $3
     # build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON -DWITH_OUTPUTER=ON" cvs20_all_client
-    build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DECODE=ON -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF" cvs20_decode
-    build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DWITH_ENCODE=ON -DWITH_HDMI=OFF -DENC_JPEG=ON" cvs20_enc $3
+    # build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DECODE=ON -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF" cvs20_decode
+    # build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DWITH_ENCODE=ON -DWITH_HDMI=OFF -DENC_JPEG=ON" cvs20_enc_jpeg $3
+    build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DWITH_ENCODE=ON -DWITH_HDMI=OFF -DENC_H264=ON" cvs20_enc_h264 $3
     build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON" cvs20_all
     build_app $1 $2 "-DUSE_QTGUI=OFF -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON -DWITH_ENCODE=ON -DWITH_HDMI=OFF -DENC_JPEG=ON" cvs20_all_enc
     build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON" cvs20_all_gui $3
@@ -142,6 +143,9 @@ function build_all() {
     # build_app $1 /home/lihengfang/work/sophon-pipeline/soc-sdk-230501 \
     # "-DA2_SDK=OFF -DUSE_QTGUI=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DUSE_SOPHON_OPENCV=ON -DWITH_ENCODE=ON -DWITH_HDMI=OFF -DENC_JPEG=ON" \
     # cvs20_enc_jpg_se5 ~/work/sophon-QT/HDMIDemo/install/
+    # build_app $1 /home/lihengfang/work/sophon-pipeline/soc-sdk-230501 \
+    # "-DA2_SDK=OFF -DUSE_QTGUI=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DUSE_SOPHON_OPENCV=ON -DWITH_ENCODE=ON -DWITH_HDMI=OFF -DENC_H264=ON" \
+    # cvs20_enc_h264_se5 ~/work/sophon-QT/HDMIDemo/install/
     if [ "$?" == "1" ];then
         break
     fi
