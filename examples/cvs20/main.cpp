@@ -128,7 +128,10 @@ int main(int argc, char *argv[])
                           "{stop_frame_num | 1 | frame number early stop}"
                           "{save_num | 0 | number of channel to save .flv}"
                           "{output | None | Output stream URL}"
-                          "{config | ./cameras_cvs.json | path to cameras_cvs.json}";
+                          "{config | ./cameras_cvs.json | path to cameras_cvs.json}"
+                          "{gui_delay | 30 | ms, for gui flow control}"
+                          "{gui_resize_h | 1440 | height of each widget in your hdmi displayer }"
+                          "{gui_resize_w | 2560 | width of each widget in your hdmi displayer}";
 
     std::string keys;
     keys = base_keys;
@@ -152,7 +155,9 @@ int main(int argc, char *argv[])
     int save_num = parser.get<int>("save_num");
     int display_num = parser.get<int>("display_num");
     int resize_num = parser.get<int>("resize_num");
-
+    int gui_delay = parser.get<int>("gui_delay");
+    int gui_resize_h = parser.get<int>("gui_resize_h");
+    int gui_resize_w = parser.get<int>("gui_resize_w");
     int enable_l2_ddrr = 0;
 
     Config cfg(config_file.c_str());
@@ -172,7 +177,7 @@ int main(int argc, char *argv[])
 #if USE_QTGUI
     if (display_num > 0){
         gui = bm::VideoUIApp::create(argc, argv);
-        gui->bootUI(total_num);
+        gui->bootUI(total_num, gui_delay);
     }
 #endif
 
@@ -200,11 +205,12 @@ int main(int argc, char *argv[])
         OneCardInferAppPtr appPtr = std::make_shared<OneCardInferApp>(appStatis, gui,
                 tqp, contextPtr, output_url, start_chan_index, channel_num, skip_frame_num, feature_delay, feature_num,
                 enable_l2_ddrr, stop_frame_num, save_num, display_num);
+        appPtr->set_gui_resize_hw(gui_resize_h, gui_resize_w);
         start_chan_index += channel_num;
     #if WITH_DETECTOR
         std::shared_ptr<bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo>> detector;
         if (MODEL_FACE_DETECT == model_type) {
-            detector = std::make_shared<FaceDetector>(contextPtr, resize_num, display_num);
+            detector = std::make_shared<FaceDetector>(contextPtr, resize_num, display_num, gui_resize_h, gui_resize_w);
         }else if (MODEL_RESNET50 == model_type) {
             detector = std::make_shared<Resnet>(contextPtr);
         }

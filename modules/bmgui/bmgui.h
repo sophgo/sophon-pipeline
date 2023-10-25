@@ -36,7 +36,7 @@ namespace bm {
             std::cout << "VideoUIApp exit!" << std::endl;
         }
 
-        virtual int bootUI(int window_num=1) = 0;
+        virtual int bootUI(int window_num=1, int gui_delay=30) = 0;
         virtual int shutdownUI() = 0;
         virtual int pushFrame(UIFrame &frame) = 0;
     };

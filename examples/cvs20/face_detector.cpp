@@ -22,7 +22,7 @@ static inline bool compareBBox(const bm::NetOutputObject &a, const bm::NetOutput
     return a.score > b.score;
 }
 
-FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num, int display_num)
+FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num, int display_num, int gui_resize_h_, int gui_resize_w_)
 {
 #if 1
     auto net_name = "squeezenet"; // origin: 0
@@ -52,6 +52,8 @@ FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num, int display
 
     resize_num_ = resize_num;
     m_display_num = display_num;
+    gui_resize_h = gui_resize_h_;
+    gui_resize_w = gui_resize_w_;
 }
 
 FaceDetector::~FaceDetector()
@@ -169,19 +171,9 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
 #if USE_QTGUI
             if(frames[start_idx + i].chan_id < m_display_num){
                 bm_image image2;
-            #if HDMI_4K
-                int image2_h = 540;
-                int image2_w = 960;
-            #elif HDMI_2K
-                int image2_h = 360;
-                int image2_w = 640;
-            #elif HDMI_1080P
-                int image2_h = 270;
-                int image2_w = 480;
-            #else
-                int image2_h = 1080;
-                int image2_w = 1920;
-            #endif
+                int image2_h = gui_resize_h;
+                int image2_w = gui_resize_w;
+
             #if USE_JPEG
                 uint8_t *jpeg_data=NULL;
                 size_t out_size = 0;

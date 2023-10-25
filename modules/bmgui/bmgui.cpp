@@ -24,7 +24,8 @@ namespace bm {
         BlockingQueue <UIFrame> m_frameQue[MAX_CHAN_NUM];
         std::shared_ptr <std::thread> m_pFrameDispatchThread[MAX_CHAN_NUM];
         int m_channel_num = 0;
-        float flow_control_interval = 20;
+        float flow_control_interval = 40;
+
         void uithread_entry(int num) {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 6, 0))
             QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -99,7 +100,7 @@ namespace bm {
             std::cout << "VideoUIApp exit!" << std::endl;
         }
 
-        int bootUI(int num) {
+        int bootUI(int num, int gui_delay) {
             if(num > MAX_CHAN_NUM){
                 std::cerr << "Please adjust macro MAX_CHAN_NUM!" << std::endl;
                 exit(1);
@@ -107,6 +108,7 @@ namespace bm {
             m_channel_num = num;
             m_pUIThread = std::make_shared<std::thread>(&VideoUIAppQT::uithread_entry, this, num);
             assert(m_pUIThread != nullptr);
+            flow_control_interval = gui_delay;
             return 0;
         }
 

@@ -216,10 +216,13 @@ class OneCardInferApp {
     int m_stop_frame_num;
     int m_save_num;
     int m_display_num;
+    int gui_resize_h = 360;
+    int gui_resize_w = 640;
+
     FILE *outputFile;
     bm::BMInferencePipe<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo> m_inferPipe;
     //skip frame queue regather
-    std::queue<bm::skipedFrameinfo> m_skipframe_queue[16]; //todo: set size by channel_num;
+    std::queue<bm::skipedFrameinfo> m_skipframe_queue[32]; //todo: set size by channel_num;
 
     bm::BMInferencePipe<bm::FeatureFrame, bm::FeatureFrameInfo> m_featurePipe;
 
@@ -274,6 +277,11 @@ public:
             param.postprocess_thread_num    = cfg.thread_num;
             param.postprocess_queue_size    = cfg.queue_size;
         }
+    }
+
+    void set_gui_resize_hw(int h, int w){
+        gui_resize_h = h;
+        gui_resize_w = w;
     }
 };
 

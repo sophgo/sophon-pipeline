@@ -242,6 +242,9 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             AVFrame *frame = av_frame_alloc();
             // static int ddd = 0;
             // ddd++;
+            // if(ddd % 100 == 0){
+            //     std::cout<<"ch: "<<ch<<", decode times:"<<ddd<<std::endl;
+            // }
             // std::cout<<"decode times: " << ddd << std::endl;
             pchan->decode_video2(pchan->m_decoder, frame, &got_picture, pkt);
             if(got_picture){
@@ -266,19 +269,8 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                         bm_image image1;
                         bm::BMImage::from_avframe(m_bmctx->handle(), frame, image1, true);
                         bm_image image2;
-                        #if HDMI_4K
-                            int image2_h = 540;
-                            int image2_w = 960;
-                        #elif HDMI_2K
-                            int image2_h = 360;
-                            int image2_w = 640;
-                        #elif HDMI_1080P
-                            int image2_h = 270;
-                            int image2_w = 480;
-                        #else
-                            int image2_h = 1080;
-                            int image2_w = 1920;
-                        #endif
+                        int image2_h = gui_resize_h;
+                        int image2_w = gui_resize_w;
                         bm_image_create(m_bmctx->handle(), image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, NULL);
                         bmcv_image_vpp_convert(m_bmctx->handle(), 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
                         bm_image_destroy_allinone(&image1);
