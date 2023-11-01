@@ -128,7 +128,7 @@ void video_pixmap_widget::paintEvent(QPaintEvent *event)
         auto start_load = std::chrono::high_resolution_clock::now();
     #endif
         QImage origin;
-        if(m_jpeg->image_format == FORMAT_RGB_PLANAR){
+        if(m_jpeg->image_format == FORMAT_RGB_PACKED){
             origin = QImage(m_jpeg->ptr<uint8_t>(), m_jpeg->width, m_jpeg->height, QImage::Format_RGB888);
         }else{
             origin.loadFromData(m_jpeg->ptr<uint8_t>(), m_jpeg->size());

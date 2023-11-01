@@ -33,16 +33,6 @@ option(WITH_HDMI "with hdmi encode" OFF)
 option(WITH_DETECTOR "with detector" OFF)
 option(WITH_EXTRACTOR "with extractor" OFF)
 option(WITH_OUTPUTER "with client outputer" OFF)
-option(HDMI_1080P "1920*1080 hdmi" OFF)
-option(HDMI_2K "2560*1440 hdmi" ON)
-option(HDMI_4K "3840*2160 hdmi" OFF)
-if(HDMI_1080P)
-    add_definitions(-DHDMI_1080P=1)
-elseif(HDMI_2K)
-    add_definitions(-DHDMI_2K=1)
-elseif(HDMI_4K)
-    add_definitions(-DHDMI_4K=1)
-endif()
 
 if(A2_SDK)
     add_definitions(-DA2_SDK=1)
@@ -89,8 +79,10 @@ else()
     add_definitions(-DWITH_OUTPUTER=0)
 endif()
 
-add_definitions(-DWITH_RESIZE_TEST=0)   #depend on decode\encode_jpeg.
-add_definitions(-DWITH_CONVERTO_TEST=0) #depend on decode\encode_jpeg\resize_test.
+if(TEST_PREPROCESS)
+    add_definitions(-DWITH_RESIZE_TEST=1)   #depend on decode\encode_jpeg.
+    add_definitions(-DWITH_CONVERTO_TEST=1) #depend on decode\encode_jpeg\resize_test.
+endif()
 add_definitions(-DWITH_FAKEDATA=0)      #depend on detector, feed fake data to postprocess.
 add_definitions(-DDRAW_DETECTOR=0)      #depend on detector. Func: draw boxes and encode.
 add_definitions(-DDRAR_EXTRACTOR=0)     #depend on extractor (Not implement yet)
@@ -99,7 +91,7 @@ add_definitions(-DFLOW_CONTROL=1)       #flow control
 add_definitions(-DWITH_PROFILE=0)       #tpu/cpu/mem profile
 add_definitions(-DSAVE_QT_FRAME=0)
 # add_definitions(-DPRINT_QUEUE=1)        #print blocking queue name and pop size
-# add_definitions(-DWITH_LOAD=1)          #load bmodel
+add_definitions(-DWITH_LOAD=1)          #load bmodel
 
 add_compile_options(-Wno-deprecated-declarations -fPIC)
 

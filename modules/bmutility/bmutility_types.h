@@ -374,7 +374,7 @@ namespace bm {
         int width;
         int height;
         int image_format=-1;//default jpeg
-        bm_image bmimg_formmap;
+        bm_image bmimg_formmap;//some time there is no bmimg initialized, so we should assign another image_format variable.
         bool is_mmap = false;
         Data() : dsize(0), data(nullptr){
         }

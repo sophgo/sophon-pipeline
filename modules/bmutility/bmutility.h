@@ -308,7 +308,7 @@ namespace bm {
             struct bm_misc_info misc_info;
             bm_status_t ret = bm_get_misc_info(handle, &misc_info);
             assert(BM_SUCCESS == ret);
-            m_can_mmap = misc_info.pcie_soc_mode == 1;
+            m_can_mmap = 0; //misc_info.pcie_soc_mode == 1;
         }
 
         virtual ~BMNNTensor() {

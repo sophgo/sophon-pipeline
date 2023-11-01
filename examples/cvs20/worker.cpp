@@ -129,12 +129,15 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
 
             m_frame_count += 1;
             if ((m_frame_count >= m_stop_frame_num*m_channel_num/(1+m_skipN)) && (m_stop_frame_num*m_channel_num/(1+m_skipN) >= 0)){
-                std::cout <<  "-=-=-=-======exit==============>>> " << std::endl;
-                if (enable_outputer && ((ch < m_save_num) || (m_save_num == -1))){
-                    m_chans[ch]->outputer->CloseOutputStream();
-                }
-                exit(-1);
-                   
+                std::cout<<"======================"<<std::endl;
+                std::cout<<"m_frame_count:"<<m_frame_count<<std::endl;
+                std::cout<<"======================"<<std::endl;
+                m_frame_count = 0;
+                // std::cout <<  "-=-=-=-======exit==============>>> " << std::endl;
+                // if (enable_outputer && ((ch < m_save_num) || (m_save_num == -1))){
+                //     m_chans[ch]->outputer->CloseOutputStream();
+                // }
+                // exit(-1);
             }
         }
     });
@@ -242,8 +245,9 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             AVFrame *frame = av_frame_alloc();
             // static int ddd = 0;
             // ddd++;
-            // if(ddd % 100 == 0){
+            // if(ddd % 1000 == 0){
             //     std::cout<<"ch: "<<ch<<", decode times:"<<ddd<<std::endl;
+            //     if(ddd > 2147483600) ddd = 0;
             // }
             // std::cout<<"decode times: " << ddd << std::endl;
             pchan->decode_video2(pchan->m_decoder, frame, &got_picture, pkt);
@@ -251,6 +255,55 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 m_appStatis.m_statis_decode_lock.lock();
                 m_appStatis.m_total_decode++;
                 m_appStatis.m_statis_decode_lock.unlock();
+            }
+        #endif
+        #if USE_QTGUI && WITH_HDMI
+            bm::NetOutputObject fake_object(100,100,200,200);
+            bm::NetOutputObjects fake_objects{fake_object};
+            bm::NetOutputDatum fake_datum(fake_objects);
+            if(ch < m_display_num && got_picture){
+                bm_image image1;
+                bm::BMImage::from_avframe(m_bmctx->handle(), frame, image1, true);
+                bm_image image2;
+                int image2_h = gui_resize_h;
+                int image2_w = gui_resize_w;
+                bm_image_create(m_bmctx->handle(), image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, NULL);
+                bmcv_image_vpp_convert(m_bmctx->handle(), 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
+                bm_image_destroy_allinone(&image1);
+                int plane_num = bm_image_get_plane_num(image2);
+                int plane_size[1];
+                assert(0 == bm_image_get_byte_size(image2, plane_size));
+                uint8_t *buffers_image2[1]={0};
+            #define USE_MMAP 0 //todo:mmap may has bug, fix it.
+            #define USE_D2S !USE_MMAP
+            #if USE_D2S
+                buffers_image2[0] = new uint8_t[plane_size[0]];
+                assert(BM_SUCCESS == bm_image_copy_device_to_host(image2, (void**)buffers_image2));//RGB
+            #elif USE_MMAP
+                unsigned long long addr;
+                bm_device_mem_t image2_dmem;
+                bm_image_get_device_mem(image2, &image2_dmem);
+                bm_mem_mmap_device_mem(m_bmctx->handle(), &image2_dmem, &addr);
+                buffers_image2[0] = (uint8_t*)addr;
+            #endif
+                bm::UIFrame jpgframe;
+                jpgframe.jpeg_data = std::make_shared<bm::Data>(buffers_image2[0], plane_size[0]);
+            #if USE_MMAP
+                jpgframe.jpeg_data->bmimg_formmap = image2;
+                jpgframe.jpeg_data->is_mmap = true;
+            #endif
+                jpgframe.jpeg_data->height = image2.height;
+                jpgframe.jpeg_data->width = image2.width;
+                jpgframe.jpeg_data->image_format = FORMAT_RGB_PACKED;
+                jpgframe.chan_id = ch;
+                jpgframe.h = image2.height;
+                jpgframe.w = image2.width;
+                jpgframe.datum = fake_datum;
+                m_guiReceiver->pushFrame(jpgframe);
+
+            #if USE_D2S
+                bm_image_destroy_allinone(&image2);
+            #endif
             }
         #endif
 
@@ -278,7 +331,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                         int plane_size[1];
                         assert(0 == bm_image_get_byte_size(image2, plane_size));
                         uint8_t *buffers_image2[1]={0};
-                    #define USE_MMAP 1 //todo:mmap may has bug, fix it.
+                    #define USE_MMAP 0 //todo:mmap may has bug, fix it.
                     #define USE_D2S !USE_MMAP
                     #if USE_D2S
                         buffers_image2[0] = new uint8_t[plane_size[0]];
@@ -297,7 +350,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     #endif
                         skip_fbi.img_data->height = image2.height;
                         skip_fbi.img_data->width = image2.width;
-                        skip_fbi.img_data->image_format = FORMAT_RGB_PLANAR;
+                        skip_fbi.img_data->image_format = FORMAT_RGB_PACKED;
                     #if USE_D2S
                         bm_image_destroy_allinone(&image2);
                     #endif
@@ -407,8 +460,8 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 m_appStatis.m_statis_encode_lock.unlock();
             }
         #endif
-        #if WITH_ENCODE_JPEG //save decoded avframe
-            if (ch < m_save_num && got_picture){
+        #if WITH_ENCODE_JPEG || WITH_RESIZE_TEST //save decoded avframe
+            if (got_picture){
                 bm_image image1;
                 bm::BMImage::from_avframe(m_bmctx->handle(), frame, image1, true);
                 bm_image* image_for_enc;
@@ -437,18 +490,19 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 ret = bmcv_image_convert_to(m_bmctx->handle(), 1, convert_to_attr, &resized, &convertoed);
                 assert(ret == BM_SUCCESS);
                 // std::cout<<"calculate converto data:=="<<std::endl;
-                bm_image resized_;
-                bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &resized_, 1, 1);
-                bmcv_copy_to_atrr_t copy_to_attr{0,0,0,0,0,0};
-                bmcv_image_copy_to(m_bmctx->handle(), copy_to_attr, resized, resized_);
-                compare_resize_converto(resized_, convertoed, convert_to_attr);
+                // bm_image resized_;
+                // bm::BMImage::create_batch(m_bmctx->handle(), test_resize_h, test_resize_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &resized_, 1, 1);
+                // bmcv_copy_to_atrr_t copy_to_attr{0,0,0,0,0,0};
+                // bmcv_image_copy_to(m_bmctx->handle(), copy_to_attr, resized, resized_);
+                // compare_resize_converto(resized_, convertoed, convert_to_attr);
                 // bm_image_dump_size(resized, 50);
                 // bm_image_dump_size(resized_, 50);
-                ret = bm_image_destroy_allinone(&resized_);
+                // ret = bm_image_destroy_allinone(&resized_);
                 assert(ret == BM_SUCCESS);
                 // assert(ret == BM_SUCCESS);
                 ret = bm_image_destroy_allinone(&convertoed);
                 assert(ret == BM_SUCCESS);
+
             #endif
             #if SAVE_RESIZED_FRAMES
                 #if PLD
@@ -473,8 +527,9 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
 
                 ret = bmcv_image_jpeg_enc(m_bmctx->handle(), 1, &resized_yuv420, (void**)&jpeg_data_resized, &out_size_resized, 85);
                 if (ret == BM_SUCCESS) {
-                    static int ii = 0;
-                    std::string img_file = "results/resized_frame_" + std::to_string(ii++) + ".jpg";
+                    static int rr[32] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+                    rr[ch]++;
+                    std::string img_file = "results/resized_frame_" + std::to_string(rr[ch]) + ".jpg";
                     FILE *fp = fopen(img_file.c_str(), "wb");
                     fwrite(jpeg_data_resized, out_size_resized, 1, fp);
                     fclose(fp);
@@ -489,7 +544,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 assert(ret == BM_SUCCESS);
             #endif
 
-            #if 1//OUTPUT OR SAVE_ENCODED_FRAMES
+            #if WITH_ENCODE_JPEG//OUTPUT OR SAVE_ENCODED_FRAMES
                 #if PLD
                     std::cout<<"=========================="<<std::endl;
                     std::cout<<"==saving decoded frames!=="<<std::endl;
@@ -499,30 +554,12 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 size_t out_size = 0;
                 ret = bmcv_image_jpeg_enc(m_bmctx->handle(), 1, &image1, (void**)&jpeg_data, &out_size, 85);
                 if (ret == BM_SUCCESS) {
-                #if USE_QTGUI && WITH_HDMI
-                    bm::NetOutputObject fake_object(100,100,200,200);
-                    bm::NetOutputObjects fake_objects{fake_object};
-                    bm::NetOutputDatum fake_datum(fake_objects);
-                    if (ch < m_display_num){
-                        bm::UIFrame jpgframe;
-                        jpgframe.jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size, true);
-                        jpgframe.chan_id = ch;
-                        jpgframe.h = image1.height;
-                        jpgframe.w = image1.width;
-                        jpgframe.datum = fake_datum;
-                        m_guiReceiver->pushFrame(jpgframe);
-                    }
-                #else
-                    static int ii = 0;
-                    if(ii > 10){
-                        ii = 0;
-                    }
-                    // std::cout<<"==saving decoded frames "<<ii<<std::endl;
-                    std::string img_file = "results/ch" + std::to_string(ch) + "_" + std::to_string(ii++) + ".jpg";
+                    static int ii[32] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+                    ii[ch]++;
+                    std::string img_file = "results/ch" + std::to_string(ch) + "_" + std::to_string(ii[ch]) + ".jpg";
                     FILE *fp = fopen(img_file.c_str(), "wb");
                     fwrite(jpeg_data, out_size, 1, fp);
                     fclose(fp);
-                #endif
                     m_appStatis.m_statis_encode_lock.lock();
                     m_appStatis.m_total_encode++;
                     m_appStatis.m_statis_encode_lock.unlock();
@@ -546,11 +583,8 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     bm::FeatureFrame featureFrame;
                     featureFrame.chan_id = ch;
                     featureFrame.seq++;
-#if USE_SOPHON_OPENCV
                     featureFrame.img = feature_mat;
-#else
-                    featureFrame.img = feature_mat; //todo: read image buffer instead of jpg.
-#endif
+
                     if (featureFrame.img.empty()) {
                         printf("ERROR:Can't find face.jpg in workdir!\n");
                         exit(0);

@@ -55,7 +55,7 @@ int VideoEnc_FFMPEG::openEnc(const char* output_filename, const char* codec_name
             printf("Unable to assign encoder automatically by file name, please specify by parameter...\n");
             return -1;
         }
-        pFormatCtx->oformat = pOutfmtormat;
+        pFormatCtx->oformat = const_cast<AVOutputFormat*>(pOutfmtormat);
         encoder = avcodec_find_encoder(pOutfmtormat->video_codec);
     }
     if(codec_name != NULL)

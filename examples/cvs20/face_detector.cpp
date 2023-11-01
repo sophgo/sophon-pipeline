@@ -196,7 +196,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
                 assert(0 == bm_image_get_byte_size(image2, plane_size));
                 uint8_t *buffers_image2[1]={0};
                 // auto start_copy = std::chrono::high_resolution_clock::now();
-            #define USE_MMAP 1 //todo:mmap may has bug, fix it.
+            #define USE_MMAP 0 //todo:mmap may has bug, fix it.
             #define USE_D2S !USE_MMAP
             #if USE_D2S
                 buffers_image2[0] = new uint8_t[plane_size[0]];
@@ -219,7 +219,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             #endif
                 frames[start_idx + i].jpeg_data->height = image2.height;
                 frames[start_idx + i].jpeg_data->width = image2.width;
-                frames[start_idx + i].jpeg_data->image_format = FORMAT_RGB_PLANAR;
+                frames[start_idx + i].jpeg_data->image_format = FORMAT_RGB_PACKED;
             #endif
                 frames[start_idx + i].height= image2.height;
                 frames[start_idx + i].width = image2.width;
