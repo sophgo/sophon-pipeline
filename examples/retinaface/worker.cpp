@@ -40,7 +40,7 @@ void OneCardInferApp::start(const std::vector<std::string> &urls, Config &config
             m_guiReceiver->pushFrame(jpgframe);
 #endif
 
-            if (enable_outputer) {
+            if (enable_outputer && m_chans[ch]->outputer->get_output_state() == m_chans[ch]->outputer->output_state_service()) {
                 std::shared_ptr<bm::ByteBuffer> buf = frameInfo.out_datums[i].toByteBuffer();
                 std::string base64_str = bm::base64_enc(buf->data(), buf->size());
 

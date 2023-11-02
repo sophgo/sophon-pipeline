@@ -45,7 +45,7 @@ void OneCardInferApp::start(const std::vector<std::string> &urls, Config &config
             m_guiReceiver->pushFrame(jpgframe);
 #endif
 
-            if (enable_outputer) {
+            if (enable_outputer && m_chans[ch]->outputer->get_output_state() == m_chans[ch]->outputer->output_state_service()) {
                 std::shared_ptr<bm::ByteBuffer> buf = frameInfo.out_datums[i].toByteBuffer();
                 std::string base64_str = bm::base64_enc(buf->data(), buf->size());
 
@@ -78,6 +78,7 @@ void OneCardInferApp::start(const std::vector<std::string> &urls, Config &config
                 }
 
                 m_chans[ch]->outputer->InputPacket(&sei_pkt);
+                // std::cout<<"frame_id: "<<frameInfo.frames[i].seq<<std::endl;
                 m_chans[ch]->outputer->InputPacket(frameInfo.frames[i].avpkt);
                 av_packet_unref(&sei_pkt);
             }
@@ -110,7 +111,7 @@ void OneCardInferApp::start(const std::vector<std::string> &urls, Config &config
         std::string media_file;
         AVDictionary *opts = NULL;
         av_dict_set_int(&opts, "sophon_idx", m_dev_id, 0);
-        av_dict_set(&opts, "output_format", "101", 18);
+        av_dict_set_int(&opts, "output_format", 0, 18);
         av_dict_set(&opts, "extra_frame_buffer_num", "18", 0);
 
         pchan->decoder->set_avformat_opend_callback([this, pchan](AVFormatContext *ifmt)

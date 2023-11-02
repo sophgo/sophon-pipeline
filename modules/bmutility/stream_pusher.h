@@ -39,7 +39,7 @@ namespace bm {
         std::thread *m_thread_output{nullptr};
         bool m_thread_output_is_running{false};
 
-        State m_output_state;
+        State m_output_state = INIT;
         std::mutex m_list_packets_lock;
         std::list<AVPacket *> m_list_packets;
         bool m_repeat{true};
@@ -48,6 +48,7 @@ namespace bm {
         int64_t m_last_pts{0};
         int64_t m_pts_base{0};
 
+        
         bool string_start_with(const std::string &s, const std::string &prefix) {
             return (s.compare(0, prefix.size(), prefix) == 0);
         }
@@ -128,6 +129,7 @@ namespace bm {
                         break;
                     case SERVICE:
                         output_service();
+                        std::this_thread::sleep_for(std::chrono::milliseconds(25));
                         break;
                     case DOWN:
                         output_down();
@@ -247,6 +249,14 @@ namespace bm {
             }
 
             return 0;
+        }
+        
+        inline int get_output_state(){
+            return m_output_state;
+        }
+
+        static inline int output_state_service(){
+            return SERVICE;
         }
     };
 }
