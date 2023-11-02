@@ -52,9 +52,13 @@ chmod +x tools/compile.sh
 ## 3 运行方法
 
 > **NOTE**  
-> 首先确认你的1688 evb板子/SE9是vpp 4g的版本，参考这个链接中的**LPDDR 4266 8G 边缘测板子使用**：https://wiki.sophgo.com/pages/viewpage.action?pageId=102755009
->
-> cvs20测试程序包下载，请放到对应的bm1688 evb soc板子上面，测试步骤：
+首先确认你的1688 evb板子/SE9是4g配置，运行 `free -m`，输出的系统内存大约是这么大：
+```
+              total        used        free      shared  buff/cache   available
+Mems:           1375         264         279           2         831         951
+Swap:             0           0           0
+```
+下载cvs20测试程序包，请放到对应的板子上面，测试步骤：
   ```bash
   pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
   python3 -m dfss --url=open@sophgo.com:sophon-pipeline/a2_bringup/test_pack_cvs20_latest.tar
@@ -63,11 +67,11 @@ chmod +x tools/compile.sh
   ./setup.sh <exe> <chan_num> <display_num> <save_num> # <exe>即可执行程序，如果想要测试自己编译出来的可执行程序，直接用`${SOPHON_PIPELINE}/test_execs/`下的程序替换即可。
   #chan_num 表示跑几路，display_num 表示几路显示，save_num表示几路编码。
   ```
-### 3.1 16路解码+16路推理+16路显示
+### 3.1 12路解码+12路推理+12路显示
 板子插上hdmi显示器，在`test_pack_cvs20`目录中运行如下命令：
 ```
 sudo -s
-./setup.sh test_execs/cvs20_all_gui 16 16 0
+./setup.sh test_execs/cvs20_all_gui 12 12
 ```
 >**NOTE**  
 >如果出现：
@@ -81,7 +85,7 @@ sudo -s
 >```
 
 ### 3.2 稳定性测试
-按照3.1中的命令进行测试，时间不小于2个小时。
+按照3.1中的命令进行测试，时间不小于12小时。
 
 ### 3.3 停止程序及报错处理办法
 cvs20 程序不会自动停止，需要通过`ctrl+c`手动停止。也就是说，稳定性测试无需额外的操作，只需要让它一直跑就行了，如果程序自动停止了，除程序本身报错之外，还需要收集dmesg信息贴到jira页面上：
