@@ -15,23 +15,37 @@
 #include "stream_pusher.h"
 #include "configuration_cvs.h"
 #include "face_detector.h"
-#include "bm_tracker.h"
+// #include "bm_tracker.h"
 #include "common_types.h"
+#include "ff_video_encode.h"
+#ifndef WITH_DECODE
+#define WITH_DECODE 1
+#endif
+#ifndef WITH_DETECTOR
+#define WITH_DETECTOR 1
+#endif
+#ifndef WITH_EXTRACTOR
+#define WITH_EXTRACTOR 1
+#endif
+#ifndef WITH_OUTPUTER
+#define WITH_OUTPUTER 1
+#endif
 
 struct TChannel: public bm::NoCopyable {
     int channel_id;
     uint64_t seq;
     bm::StreamDemuxer *demuxer;
     bm::FfmpegOutputer *outputer;
-    std::shared_ptr<bm::BMTracker> tracker;
+    // std::shared_ptr<bm::BMTracker> tracker;
     uint64_t m_last_feature_time=0; // last do feature time
+    VideoEnc_FFMPEG writer;
 
     int64_t ref_pkt_id = -1;
     AVCodecContext* m_decoder=nullptr;
 
     TChannel():channel_id(0), seq(0), demuxer(nullptr) {
 
-         tracker = bm::BMTracker::create();
+        //  tracker = bm::BMTracker::create();
          m_last_feature_time = 0;
          outputer = nullptr;
     }
@@ -41,6 +55,9 @@ struct TChannel: public bm::NoCopyable {
         if (m_decoder) {
             avcodec_close(m_decoder);
             avcodec_free_context(&m_decoder);
+        }
+        if (writer.is_opened){
+            writer.closeEnc();
         }
         std::cout << "TChannel(chan_id=" << channel_id << ") dtor" <<std::endl;
     }
@@ -54,7 +71,7 @@ struct TChannel: public bm::NoCopyable {
         auto codec_id = ifmt_ctx->streams[video_index]->codec->codec_id;
 #endif
 
-        AVCodec *pCodec = avcodec_find_decoder(codec_id);
+        const AVCodec *pCodec = avcodec_find_decoder(codec_id);
         if (NULL == pCodec) {
             printf("can't find code_id %d\n", codec_id);
             return -1;
@@ -83,19 +100,30 @@ struct TChannel: public bm::NoCopyable {
         }
 #endif
 
-        if (pCodec->capabilities & AV_CODEC_CAP_TRUNCATED) {
-            m_decoder->flags |= AV_CODEC_FLAG_TRUNCATED; /* we do not send complete frames */
-        }
+        // if (pCodec->capabilities & AV_CODEC_CAP_TRUNCATED) {
+        //     m_decoder->flags |= AV_CODEC_FLAG_TRUNCATED; /* we do not send complete frames */
+        // }
 
         //for PCIE
         AVDictionary* opts = NULL;
         av_dict_set_int(&opts, "sophon_idx", dev_id, 0x0);
-        av_dict_set(&opts, "output_format", "101", 18);
+        av_dict_set(&opts, "extra_frame_buffer_num", "6", 0); //6 37%，12 41%
+    #if WITH_ENCODE_H264
+        av_dict_set(&opts, "cbcr_interleave", "0", 0);
+        av_dict_set(&opts, "output_format", "0", 0);
+    #else
+        av_dict_set(&opts, "output_format", "101", 0);
+    #endif
+    #if PLD
+        std::cout<<"opening decoder!"<<std::endl;
+    #endif
         if (avcodec_open2(m_decoder, pCodec, &opts) < 0) {
             std::cout << "Unable to open codec";
             return -1;
         }
-
+    #if PLD
+        std::cout<<"open decoder success!"<<std::endl;
+    #endif
         return 0;
     }
 
@@ -103,7 +131,19 @@ struct TChannel: public bm::NoCopyable {
     {
         int ret;
         *got_picture = 0;
+    #define DECODE_TIMER 0
+    #if DECODE_TIMER
+        auto start_send = std::chrono::high_resolution_clock::now();
+    #endif
         ret = avcodec_send_packet(dec_ctx, pkt);
+        
+    #if DECODE_TIMER
+        auto end_send = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed_send = end_send - start_send;
+        double seconds_send = 1000 * elapsed_send.count();
+        std::cout << "send time: " << seconds_send << " ms" << std::endl;
+    #endif
+
         if (ret == AVERROR_EOF) {
             ret = 0;
         }
@@ -115,7 +155,16 @@ struct TChannel: public bm::NoCopyable {
         }
 
         while (ret >= 0) {
+    #if DECODE_TIMER
+        auto start_receive = std::chrono::high_resolution_clock::now();
+    #endif
             ret = avcodec_receive_frame(dec_ctx, frame);
+    #if DECODE_TIMER
+        auto end_receive = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed_receive = end_receive - start_receive;
+        double seconds_receive = 1000 * elapsed_receive.count();
+        std::cout << "receive time: " << seconds_receive << " ms" << std::endl;
+    #endif
             if (ret == AVERROR(EAGAIN)) {
 # if USE_DEBUG
                 printf("need more data!\n");
@@ -133,6 +182,8 @@ struct TChannel: public bm::NoCopyable {
                 break;
             }
             *got_picture += 1;
+            static int fff = 0;
+            // std::cout<<"cout: decoded_format:"<<frame->format << ", times: " << fff++ <<std::endl;
             break;
         }
 
@@ -165,14 +216,20 @@ class OneCardInferApp {
     int m_stop_frame_num;
     int m_save_num;
     int m_display_num;
+    int gui_resize_h = 360;
+    int gui_resize_w = 640;
 
+    FILE *outputFile;
     bm::BMInferencePipe<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo> m_inferPipe;
+    //skip frame queue regather
+    std::queue<bm::skipedFrameinfo> m_skipframe_queue[32]; //todo: set size by channel_num;
+
     bm::BMInferencePipe<bm::FeatureFrame, bm::FeatureFrameInfo> m_featurePipe;
 
     std::map<int, TChannelPtr> m_chans;
     std::vector<std::string> m_urls;
 public:
-    OneCardInferApp(AppStatis& statis,bm::VideoUIAppPtr gui, bm::TimerQueuePtr tq, bm::BMNNContextPtr ctx, std::string& output_url, 
+    OneCardInferApp(AppStatis& statis,bm::VideoUIAppPtr& gui, bm::TimerQueuePtr tq, bm::BMNNContextPtr ctx, std::string& output_url, 
             int start_index, int num, int skip=0, int feat_delay=1000, int feat_num=8,
             int use_l2_ddrr=0, int stop_frame_num=0, int save_num=0, int display_num=1): m_detectorDelegate(nullptr), m_channel_num(num),
             m_bmctx(ctx), m_appStatis(statis),m_use_l2_ddrr(use_l2_ddrr), m_stop_frame_num(stop_frame_num), m_save_num(save_num), m_display_num(display_num)
@@ -190,6 +247,9 @@ public:
 
     ~OneCardInferApp()
     {
+        if (outputFile){
+            fclose(outputFile);
+        }
         std::cout << cv::format("OneCardInfoApp (devid=%d) dtor", m_dev_id) <<std::endl;
     }
 
@@ -217,6 +277,11 @@ public:
             param.postprocess_thread_num    = cfg.thread_num;
             param.postprocess_queue_size    = cfg.queue_size;
         }
+    }
+
+    void set_gui_resize_hw(int h, int w){
+        gui_resize_h = h;
+        gui_resize_w = w;
     }
 };
 

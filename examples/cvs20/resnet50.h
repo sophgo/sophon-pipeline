@@ -11,7 +11,9 @@
 #define SOPHON_PIPELINE_RESNET50_H
 
 #include "inference.h"
-#include "bmcv_api_ext.h"
+extern "C" {
+    #include "bmcv_api_ext.h"
+}
 #include "common_types.h"
 
 class Resnet : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo>  {
@@ -32,7 +34,9 @@ public:
     virtual int preprocess(std::vector<bm::cvs10FrameBaseInfo> &in, std::vector<bm::cvs10FrameInfo> &of) override;
     virtual int forward(std::vector<bm::cvs10FrameInfo> &frames) override;
     virtual int postprocess(std::vector<bm::cvs10FrameInfo> &frames) override;
-
+    virtual int get_max_batch() override{
+        return MAX_BATCH;
+    };
 private:
     bm::BMNNTensorPtr get_output_tensor(const std::string &name, bm::cvs10FrameInfo& frame_info, float scale);
     void extract_feature_cpu(bm::cvs10FrameInfo& frame);

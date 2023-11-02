@@ -21,8 +21,7 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 |                        | [bmgui-lite](./modules/bmgui-lite) | 由于SDK自带的OpenCV没有显示功能，此模块提供bm::imshow来显示视频，作为补充。 |
 |                        | [bmutility](./modules/bmutility)   | 提供了基础库，字符串、定时器等                               |
 |                        | [tracker](./modules/tracker)       | 提供了CPU跟踪模块                                            |
-| [examples](./examples) | [cvs10](./examples/cvs10)          | 提供了算能一路的参考实现                                     |
-|                        | [cvs11](./examples/cvs11)          | 提供了算能一路的参考实现                                     |
+| [examples](./examples) | [cvs20](./examples/cvs20)          | 提供了算能一路的参考实现                                     |
 
 **Sophon Pipeline的主要结构设计如下图：** 
 
@@ -32,26 +31,7 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 
 ### 2.1 环境准备
 
-如果您在x86平台安装了PCIe加速卡，并使用它测试本例程，您需要安装 `libsophon`、`sophon-opencv`和`sophon-ffmpeg`。`libsophon`的安装可参考《LIBSOPHON使用手册.pdf》，`sophon-opencv`和`sophon-ffmpeg`的安装可参考《MULTIMEDIA使用手册.pdf》。注：需要获取《LIBSOPHON使用手册.pdf》和《MULTIMEDIA使用手册.pdf》，请联系技术支持。
-
-### 2.2 依赖安装
-
-sophon-pipeline主要依赖 
-
-- libsophon
-- sophon-ffmpeg
-- sophon-opencv
-
-#### 2.2.1 x86 PCIe平台
-
-> 相关依赖：
-```bash
-sudo apt-get install -y libgflags-dev libgoogle-glog-dev
-```
-
-#### 2.2.2 arm SoC平台
-
-对于arm SoC平台，内部已经集成了相应的libsophon、sophon-opencv和sophon-ffmpeg运行库包，位于`/opt/sophon/`下。
+**目前只支持soc模式**
 
 通常在x86主机上交叉编译程序，使之能够在arm SoC平台运行。您需要在x86主机上使用SOPHON SDK搭建交叉编译环境，将程序所依赖的头文件和库文件打包至soc-sdk目录中。
 
@@ -59,21 +39,65 @@ sudo apt-get install -y libgflags-dev libgoogle-glog-dev
 
 > 如果遇到其他交叉编译问题，请参考《LIBSOPHON使用手册.pdf》的**4.2.2节 x86 交叉编译程序**章节。
 
-### 2.3 编译指令
-
-#### 2.3.1 各个平台编译
-
+### 2.2 编译指令
 ```` bash
-# 若编译需要x86平台上运行的程序：
-./tools/compile.sh x86 
 # 若编译需要SoC平台上运行的程序，需要先根据2.2.2节准备好相关依赖，再运行下述命令进行编译：
-./tools/compile.sh soc ${soc-sdk} 
+chmod +x tools/compile.sh
+./tools/compile.sh soc ${soc-sdk} ${qtbase-5.14.2-aarch64}
 ````
 
-编译完成后，demo程序将保存在`${SOPHON_PIPELINE}/release/${APP}/${PLATFORM}`文件夹下。
+编译完成后，可执行程序将保存在`${SOPHON_PIPELINE}/test_execs/`文件夹下。
+可以将该文件夹整个拷贝至下文中提供的测试包中进行测试。
 
 ## 3 运行方法
 
----
-- [cvs10](./docs/cvs10.md)
-- [cvs11](./docs/cvs11.md)
+> **NOTE**  
+首先确认你的1688 evb板子/SE9是4g配置，运行 `free -m`，输出的系统内存大约是这么大：
+```
+              total        used        free      shared  buff/cache   available
+Mems:           1375         264         279           2         831         951
+Swap:             0           0           0
+```
+下载cvs20测试程序包，请放到对应的板子上面，测试步骤：
+  ```bash
+  pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
+  python3 -m dfss --url=open@sophgo.com:sophon-pipeline/a2_bringup/test_pack_cvs20_latest.tar
+  tar xvf test_pack_cvs20_latest.tar
+  cd test_pack_cvs20 #这里面有个readme.md, 是对各个文件的介绍。
+  ./setup.sh <exe> <chan_num> <display_num> <save_num> # <exe>即可执行程序，如果想要测试自己编译出来的可执行程序，直接用`${SOPHON_PIPELINE}/test_execs/`下的程序替换即可。
+  #chan_num 表示跑几路，display_num 表示几路显示，save_num表示几路编码。
+  ```
+### 3.1 12路解码+12路推理+12路显示
+板子插上hdmi显示器，在`test_pack_cvs20`目录中运行如下命令：
+```
+sudo -s
+./setup.sh test_execs/cvs20_all_gui 12 12
+```
+>**NOTE**  
+>如果出现：
+>```bash
+>./test_execs/cvs20_all_gui: error while loading shared libraries: libyuv.so.1: cannot open >shared object file: No such file or directory
+>```
+>运行：
+>```bash
+>export LD_LIBRARY_PATH=/opt/sophon/libsophon-current/lib/:$LD_LIBRARY_PATH
+> #建议把上面的环境变量写到系统环境变量中，具体方法请使用搜索引擎查找。
+>```
+
+### 3.2 稳定性测试
+按照3.1中的命令进行测试，时间不小于12小时。
+
+### 3.3 停止程序及报错处理办法
+cvs20 程序不会自动停止，需要通过`ctrl+c`手动停止。也就是说，稳定性测试无需额外的操作，只需要让它一直跑就行了，如果程序自动停止了，除程序本身报错之外，还需要收集dmesg信息贴到jira页面上：
+
+```
+dmesg > dmesg.log
+```
+将`dmesg.log`从板子上拿出来，贴到相应的jira上。 
+
+## 4 性能测试
+请参考该wiki页面进行测试：
+https://wiki.sophgo.com/pages/viewpage.action?pageId=102741616
+
+结果填到这个wiki页面：
+https://wiki.sophgo.com/pages/viewpage.action?pageId=106566385

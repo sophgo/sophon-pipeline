@@ -36,46 +36,17 @@ tar -zxf sophon-mw-soc_${x.y.z}_aarch64.tar.gz
 # 将ffmpeg和opencv的库目录和头文件目录拷贝到依赖文件根目录下
 cp -rf sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-ffmpeg_${x.y.z}/lib ${soc-sdk}
 cp -rf sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-ffmpeg_${x.y.z}/include ${soc-sdk}
-cp -rf sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-opencv_${x.y.z}/lib ${soc-sdk}
-cp -rf sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-opencv_${x.y.z}/include ${soc-sdk}
+cd ${soc-sdk}
+pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/a2_bringup/official_opencv.tar.gz
+tar xvf official_opencv.tar.gz
 ```
 
-### 2.4 准备第三方库
-
-依赖libgflags-dev、libgoogle-glog-dev
-
-#### 2.4.1 准备和构建qemu虚拟环境
-
+### 2.4 准备第三方库qtbase
+可以自行编译公版qt，也可以下载我们准备好的qtbase库，下载方式如下：
 ```bash
-# 安装qemu
-sudo apt-get install -y qemu-user-static debootstrap
-# 创建文件夹，并构建虚拟环境，映射到rootfs文件夹内
-mkdir rootfs
-cd rootfs
-# 构建 ubuntu 20.04的rootfs
-sudo qemu-debootstrap --arch=arm64 focal .
-sudo chroot . qemu-aarch64-static /bin/bash
-
-# 进入qemu 后，安装libgflags-dev、libgoogle-glog-dev
-apt-get install -y software-properties-common
-apt-add-repository universe
-apt-get update
-apt-get install -y libgflags-dev libgoogle-glog-dev
-
-# 使用exit命令，退出qemu虚拟环境
-exit
+pip3 install dfn
+python3 -m dfn --url http://disk-sophgo-vip.quickconnect.to/sharing/PxpsFEvEc
+sudo apt install unzip #如果有unzip可以跳过这步
+unzip qtbase.zip #qtbase-5.14.2-aarch64
 ```
-
-#### 2.4.2 拷贝第三方库的头文件和库
-
-```bash
-# 退出qemu虚拟环境后
-# libgoogle-glog-dev
-cp -rf ${rootfs}/usr/lib/aarch64-linux-gnu/libglog* ${soc-sdk}/lib
-cp -rf ${rootfs}/usr/include/glog ${soc-sdk}/include
-# libgflags-dev
-cp -rf ${rootfs}/usr/lib/aarch64-linux-gnu/libgflags* ${soc-sdk}/lib
-cp -rf ${rootfs}/usr/include/gflags ${soc-sdk}/include
-```
-
-> 这里，交叉编译环境和相关依赖环境的准备步骤已经准备完成，接下来可以编译需要在SoC平台上运行的程序。

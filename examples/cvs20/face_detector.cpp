@@ -13,15 +13,22 @@
 
 #define DUMP_FILE 0
 #define DYNAMIC_SIZE 0
+#define PLD_DEBUG_DUMP_DATA 0
+#ifndef USE_RGBP_SEPARATE //convert_to do not support
+#define USE_RGBP_SEPARATE 0
+#endif
 
 static inline bool compareBBox(const bm::NetOutputObject &a, const bm::NetOutputObject &b) {
     return a.score > b.score;
 }
 
-FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num)
+FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num, int display_num, int gui_resize_h_, int gui_resize_w_)
 {
-    auto net_name = bmctx->network_name(0);
-
+#if 1
+    auto net_name = "squeezenet"; // origin: 0
+#else
+    auto net_name = "squeezenet_bmnetc";
+#endif
     bmctx_ = bmctx;
     anchor_ratios_.push_back(1.0f);
     anchor_scales_.push_back(1);
@@ -31,17 +38,22 @@ FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num)
     is4N_ = false;
 
     bmnet_ = std::make_shared<bm::BMNNNetwork>(bmctx_->bmrt(), net_name); //squeezenet_bmnetc
-
+#if PLD
+    std::cout << "net_name: "<< net_name << std::endl;
+#endif
     assert(bmnet_ != nullptr);
     assert(bmnet_->inputTensorNum() == 1);
 
     auto tensor = bmnet_->inputTensor(0);
-    m_net_h = 400; // static net
-    m_net_w = 711; // static net
+    m_net_h = tensor->get_shape()->dims[2]; // static net
+    m_net_w = tensor->get_shape()->dims[3]; // static net
 
     MAX_BATCH = tensor->get_shape()->dims[0];
 
     resize_num_ = resize_num;
+    m_display_num = display_num;
+    gui_resize_h = gui_resize_h_;
+    gui_resize_w = gui_resize_w_;
 }
 
 FaceDetector::~FaceDetector()
@@ -50,14 +62,13 @@ FaceDetector::~FaceDetector()
 }
 
 void FaceDetector::calc_resized_HW(int image_h, int image_w, int *p_h, int *p_w) {
+#if DYNAMIC_SIZE
     int im_size_min = std::min(image_h, image_w);
     int im_size_max = std::max(image_h, image_w);
     im_scale_  = target_size_ / im_size_min;
     if (im_scale_ * im_size_max > max_size_) {
         im_scale_ = max_size_ / im_size_max;
     }
-
-#if DYNAMIC_SIZE
 
     img_x_scale_ = im_scale_;
     img_y_scale_ =  im_scale_;
@@ -68,11 +79,11 @@ void FaceDetector::calc_resized_HW(int image_h, int image_w, int *p_h, int *p_w)
 
     float vw, vh;
     if (image_h > image_w) {
-        vh = 711.0;
-        vw = 400.0;
+        vh = bmnet_->inputTensor(0)->get_shape()->dims[3];
+        vw = bmnet_->inputTensor(0)->get_shape()->dims[2];
     }else{
-        vh = 400.0;
-        vw = 711.0;
+        vh = bmnet_->inputTensor(0)->get_shape()->dims[2];
+        vw = bmnet_->inputTensor(0)->get_shape()->dims[3];
     }
 
     *p_h = vh;
@@ -106,7 +117,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             num = left;
         }
 
-# if 1 // resize 1/3 for cvs20 test forcely
+# if 0 // resize 1/3 for cvs20 test forcely
         
         int pre_width = 1920;
         int pre_height = 1080;
@@ -114,17 +125,22 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
         pre_height /= 3;
 
         bm_image cvs20_resized_imgs[MAX_BATCH];
+    #if USE_RGBP_SEPARATE
+        ret = bm::BMImage::create_batch(handle, pre_height, pre_width, FORMAT_RGBP_SEPARATE, DATA_TYPE_EXT_1N_BYTE, cvs20_resized_imgs, num, 64);
+    #else
         ret = bm::BMImage::create_batch(handle, pre_height, pre_width, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, cvs20_resized_imgs, num, 64);
+    #endif
         assert(BM_SUCCESS == ret);
 
         for(int i = 0;i < num; ++i) {
             if ((frames[start_idx + i].chan_id < resize_num_) || (resize_num_ == -1)){
                 bm_image cvs20_image1;
                 bm::BMImage::from_avframe(handle, frames[start_idx + i].avframe, cvs20_image1, true);
-                ret = bmcv_image_vpp_convert(handle, 1, cvs20_image1, &cvs20_resized_imgs[i]);
+                std::cout<<"bm_image_format: "<<cvs20_image1.image_format<<std::endl;
+                ret = bmcv_image_vpp_convert(handle, 1, cvs20_image1, &cvs20_resized_imgs[i], NULL, BMCV_INTER_LINEAR);
                 assert(BM_SUCCESS == ret);
 
-                bm_image_destroy(cvs20_image1);
+                bm_image_destroy_allinone(&cvs20_image1);
             }
         }
 
@@ -135,29 +151,97 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
         bm::cvs10FrameInfo finfo;
         //1. Resize
         bm_image resized_imgs[MAX_BATCH];
+    #if USE_RGBP_SEPARATE
+        ret = bm::BMImage::create_batch(handle, m_net_h, m_net_w, FORMAT_RGBP_SEPARATE, DATA_TYPE_EXT_1N_BYTE, resized_imgs, num, 64);
+    #else
         ret = bm::BMImage::create_batch(handle, m_net_h, m_net_w, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, resized_imgs, num, 64);
+    #endif
         assert(BM_SUCCESS == ret);
 
         for(int i = 0;i < num; ++i) {
             bm_image image1;
             bm::BMImage::from_avframe(handle, frames[start_idx + i].avframe, image1, true);
-            ret = bmcv_image_vpp_convert(handle, 1, image1, &resized_imgs[i]);
+        #if PLD
+            std::cout<<"This is face_detector.cpp:159: bmcv_image_vpp_convert."<<std::endl;
+        #endif
+            ret = bmcv_image_vpp_convert(handle, 1, image1, &resized_imgs[i], NULL, BMCV_INTER_LINEAR);
             assert(BM_SUCCESS == ret);
 
-            uint8_t *jpeg_data=NULL;
-            size_t out_size = 0;
+
 #if USE_QTGUI
-            bmcv_image_jpeg_enc(handle, 1, &image1, (void**)&jpeg_data, &out_size);
-#endif
-            frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size);
+            if(frames[start_idx + i].chan_id < m_display_num){
+                bm_image image2;
+                int image2_h = gui_resize_h;
+                int image2_w = gui_resize_w;
+
+            #if USE_JPEG
+                uint8_t *jpeg_data=NULL;
+                size_t out_size = 0;
+                bm::BMImage::create_batch(handle, image2_h, image2_w, image1.image_format, image1.data_type, &image2, 1);
+                // bm_image_create(handle, image2_h, image2_w, image1.image_format, image1.data_type, &image2, NULL);
+                bmcv_image_vpp_convert(handle, 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
+                bmcv_image_jpeg_enc(handle, 1, &image2, (void**)&jpeg_data, &out_size, 85);
+                frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size);
+            #else
+                bm::BMImage::create_batch(handle, image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, 1);
+                // bm_image_create(handle, image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, NULL);
+                // auto start_convert = std::chrono::high_resolution_clock::now();
+                bmcv_image_vpp_convert(handle, 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
+                // auto end_convert = std::chrono::high_resolution_clock::now();
+                // std::chrono::duration<double> elapsed_convert = end_convert - start_convert;
+                // double seconds_convert = 1000 * elapsed_convert.count();
+                // std::cout << "vpp convert time: " << seconds_convert << " ms" << std::endl;
+                int plane_num = bm_image_get_plane_num(image2);
+                int plane_size[1];
+                assert(0 == bm_image_get_byte_size(image2, plane_size));
+                uint8_t *buffers_image2[1]={0};
+                // auto start_copy = std::chrono::high_resolution_clock::now();
+            #define USE_MMAP 0 //todo:mmap may has bug, fix it.
+            #define USE_D2S !USE_MMAP
+            #if USE_D2S
+                buffers_image2[0] = new uint8_t[plane_size[0]];
+                assert(BM_SUCCESS == bm_image_copy_device_to_host(image2, (void**)buffers_image2));//RGB
+            #elif USE_MMAP
+                unsigned long long addr;
+                bm_device_mem_t image2_dmem;
+                bm_image_get_device_mem(image2, &image2_dmem);
+                bm_mem_mmap_device_mem(handle, &image2_dmem, &addr);
+                buffers_image2[0] = (uint8_t*)addr;
+            #endif
+                // auto end_copy = std::chrono::high_resolution_clock::now();
+                // std::chrono::duration<double> elapsed_copy = end_copy - start_copy;
+                // double seconds_copy = 1000 * elapsed_copy.count();
+                // std::cout << "copy time: " << seconds_copy << " ms" << std::endl;
+                frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(buffers_image2[0], plane_size[0]);
+            #if USE_MMAP
+                frames[start_idx + i].jpeg_data->bmimg_formmap = image2;
+                frames[start_idx + i].jpeg_data->is_mmap = true;
+            #endif
+                frames[start_idx + i].jpeg_data->height = image2.height;
+                frames[start_idx + i].jpeg_data->width = image2.width;
+                frames[start_idx + i].jpeg_data->image_format = FORMAT_RGB_PACKED;
+            #endif
+                frames[start_idx + i].height= image2.height;
+                frames[start_idx + i].width = image2.width;
+                img_qt_x_scale_ = ((float)image1.width / (float)image2.width);
+                img_qt_y_scale_ = ((float)image1.height / (float)image2.height);
+            #if USE_D2S
+                bm_image_destroy_allinone(&image2);
+            #endif
+            }
+#else
             frames[start_idx + i].height= image1.height;
             frames[start_idx + i].width = image1.width;
-
+#endif
             av_frame_unref(frames[start_idx + i].avframe);
             av_frame_free(&frames[start_idx + i].avframe);
-
+        #if DRAW_DETECTOR
+            frames[start_idx + i].original = image1;
+        #else
+            bm_image_destroy_allinone(&image1);
+        #endif
             finfo.frames.push_back(frames[start_idx + i]);
-            bm_image_destroy(image1);
+
 #ifdef DEBUG
             if (frames[start_idx].chan_id == 0)
                  std::cout << "[" << frames[start_idx].chan_id << "]total index =" << start_idx + i << std::endl;
@@ -178,15 +262,25 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             img_type = DATA_TYPE_EXT_1N_BYTE_SIGNED;
             alpha            = tensor->get_scale() * 1.0;//0.847682119;
             beta             = 0.0;
+        #if A2_SDK
+            img_type = DATA_TYPE_EXT_1N_BYTE_SIGNED;
+        #else
             img_type = (is4N_) ? (DATA_TYPE_EXT_4N_BYTE_SIGNED)
                                : (DATA_TYPE_EXT_1N_BYTE_SIGNED);
+        #endif
         }else{
             alpha            = 1.0;
             beta             = 0.0;
             img_type = DATA_TYPE_EXT_FLOAT32;
         }
-
+    #if PLD
+        std::cout<<"creating converto_imgs"<<std::endl;
+    #endif
+    #if USE_RGBP_SEPARATE
+        ret = bm::BMImage::create_batch(handle, m_net_h, m_net_w, FORMAT_RGBP_SEPARATE, img_type, convertto_imgs, num, 1, false, true); //set A2 PLD new stride = 64
+    #else
         ret = bm::BMImage::create_batch(handle, m_net_h, m_net_w, FORMAT_RGB_PLANAR, img_type, convertto_imgs, num, 1, false, true);
+    #endif
         assert(BM_SUCCESS == ret);
 
         bm_tensor_t input_tensor = *tensor->bm_tensor();
@@ -203,11 +297,28 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
         convert_to_attr.beta_1  = beta + G_bias;
         convert_to_attr.beta_2  = beta + R_bias;
 
+    #if PLD
+        std::cout<<"This is face_detector.cpp:227, bmcv_image_convert_to."<<std::endl;
+    #endif
         ret = bmcv_image_convert_to(bmctx_->handle(), num, convert_to_attr, resized_imgs, convertto_imgs);
         assert(ret == 0);
 
+    #if A2_SDK
+        bm_image_detach_contiguous_mem(num, convertto_imgs);
+    #else
         bm_image_dettach_contiguous_mem(num, convertto_imgs);
-
+    #endif
+    #if PLD
+        std::cout<<"face_detect: input_tensor:"<<std::endl;
+        std::cout<<"========================="<<std::endl;
+        bm::BMNNTensorPtr tensor_ = std::make_shared<bm::BMNNTensor>(bmctx_->handle(), "detector_in", 1.0,
+                                                                &input_tensor);
+        float* input_cpu_data = tensor_->get_cpu_data();
+        for(int kk = 0; kk < 20; kk++){
+            std::cout<<*(input_cpu_data+kk)<<" ";
+        }
+        std::cout<<std::endl<<"========================="<<std::endl;
+    #endif
         finfo.input_tensors.push_back(input_tensor);
 
         bm::BMImage::destroy_batch(resized_imgs, num);
@@ -248,9 +359,49 @@ int FaceDetector::forward(std::vector<bm::cvs10FrameInfo>& frame_infos)
                 frame_infos[b].frames.size(), m_net_h, m_net_w, false, false);
 #endif
         //printf("shape batch = %d\n", frame_infos[b].input_tensors[0].shape.dims[0]);
+
+    #if PLD
+        std::cout<<"this is face_detector, forward."<<std::endl;
+        std::cout<<"input_tensor shape:"<<std::endl;
+        for(int i = 0; i < frame_infos[b].input_tensors.size(); i++){
+            std::cout<<std::endl;
+            for(int j = 0; j < frame_infos[b].input_tensors[i].shape.num_dims; j++){
+                std::cout<<frame_infos[b].input_tensors[i].shape.dims[j]<<" ";
+            }
+        }
+        std::cout<<std::endl;
+    #endif
         ret = bmnet_->forward(frame_infos[b].input_tensors.data(), frame_infos[b].input_tensors.size(),
                                frame_infos[b].output_tensors.data(), frame_infos[b].output_tensors.size());
         assert(BM_SUCCESS == ret);
+    #if PLD
+        std::cout<<"face_detector forward success."<<std::endl;
+            const char* dtypeMap[] = {
+            "FLOAT32",
+            "FLOAT16",
+            "INT8",
+            "UINT8",
+            "INT16",
+            "UINT16",
+            "INT32",
+            "UINT32",
+            };
+
+            for(int i = 0; i < frame_infos[b].input_tensors.size(); i++){
+                auto shapeStr = shape_to_str(frame_infos[b].input_tensors[i].shape);
+                printf("  Input %d) shape=%s dtype=%s\n",
+                    i,
+                    shapeStr.c_str(),
+                    dtypeMap[frame_infos[b].input_tensors[i].dtype]);
+            }
+            for(int i = 0; i < frame_infos[b].output_tensors.size(); i++){
+                auto shapeStr = shape_to_str(frame_infos[b].output_tensors[i].shape);
+                printf("  Output %d) shape=%s dtype=%s\n",
+                    i,
+                    shapeStr.c_str(),
+                    dtypeMap[frame_infos[b].output_tensors[i].dtype]);
+            }
+    #endif
     }
 #else
     bm::FrameInfo frame4batch;
@@ -271,6 +422,9 @@ int FaceDetector::forward(std::vector<bm::cvs10FrameInfo>& frame_infos)
 
 int FaceDetector::postprocess(std::vector<bm::cvs10FrameInfo> &frames)
 {
+    #if PLD
+        std::cout<<"This is face_detector.cpp, postprocess."<<std::endl;
+    #endif
     for(int i=0;i < frames.size(); ++i) {
 
         // Free AVFrames
@@ -280,6 +434,9 @@ int FaceDetector::postprocess(std::vector<bm::cvs10FrameInfo> &frames)
         extract_facebox_cpu(frame_info);
 
         if (m_pfnDetectFinish != nullptr) {
+        #if PLD
+            std::cout<<"postprocess outputer or hdmi..."<<std::endl;
+        #endif
             m_pfnDetectFinish(frame_info);
         }
 
@@ -318,6 +475,24 @@ bm::BMNNTensorPtr FaceDetector::get_output_tensor(const std::string &name, bm::c
         std::cout << "ERROR:idx=" << idx << std::endl;
         assert(0);
     }
+    #if PLD_DEBUG_DUMP_DATA
+        std::cout<<"FaceDetector::get_output_tensor:"<<std::endl;
+        const char* dtypeMap[] = {
+        "FLOAT32",
+        "FLOAT16",
+        "INT8",
+        "UINT8",
+        "INT16",
+        "UINT16",
+        "INT32",
+        "UINT32",
+        };
+        auto shapeStr = shape_to_str(frame_info.output_tensors[idx].shape);
+        printf("Tensor name: %s) shape=%s dtype=%s\n",
+            name.c_str(),
+            shapeStr.c_str(),
+            dtypeMap[frame_info.output_tensors[idx].dtype]);
+    #endif
     bm::BMNNTensorPtr tensor = std::make_shared<bm::BMNNTensor>(bmctx_->handle(), name, scale,
                                   &frame_info.output_tensors[idx]);
     return tensor;
@@ -335,13 +510,22 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
     float m2_cls_scale_to_float = bmnet_->get_output_scale(3);
     float m1_cls_scale_to_float = bmnet_->get_output_scale(5);
 
-    
-    bm::BMNNTensorPtr m3_bbox_tensor = get_output_tensor("m3@ssh_bbox_pred_output", frame_info, m3_scale_to_float);
-    bm::BMNNTensorPtr m3_cls_tensor = get_output_tensor("m3@ssh_cls_prob_reshape_output", frame_info, m3_cls_scale_to_float);
-    bm::BMNNTensorPtr m2_bbox_tensor = get_output_tensor("m2@ssh_bbox_pred_output", frame_info, m2_scale_to_float);
-    bm::BMNNTensorPtr m2_cls_tensor = get_output_tensor("m2@ssh_cls_prob_reshape_output", frame_info, m2_cls_scale_to_float);
-    bm::BMNNTensorPtr m1_bbox_tensor = get_output_tensor("m1@ssh_bbox_pred_output", frame_info, m1_scale_to_float);
-    bm::BMNNTensorPtr m1_cls_tensor = get_output_tensor("m1@ssh_cls_prob_reshape_output", frame_info, m1_cls_scale_to_float);
+#if 0 // TODO: improve get output name method.
+    bm::BMNNTensorPtr m3_bbox_tensor = get_output_tensor("m3@ssh_bbox_pred_output_f32_Conv_f32", frame_info, m3_scale_to_float);
+    bm::BMNNTensorPtr m2_bbox_tensor = get_output_tensor("m2@ssh_bbox_pred_output_f32_Conv_f32", frame_info, m2_scale_to_float);
+    bm::BMNNTensorPtr m1_bbox_tensor = get_output_tensor("m1@ssh_bbox_pred_output_f32_Conv_f32", frame_info, m1_scale_to_float);
+    bm::BMNNTensorPtr m3_cls_tensor = get_output_tensor("m3@ssh_cls_prob_reshape_output_Conv_f32", frame_info, m3_cls_scale_to_float);
+    bm::BMNNTensorPtr m2_cls_tensor = get_output_tensor("m2@ssh_bbox_pred_output_f32_Conv_f32", frame_info, m2_cls_scale_to_float);
+    bm::BMNNTensorPtr m1_cls_tensor = get_output_tensor("m1@ssh_cls_prob_reshape_output_Conv_f32", frame_info, m1_cls_scale_to_float);
+#else
+    bm::BMNNTensorPtr m3_bbox_tensor = get_output_tensor(bmnet_->m_netinfo->output_names[4], frame_info, m3_scale_to_float);
+    bm::BMNNTensorPtr m2_bbox_tensor = get_output_tensor(bmnet_->m_netinfo->output_names[2], frame_info, m2_scale_to_float);
+    bm::BMNNTensorPtr m1_bbox_tensor = get_output_tensor(bmnet_->m_netinfo->output_names[0], frame_info, m1_scale_to_float);
+    bm::BMNNTensorPtr m3_cls_tensor = get_output_tensor(bmnet_->m_netinfo->output_names[5], frame_info, m3_cls_scale_to_float);
+    bm::BMNNTensorPtr m2_cls_tensor = get_output_tensor(bmnet_->m_netinfo->output_names[3], frame_info, m2_cls_scale_to_float);
+    bm::BMNNTensorPtr m1_cls_tensor = get_output_tensor(bmnet_->m_netinfo->output_names[1], frame_info, m1_cls_scale_to_float);
+#endif
+
 
     // NCHW
     int m3_c = m3_cls_tensor->get_shape()->dims[1];
@@ -368,13 +552,84 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
     int b1_w = m1_bbox_tensor->get_shape()->dims[3];
     int b1_h = m1_bbox_tensor->get_shape()->dims[2];
 
-    const float *m3_scores      = (float*)m3_cls_tensor->get_cpu_data();
-    const float *m2_scores      = (float*)m2_cls_tensor->get_cpu_data();
-    const float *m1_scores      = (float*)m1_cls_tensor->get_cpu_data();
-    const float *m3_bbox_deltas = (float*)m3_bbox_tensor->get_cpu_data();
-    const float *m2_bbox_deltas = (float*)m2_bbox_tensor->get_cpu_data();
-    const float *m1_bbox_deltas = (float*)m1_bbox_tensor->get_cpu_data();
+    float *m3_scores      = (float*)m3_cls_tensor->get_cpu_data();
+    float *m2_scores      = (float*)m2_cls_tensor->get_cpu_data();
+    float *m1_scores      = (float*)m1_cls_tensor->get_cpu_data();
+    #if PLD
+        std::cout<<"dump face_detector m3_scores outputs:"<<std::endl;
+        for(int kk = 0; kk < 10; kk++){
+            std::cout<<*(m3_scores+kk) << " ";
+        }
+        std::cout<<std::endl;
+    #endif
+    float *m3_bbox_deltas = (float*)m3_bbox_tensor->get_cpu_data();
+    float *m2_bbox_deltas = (float*)m2_bbox_tensor->get_cpu_data();
+    float *m1_bbox_deltas = (float*)m1_bbox_tensor->get_cpu_data();
+    
+    #if WITH_FAKEDATA 
+        std::cout<<"LOADING_FAKE_DATA!"<<std::endl;
+        if (access("results/fakedata", 0) != F_OK){
+            mkdir("results/fakedata", S_IRWXU);
+        }
+        static int dd = 0;
+        char fp_filename[6][128];
+        sprintf(fp_filename[0], "results/fakedata/m1_scores_%d.dat", dd);
+        sprintf(fp_filename[1], "results/fakedata/m2_scores_%d.dat", dd);
+        sprintf(fp_filename[2], "results/fakedata/m3_scores_%d.dat", dd);
+        sprintf(fp_filename[3], "results/fakedata/m1_boxes_%d.dat", dd);
+        sprintf(fp_filename[4], "results/fakedata/m2_boxes_%d.dat", dd);
+        sprintf(fp_filename[5], "results/fakedata/m3_boxes_%d.dat", dd);
+    #if A2_SDK//load postprocess data.
+        FILE *m1_scores_fp = fopen(fp_filename[0], "rb");
+        fread((void*)m1_scores, sizeof(float), m1_c * m1_w * m1_h, m1_scores_fp);
+        fclose(m1_scores_fp);
+        FILE *m2_scores_fp = fopen(fp_filename[1], "rb+");
+        fread((void*)m2_scores, sizeof(float), m2_c * m2_w * m2_h, m2_scores_fp);
+        fclose(m2_scores_fp);
+        FILE *m3_scores_fp = fopen(fp_filename[2], "rb+");
+        fread((void*)m3_scores, sizeof(float), m3_c * m3_w * m3_h, m3_scores_fp);
+        fclose(m3_scores_fp);
 
+        FILE *m1_bbox_deltas_fp = fopen(fp_filename[3], "rb+");
+        fread(m1_bbox_deltas, sizeof(float), b1_c * b1_w * b1_h, m1_bbox_deltas_fp);
+        fclose(m1_bbox_deltas_fp);
+        FILE *m2_bbox_deltas_fp = fopen(fp_filename[4], "rb+");
+        fread(m2_bbox_deltas, sizeof(float), b2_c * b2_w * b2_h, m2_bbox_deltas_fp);
+        fclose(m2_bbox_deltas_fp);
+        FILE *m3_bbox_deltas_fp = fopen(fp_filename[5], "rb+");
+        fread(m3_bbox_deltas, sizeof(float), b3_c * b3_w * b3_h, m3_bbox_deltas_fp);
+        fclose(m3_bbox_deltas_fp);
+    #else //dump postprocess data
+        dd++;
+        FILE *m1_scores_fp = fopen(fp_filename[0], "wb+");
+        fwrite(m1_scores, sizeof(float), m1_c * m1_w * m1_h, m1_scores_fp);
+        fclose(m1_scores_fp);
+        FILE *m2_scores_fp = fopen(fp_filename[1], "wb+");
+        fwrite(m2_scores, sizeof(float), m2_c * m2_w * m2_h, m2_scores_fp);
+        fclose(m2_scores_fp);
+        FILE *m3_scores_fp = fopen(fp_filename[2], "wb+");
+        fwrite(m3_scores, sizeof(float), m3_c * m3_w * m3_h, m3_scores_fp);
+        fclose(m3_scores_fp);
+
+        FILE *m1_bbox_deltas_fp = fopen(fp_filename[3], "wb+");
+        fwrite(m1_bbox_deltas, sizeof(float), b1_c * b1_w * b1_h, m1_bbox_deltas_fp);
+        fclose(m1_bbox_deltas_fp);
+        FILE *m2_bbox_deltas_fp = fopen(fp_filename[4], "wb+");
+        fwrite(m2_bbox_deltas, sizeof(float), b2_c * b2_w * b2_h, m2_bbox_deltas_fp);
+        fclose(m2_bbox_deltas_fp);
+        FILE *m3_bbox_deltas_fp = fopen(fp_filename[5], "wb+");
+        fwrite(m3_bbox_deltas, sizeof(float), b3_c * b3_w * b3_h, m3_bbox_deltas_fp);
+        fclose(m3_bbox_deltas_fp);
+    #endif
+    #endif
+
+    #if PLD
+        std::cout<<"dump face_detector m3_bbox_deltas outputs:"<<std::endl;
+        for(int kk = 0; kk < 10; kk++){
+            std::cout<<*(m3_bbox_deltas+kk) << " ";
+        }
+        std::cout<<std::endl;
+    #endif
     for (int n = 0; n < image_n; n++) {
         int                   width  = frame_info.frames[n].width;
         int                   height = frame_info.frames[n].height;
@@ -413,12 +668,41 @@ int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
 
         std::vector<bm::NetOutputObject> faceRects;
         faceRects.clear();
+        std::vector<bmcv_rect_t> bm_rects;
+    #if PLD
+        std::cout<<"nmsProposals size: "<<nmsProposals.size()<<std::endl;
+    #endif
         for (size_t i = 0; i < nmsProposals.size(); ++i) {
             bm::NetOutputObject rect = nmsProposals[i];
-            if (rect.score >= 0.7)
+            if (rect.score >= 0.6 && i < 16){
                 faceRects.push_back(rect);
+                bmcv_rect_t bm_rect{rect.x1, rect.y1, rect.x2 - rect.x1, rect.y2 - rect.y1};
+                bm_rects.push_back(bm_rect);
+            #if PLD
+                std::cout<<"face_detector rect: "<<rect.x1<<" "<<rect.y1<<" "<<rect.x2<<" "<<rect.y2<<std::endl;
+            #endif
+            }
         }
-
+        #if DRAW_DETECTOR
+        if(bm_rects.size() > 0){
+            bmcv_image_draw_rectangle(bmctx_->handle(), frame_info.frames[n].original, bm_rects.size(), bm_rects.data(), 2, 255, 255, 0);
+        }
+            uint8_t *jpeg_data=NULL;
+            size_t out_size = 0;
+            int ret = bmcv_image_jpeg_enc(bmctx_->handle(), 1, &frame_info.frames[n].original, (void**)&jpeg_data, &out_size, 85);
+            if (ret == BM_SUCCESS) {
+                static int ii = 0;
+                std::string img_file = "results/drawed_frame_" + std::to_string(ii++) + ".jpg";
+                FILE *fp = fopen(img_file.c_str(), "wb");
+                std::cout<<"==========================="<<std::endl;
+                std::cout<<"==Drawing detector frame" << ii << "=="<<std::endl;
+                std::cout<<"==========================="<<std::endl;
+                fwrite(jpeg_data, out_size, 1, fp);
+                fclose(fp);
+            }
+            free(jpeg_data);
+            bm_image_destroy_allinone(&frame_info.frames[n].original);
+        #endif
         frame_info.out_datums.push_back(bm::NetOutputDatum(faceRects));
         //std::cout << "Image idx=" << n << " final predict " << faceRects.size() << " bboxes" << std::endl;
     }
@@ -478,19 +762,19 @@ void FaceDetector::generate_proposal(const float *          scores,
                 float pred_h  = std::exp(dh) * bbox_h;
                 facerect.x1 =
                         std::max(std::min(static_cast<double>(width - 1),
-                                          (pred_cx - 0.5 * pred_w) / im_scale_),
+                                          (pred_cx - 0.5 * pred_w) / img_x_scale_ / img_qt_x_scale_),
                                  0.0);
                 facerect.y1 =
                         std::max(std::min(static_cast<double>(height - 1),
-                                          (pred_cy - 0.5 * pred_h) / im_scale_),
+                                          (pred_cy - 0.5 * pred_h) / img_y_scale_ / img_qt_y_scale_),
                                  0.0);
                 facerect.x2 =
                         std::max(std::min(static_cast<double>(width - 1),
-                                          (pred_cx + 0.5 * pred_w) / im_scale_),
+                                          (pred_cx + 0.5 * pred_w) / img_x_scale_ / img_qt_x_scale_),
                                  0.0);
                 facerect.y2 =
                         std::max(std::min(static_cast<double>(height - 1),
-                                          (pred_cy + 0.5 * pred_h) / im_scale_),
+                                          (pred_cy + 0.5 * pred_h) / img_y_scale_ / img_qt_y_scale_),
                                  0.0);
                 if ((facerect.x2 - facerect.x1 + 1 < min_size_) ||
                     (facerect.y2 - facerect.y1 + 1 < min_size_))

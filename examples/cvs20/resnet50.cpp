@@ -11,7 +11,7 @@
 #include <numeric>
 
 Resnet::Resnet(bm::BMNNContextPtr bmctx):m_bmctx(bmctx) {
-    auto net_name = bmctx->network_name(0);
+    auto net_name = "resnet";
     m_bmnet = std::make_shared<bm::BMNNNetwork>(m_bmctx->bmrt(), net_name); //resnet-50
 
     assert(m_bmnet != nullptr);
@@ -63,13 +63,13 @@ int Resnet::preprocess(std::vector<bm::cvs10FrameBaseInfo> &frames, std::vector<
             //FrameBaseInfo frameBaseInfo;
 
             bm::BMImage::from_avframe(handle, frames[start_idx + i].avframe, image1, true);
-            ret = bmcv_image_vpp_convert(handle, 1, image1, &resized_imgs[i]);
+            ret = bmcv_image_vpp_convert(handle, 1, image1, &resized_imgs[i], NULL, BMCV_INTER_LINEAR);
             assert(BM_SUCCESS == ret);
 
             uint8_t *jpeg_data = NULL;
             size_t out_size = 0;
 #if USE_QTGUI
-            bmcv_image_jpeg_enc(handle, 1, &image1, (void **) &jpeg_data, &out_size);
+            bmcv_image_jpeg_enc(handle, 1, &image1, (void **) &jpeg_data, &out_size, 85);
 #endif
             frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size);
             frames[start_idx + i].height = image1.height;
@@ -79,7 +79,7 @@ int Resnet::preprocess(std::vector<bm::cvs10FrameBaseInfo> &frames, std::vector<
             av_frame_free(&frames[start_idx + i].avframe);
 
             finfo.frames.push_back(frames[start_idx + i]);
-            bm_image_destroy(image1);
+            bm_image_destroy_allinone(&image1);
 
 #ifdef DEBUG
             if (frames[start_idx].chan_id == 0)
@@ -123,8 +123,11 @@ int Resnet::preprocess(std::vector<bm::cvs10FrameBaseInfo> &frames, std::vector<
         ret = bmcv_image_convert_to(m_bmctx->handle(), num, convert_to_attr, resized_imgs, convertto_imgs);
         assert(ret == 0);
 
+    #if A2_SDK
+        bm_image_detach_contiguous_mem(num, convertto_imgs);
+    #else
         bm_image_dettach_contiguous_mem(num, convertto_imgs);
-
+    #endif
         finfo.input_tensors.push_back(input_tensor);
 
         bm::BMImage::destroy_batch(resized_imgs, num);

@@ -34,10 +34,15 @@
 #endif
 
 #include <opencv2/opencv.hpp>
-
-#include "bmcv_api_ext.h"
+#if A2_SDK
+extern "C" {
+    #include "bmcv_api_ext.h"
+}
+#else
+    #include "bmcv_api_ext.h"
+#endif
 #include "bmruntime_interface.h"
-
+#include "bmutility_image.h"
 namespace bm {
 
     class NoCopyable {
@@ -365,6 +370,12 @@ namespace bm {
         size_t dsize;
         uint8_t *data;
 
+        //for image data
+        int width;
+        int height;
+        int image_format=-1;//default jpeg
+        bm_image bmimg_formmap;//some time there is no bmimg initialized, so we should assign another image_format variable.
+        bool is_mmap = false;
         Data() : dsize(0), data(nullptr){
         }
 
@@ -378,7 +389,15 @@ namespace bm {
         }
 
         virtual ~Data() {
-            if (data)  delete[] data;
+            if (is_mmap) {
+                bm_handle_t handle = bm_image_get_handle(&bmimg_formmap);
+                bm_device_mem_t image2_dmem;
+                bm_image_get_device_mem(bmimg_formmap, &image2_dmem);
+                bm_mem_invalidate_device_mem(handle, &image2_dmem);
+                bm_mem_unmap_device_mem(handle, data, dsize);
+                bm_image_destroy_allinone(&bmimg_formmap);
+            }
+            else if (data)  delete[] data;
         }
 
         int size() {
@@ -638,8 +657,8 @@ namespace bm {
                 av_frame_free(&avframe);
                 avframe = nullptr;
             }
-            bm_image_destroy(original);
-            bm_image_destroy(resized);
+            bm_image_destroy_allinone(&original);
+            bm_image_destroy_allinone(&resized);
             cvimg.release();
             jpeg_data.reset();
         }

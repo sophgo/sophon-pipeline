@@ -36,7 +36,6 @@ video_widget::video_widget(QWidget *parent, int fit_mode) :
 #else
     m_video = new video_pixmap_widget(this);
 #endif
-
     mMoveing=false;
     //Qt::FramelessWindowHint 无边框
     //Qt::WindowStaysOnTopHint 窗口在最顶端，不会拖到任务栏下面
@@ -55,7 +54,6 @@ video_widget::video_widget(QWidget *parent, int fit_mode) :
     m_timer = new QTimer(this);
     connect(m_timer, SIGNAL(timeout()), this, SLOT(onTimeout()));
     m_timer->start(1000);
-
 }
 
 video_widget::~video_widget()
@@ -134,6 +132,18 @@ void video_widget::onTimeout()
 
 void video_widget::VideoFitByRatio(const QRect& rcContainer, int w, int h)
 {
+    // std::cout<<"================"<<std::endl;
+    // std::cout<<"VideoFitByRatio"<<std::endl;
+    // std::cout<<"================"<<std::endl;
+    // auto currentTime = std::chrono::system_clock::now();
+    // auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime.time_since_epoch());
+    // std::time_t now_c = std::chrono::system_clock::to_time_t(currentTime);
+    // std::tm now_tm = *std::localtime(&now_c);
+    // char buffer[80];
+    // std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &now_tm);
+    // int milliseconds = static_cast<int>(timestamp.count() % 1000);
+    // std::cout << "time now: " << buffer << "." << milliseconds << " ms" << std::endl;
+    
     int screenW = rcContainer.width();
     int screenH = rcContainer.height();
 

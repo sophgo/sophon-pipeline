@@ -44,17 +44,32 @@ void container_widget::removeChildWindow(video_widget *pWnd)
 
 void container_widget::UpdateWidgetLayout()
 {
+    std::cout<<"===UpdateWidgetLayout===="<<std::endl;
+    std::cout<<width()<<" "<<height()<<std::endl;
+    std::cout<<"===UpdateWidgetLayout===="<<std::endl;
+    int manual_h = height();
+    int manual_w = width();
+    // if (manual_w == 2560 || manual_w == 1920){
+    //     manual_h = 1080;
+    // }
+//
+    // manual_w = 960;
+    // manual_h = 540;
+//
+
     int num = mListWidgets.count();
     if (num == 0) return;
     if (num == 1) {
         QWidget *pWidget = mListWidgets.at(0);
-        pWidget->setGeometry(QRect(0, 0, width(), height()));
+        pWidget->setGeometry(QRect(0, 0, manual_w, manual_h));
+        // pWidget->setGeometry(QRect(0, 0, manual_w, height()));
     }else if (num == 13) {
         int n = 4;
-        const QRect &rc = geometry();
+        QRect rc = geometry();
         int ww = rc.width() / n;
         int wh = rc.height() / n;
-
+        rc.setWidth(manual_w);
+        rc.setHeight(manual_h);
         for (int i = 0; i < num; ++i) {
             if (i < 5) {
                 int row = i / n;
@@ -92,7 +107,13 @@ void container_widget::UpdateWidgetLayout()
     else{
         int n = sqrt(num);
         if (n*n < num) n++;
-        const QRect &rc = geometry();
+        QRect rc = geometry();
+        rc.setWidth(manual_w);
+        rc.setHeight(manual_h);
+        // std::cout<<"===2===="<<std::endl;
+        // std::cout<<rc.width()<<" "<<rc.height()<<std::endl;
+        // std::cout<<"===2===="<<std::endl;
+
         int ww = rc.width() / n;
         int wh = rc.height() / (num % n ==0 ? num/n: num/n + 1);
 
@@ -100,7 +121,6 @@ void container_widget::UpdateWidgetLayout()
             int row = i / n;
             int col = i % n;
             QRect rcWiget(col * ww, row*wh, ww-1, wh-1);
-
             QWidget *pWidget = mListWidgets.at(i);
             pWidget->setGeometry(rcWiget);
         }
