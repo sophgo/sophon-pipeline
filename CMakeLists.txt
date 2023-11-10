@@ -50,7 +50,7 @@ else()
     add_definitions(-DWITH_DECODE=0)
 endif()
 if(WITH_HDMI)
-    add_definitions(-DWITH_ENCODE_JPEG=1)   #depend on decode
+    # add_definitions(-DWITH_ENCODE_JPEG=1)   #depend on decode
     add_definitions(-DWITH_HDMI=1)          #depend on encode_jpeg\QT_GUI, a2 hdmi
 elseif(WITH_ENCODE)
     if(ENC_JPEG)
