@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
     }
 #else
     uint64_t timer_id;
-    tqp->create_timer(1000, [&appStatis, &card_num](){
+    tqp->create_timer(2000, [&appStatis, &card_num](){
         int ch = 0;
         appStatis.m_total_decode_fpsPtr->update(appStatis.m_total_decode);
         double decodefps = appStatis.m_total_decode_fpsPtr->getSpeed();

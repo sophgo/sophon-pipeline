@@ -30,6 +30,7 @@
 #ifndef WITH_OUTPUTER
 #define WITH_OUTPUTER 1
 #endif
+#define DECODE_TIMER 0
 
 struct TChannel: public bm::NoCopyable {
     int channel_id;
@@ -39,6 +40,11 @@ struct TChannel: public bm::NoCopyable {
     // std::shared_ptr<bm::BMTracker> tracker;
     uint64_t m_last_feature_time=0; // last do feature time
     VideoEnc_FFMPEG writer;
+#if DECODE_TIMER
+    int decoder_timer_count = 0;
+    double this_chan_total_secs_send = 0;
+    double this_chan_total_secs_receive = 0;
+#endif
 
     int64_t ref_pkt_id = -1;
     AVCodecContext* m_decoder=nullptr;
@@ -131,8 +137,8 @@ struct TChannel: public bm::NoCopyable {
     {
         int ret;
         *got_picture = 0;
-    #define DECODE_TIMER 0
     #if DECODE_TIMER
+        decoder_timer_count++;
         auto start_send = std::chrono::high_resolution_clock::now();
     #endif
         ret = avcodec_send_packet(dec_ctx, pkt);
@@ -141,7 +147,11 @@ struct TChannel: public bm::NoCopyable {
         auto end_send = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_send = end_send - start_send;
         double seconds_send = 1000 * elapsed_send.count();
-        std::cout << "send time: " << seconds_send << " ms" << std::endl;
+        this_chan_total_secs_send += seconds_send;
+        if((decoder_timer_count + 1)% 25 == 0){
+            std::cout << "channel_id: "<< channel_id << "; avg send time: " << this_chan_total_secs_send / 25 << " ms;";
+            this_chan_total_secs_send = 0;
+        }
     #endif
 
         if (ret == AVERROR_EOF) {
@@ -163,7 +173,12 @@ struct TChannel: public bm::NoCopyable {
         auto end_receive = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_receive = end_receive - start_receive;
         double seconds_receive = 1000 * elapsed_receive.count();
-        std::cout << "receive time: " << seconds_receive << " ms" << std::endl;
+        this_chan_total_secs_receive += seconds_receive;
+        if((decoder_timer_count + 1) % 25 == 0){
+            std::cout << " avg receive time: " << this_chan_total_secs_receive/25 << " ms" << std::endl;
+            this_chan_total_secs_receive = 0;
+            decoder_timer_count = 0;
+        }
     #endif
             if (ret == AVERROR(EAGAIN)) {
 # if USE_DEBUG

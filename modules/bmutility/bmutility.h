@@ -754,6 +754,11 @@ namespace bm {
                 std::cout << "bm_thread_sync: Failed to sync: " << m_netinfo->name << " inference" << std::endl;
                 return -1;
             }
+            res = (bm_status_t)bm_thread_sync_from_core (m_handle, 1);
+            if (res != BM_SUCCESS) {
+                std::cout << "bm_thread_sync: Failed to sync core2: " << m_netinfo->name << " inference" << std::endl;
+                return -1;
+            }
         #endif
         #if PLD
             bm_get_profile(m_handle, &end);
