@@ -52,10 +52,16 @@ chmod +x tools/compile.sh
 ## 3 运行方法
 
 > **NOTE**  
-首先确认你的1688 evb板子/SE9是4g配置，运行 `free -m`，输出的系统内存大约是这么大：
+如果你的1688 evb板子/SE9是4g配置，运行 `free -m`，输出的系统内存大约是这么大：
 ```
               total        used        free      shared  buff/cache   available
 Mems:           1375         264         279           2         831         951
+Swap:             0           0           0
+```
+如果是8g配置，那么系统内存大约是这么大：
+```
+              total        used        free      shared  buff/cache   available
+Mem:           2833         260        1235           3        1337        2341
 Swap:             0           0           0
 ```
 下载cvs20测试程序包，请放到对应的板子上面，测试步骤：
@@ -64,14 +70,16 @@ Swap:             0           0           0
   python3 -m dfss --url=open@sophgo.com:sophon-pipeline/a2_bringup/test_pack_cvs20_latest.tar
   tar xvf test_pack_cvs20_latest.tar
   cd test_pack_cvs20 #这里面有个readme.md, 是对各个文件的介绍。
-  ./setup.sh <exe> <chan_num> <display_num> <save_num> # <exe>即可执行程序，如果想要测试自己编译出来的可执行程序，直接用`${SOPHON_PIPELINE}/test_execs/`下的程序替换即可。
-  #chan_num 表示跑几路，display_num 表示几路显示，save_num表示几路编码。
+  ./setup.sh <exe> <chan_num> <display_num> # <exe>即可执行程序，如果想要测试自己编译出来的可执行程序，直接用`${SOPHON_PIPELINE}/test_execs/`下的程序替换即可。
+  #chan_num 表示跑几路，display_num 表示几路显示
   ```
-### 3.1 12路解码+12路推理+12路显示
+### 3.1 全流程测试
 板子插上hdmi显示器，在`test_pack_cvs20`目录中运行如下命令：
-```
+```bash
 sudo -s
-./setup.sh test_execs/cvs20_all_gui 12 12
+./setup.sh test_execs/cvs20_all_gui 12 12 #如果你的板子是4g配置，那么就只能跑12路
+#or
+./setup.sh test_execs/cvs20_all_gui 16 16 #如果你的板子是8g配置，那么可以跑16路
 ```
 >**NOTE**  
 >如果出现：
@@ -90,10 +98,10 @@ sudo -s
 ### 3.3 停止程序及报错处理办法
 cvs20 程序不会自动停止，需要通过`ctrl+c`手动停止。也就是说，稳定性测试无需额外的操作，只需要让它一直跑就行了，如果程序自动停止了，除程序本身报错之外，还需要收集dmesg信息贴到jira页面上：
 
+```bash
+dmesg > dmesg_<your name>_<test time>.log #建议log的名字也用姓名和时间打好标记，比如dmesg_liheng_231110_1840.log
 ```
-dmesg > dmesg.log
-```
-将`dmesg.log`从板子上拿出来，贴到相应的jira上。 
+将`dmesg_xxx.log`从板子上拿出来，贴到相应的jira上。 
 
 ## 4 性能测试
 请参考该wiki页面进行测试：
