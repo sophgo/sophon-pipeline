@@ -66,14 +66,15 @@ Please note to modify the`${SOPHON_PIPELINE}/release/facedetect_demo/cameras_fac
 
 ### 3.2  Running method
 
-  > **NOTE** 
-  > face_detect_1684 int8 model NAS cloud download address：[face_demo.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/oD4Jb0RVZ)
-> 
->face_detect_1684X int8 model NAS cloud download address: [face_demo_1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/Yk3o6QdXD)
-  >
-  > face_demo_1684X fp16 model NAS cloud download address：[face_demo_1684X_fp16_4b.bmodeI](http://disk-sophgo-vip.quickconnect.cn/sharing/8pBKB4HVW)
-  >
-  > Download address of the video for testing：[elevator-1080p-25fps-4000kbps.h264](http://disk-sophgo-vip.quickconnect.cn/sharing/7ExA940x2)
+Download address of the video for testing:
+```bash
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/common/elevator-1080p-25fps-4000kbps.h264
+```
+
+Download address of the bmodels for testing:
+```bash
+python3 -m dfss --url=sophon-pipeline/models/face_detect.tar.gz 
+```
 
 Description of parameters
 

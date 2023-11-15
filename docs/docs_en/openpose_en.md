@@ -66,17 +66,15 @@ Please note to modify the `${SOPHON_PIPELINE}/release/openpose_demo/cameras_open
 
 ### 3.2 Running method
 
-  > **NOTE**  
-  > Download address of the video for testing：[elevator-1080p-25fps-4000kbps.h264](http://disk-sophgo-vip.quickconnect.cn/sharing/7ExA940x2)
+Download address of the video for testing:
+```bash
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/common/elevator-1080p-25fps-4000kbps.h264
+```
 
-model list and NAS cloud disk download address
-
-| model   | BM1684 int8bmodel                                            | BM1684X int8bmodel                                           | BM1684X fp16bmodel                                           |
-| ------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| coco_18 | [openpose_coco_18_384w_216h_4b_1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/0NkksEReJ) | [openpose_coco_18_384w_216h_4b_1684x.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/kcbWR9bHw) | [openpose_coco_18_384w_216h_4b_1684x_fp16.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/5EZZQIN5G) |
-| body_25 | [openpose_body_25_384w_216h_4b_1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/CN7uVVxA6) | [openpose_body_25_384w_216h_4b_1684x.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/z9ClIqaEu) | [openpose_body_25_384w_216h_4b_1684x_fp16.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/icBnpFvAe) |
-
-
+Download address of the bmodels for testing
+```bash
+python3 -m dfss --url=sophon-pipeline/models/openpose.tar.gz 
+```
 
 Description of parameters
 

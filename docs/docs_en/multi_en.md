@@ -78,17 +78,15 @@ Please note to modify the`${SOPHON_PIPELINE}/release/multi_demo/cameras_multi.js
 
 ### 3.2 Running method
 
-  > **NOTE**  
-  >
-  > NAS cloud download address for yolov5_1684 model 1：[yolov5s_3output_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/XN0Xjko3l)
-  >
-  > NAS cloud download address for yolov5_1684 model 2：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/0IAlz5YOk)
-  >
-  > NAS cloud download address for yolov5_1684X model 1：[yolov5s_3output_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/4KXV0r0bV)
-  >
-  > NAS cloud download address for yolov5_1684X model 2：[yolov5s_640_coco_v6.1_3output_int8_1b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/EWfwFpkoD)
-  >
-  > Download address of the video for testing：[elevator-1080p-25fps-4000kbps.h264](http://disk-sophgo-vip.quickconnect.cn/sharing/7ExA940x2)
+Download address of the video for testing:
+```bash
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/common/elevator-1080p-25fps-4000kbps.h264
+```
+
+Download address of the bmodels for testing:
+```bash
+python3 -m dfss --url=sophon-pipeline/models/yolov5.tar.gz 
+```
 
 Description of parameters
 

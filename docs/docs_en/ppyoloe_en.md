@@ -67,17 +67,15 @@ Please note to modify the`${SOPHON_PIPELINE}/release/ppyoloe_demo/cameras_ppyolo
 
 ### 3.2 Running method
 
-  > **NOTE**  
-  >
-  > Download address of the video for testing：[elevator-1080p-25fps-4000kbps.h264](http://disk-sophgo-vip.quickconnect.cn/sharing/7ExA940x2)
+Download address of the video for testing:
+```bash
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/common/elevator-1080p-25fps-4000kbps.h264
+```
 
-PP-YOLO series model list and NAS cloud disk download address
-
-| Model type     | BM1684 int8bmodel                                            | BM1684X int8bmodel                                           | BM1684X fp16模型                                             |
-| -------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| ppyoloe_s      | [ppyoloe_s_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/rH1C0Htqp) | [ppyoloe_s_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/9JO3A4vhw) | [ppyoloe_s_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/4m6mPbanQ) |
-| ppyoloe_plus_s | [ppyoloe_plus_s_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/p3V402J73) | [ppyoloe_plus_s_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/xEj8GatV2) | [ppyoloe_plus_s_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/WEWsAtkuJ) |
-
+Download address of the bmodels for testing:
+```bash
+python3 -m dfss --url=sophon-pipeline/models/ppyoloe.tar.gz 
+```
 Description of parameters
 
 ```bash

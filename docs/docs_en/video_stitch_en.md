@@ -87,12 +87,15 @@ Please note to modify the`${SOPHON_PIPELINE}/release/video_stitch_demo/cameras_v
 
 ### 3.2 Running method
 
-  > **NOTE**  
-  > video_stitch_1684X model NAS cloud download address：[yolov5s_3output_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/DwrN8hY1F)
-  >
-  > video_stitch_1684 model NAS cloud download address：[yolov5s_3output_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/HHAnuElhZ)
-  >
-  > Download address of the video for testing：[elevator-1080p-25fps-4000kbps.h264](http://disk-sophgo-vip.quickconnect.cn/sharing/7ExA940x2)
+Download address of the video for testing:
+```bash
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/common/elevator-1080p-25fps-4000kbps.h264
+```
+
+Download address of the bmodels for testing:
+```bash
+python3 -m dfss --url=sophon-pipeline/models/yolov5.tar.gz 
+```
 
 Description of parameters
 

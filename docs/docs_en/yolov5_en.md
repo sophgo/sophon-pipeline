@@ -69,22 +69,23 @@ Please note to modify the`${SOPHON_PIPELINE}/release/yolov5s_demo/cameras_yolov5
 
 ### 3.2 Running method
 
-  > **NOTE**  
-  >
-  > Download address of the video for testing：[elevator-1080p-25fps-4000kbps.h264](http://disk-sophgo-vip.quickconnect.cn/sharing/7ExA940x2)
-  >
-  > Download address of tpukernel shared library：[libbm1684x_kernel_module.so](http://disk-sophgo-vip.quickconnect.cn/sharing/IANenG525)
+Download address of the video for testing:
+```
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/common/elevator-1080p-25fps-4000kbps.h264
+```
+ 
+Download address of tpukernel shared library:[libbm1684x_kernel_module.so](https://github.com/sophgo/sophon-demo/blob/release/sample/YOLOv5_opt/tpu_kernel_module/libbm1684x_kernel_module.so)
 
 YOLO series model list and NAS cloud disk download address
 
-| model_type | BM1684 int8bmodel                                            | BM1684X int8bmodel                                           | BM1684X fp16bmodel                                           |
-| ---------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| yolov5s    | [yolov5s_3output_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/XN0Xjko3l) | [yolov5s_3output_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/4KXV0r0bV) | [yolov5s_3output_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/9Rchhp0rl) |
-| yolov6s    | [yolov6s_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/lHh7Xc70U) | [yolov6s_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/gtpPKFDSG) | [yolov6s_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/FsRFOU1Ng) |
-| yolov7     | [yolov7_3output_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/RFT8S9b4Y) | [yolov7_3output_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/CH139AIZF) | [yolov7_3output_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/CJ7ph33Ys) |
-| yolov8s    | [yolov8s_640_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/LqcrsJzz6) | [yolov8s_640_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/FdGTy4VEA) | [yolov8s_640_fp16_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/Tn1Jtev8e) |
-| yolov5s_opt🚀 | - |[yolov5s_tpukernel_int8_4b.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/3p9xqqe39) | [yolov5s_tpukernel_fp16_4b.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/thyCbllqf) |
-| yolov7_opt🚀 | - |[yolov7_tpukernel_int8_4b.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/6XkwiGLuA) | [yolov7_tpukernel_fp16_4b.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/yy7uPazv7) |
+| model_type     | download command |
+| ----------     | --------    |
+| yolov5s        | python3 -m dfss --url=sophon-pipeline/models/yolov5.tar.gz           |
+| yolov6s        | python3 -m dfss --url=sophon-pipeline/models/yolov6.tar.gz           |
+| yolov7         | python3 -m dfss --url=sophon-pipeline/models/yolov7.tar.gz           |
+| yolov8s        | python3 -m dfss --url=sophon-pipeline/models/yolov8.tar.gz           |
+| yolov5s_opt🚀  | python3 -m dfss --url=sophon-pipeline/models/yolov5_opt.tar.gz        |
+| yolov7_opt🚀  |  python3 -m dfss --url=sophon-pipeline/models/yolov7_opt.tar.gz        |
 
 > **NOTE*:  In the JSON configuration, you need to select the model_type corresponding to the model, otherwise the detection accuracy may be affected. 
 >

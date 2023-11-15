@@ -8,7 +8,10 @@ A companion client to sophon-pipeline that displays live streams and detection r
 
 ## Download and install
 
-- windows: Provide compiled files, [pipeline_client-winx64.zip](http://disk-sophgo-vip.quickconnect.cn/sharing/p5ACNYRoL)
+- windows: Provide compiled files, `pipeline_client-winx64.zip`, download by:
+```bash
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/pipeline_client-winx64.zip
+```
 - ubuntu: Please compile your own, https://github.com/sophon-ai-algo/pipeline_client
 
 ## Conditions of use

@@ -67,14 +67,16 @@ Please note to modify the`${SOPHON_PIPELINE}/release/retinaface_demo/cameras_ret
 
 ### 3.2 Running method
 
-  > **NOTE**  
-  > retinaface_1684 int8 model NAS cloud download address：[retinaface_mobilenet0.25_640w_384h_BM1684_b4.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/ViTt3joeX)
-  >
-  > retinaface_1684X int8 model NAS cloud download address：[retinaface_mobilenet0.25_640w_384h_BM1684X_b4.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/sAhJPHLeK)
-  >
-  > retinaface_1684X fp16 model NAS cloud download address：[retinaface_mobilenet0.25_640w_384h_BM1684X_fp16_b4.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/6613AC3qu)
-  >
-  > Download address of the video for testing：[elevator-1080p-25fps-4000kbps.h264](http://disk-sophgo-vip.quickconnect.cn/sharing/7ExA940x2)
+Download address of the video for testing:
+```bash
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/common/elevator-1080p-25fps-4000kbps.h264
+```
+
+Download address of the bmodels for testing:
+```bash
+python3 -m dfss --url=sophon-pipeline/models/retinaface.tar.gz 
+```
+
 
 Description of parameters
 

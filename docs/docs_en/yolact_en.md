@@ -69,15 +69,14 @@ Please note to modify the`${SOPHON_PIPELINE}/release/yolact_demo/cameras_yolact.
 
   > **NOTE**  
   >
-  > Download address of the video for testing：[elevator-1080p-25fps-4000kbps.h264](http://disk-sophgo-vip.quickconnect.cn/sharing/7ExA940x2)
+  > Download address of the video for testing：
+  >```python3 -m dfss --url=open@sophgo.com:sophon-pipeline/common/elevator-1080p-25fps-4000kbps.h264```
 
 PP-YOLO series model list and NAS cloud disk download address
 
-| Model type       | BM1684 int8bmodel                                            | BM1684X int8bmodel                                           |
-| ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| yolact_base      | [yolact_base_54_800000_onnx_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/Bg5I8pXBU) | [yolact_base_54_800000_onnx_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/8wY8ZJgP2) |
-| yolact_darknet53 | [yolact_darknet53_54_800000_onnx_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/ou2U2648j) | [yolact_darknet53_54_800000_onnx_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/Ux8ifvw7c) |
-| yolact_resnet50  | [yolact_resnet50_54_800000_onnx_int8_4b_BM1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/WaE6IMpc0) | [yolact_resnet50_54_800000_onnx_int8_4b_BM1684X.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/nWrfxF9uo) |
+```bash
+python3 -m dfss --url=sophon-pipeline/models/yolact.tar.gz   
+```
 
 Description of parameters
 

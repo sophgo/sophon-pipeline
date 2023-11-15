@@ -2,6 +2,12 @@ English | [简体中文](README.md)
 
 # sophon-pipeline
 
+# Note: New data download method.
+Currently, the download method of models, test video streams and other data provided by sophon-pipeline has been changed from nas cloud disk to sftp. Please install the following dependencies to download data.
+```
+pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
+```
+
 ## 1 Introduction
 
 Sophon Pipeline provides a simple high-performance acceleration framework based on Pipeline. Using this framework, pre-processing/reasoning/post-processing can be run on three threads respectively to maximize parallelism. Users only need to inherit a class and implement their own pre-processing / post-processing / can realize the whole process

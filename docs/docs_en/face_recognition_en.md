@@ -66,14 +66,15 @@ Please note to modify the`${SOPHON_PIPELINE}/release/face_recognition_demo/camer
 
 ### 3.2  Running method
 
-  > **NOTE**  
-  > face_recognition_1684 int8 model NAS cloud download address ：[face_recognition_1684.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/SguTxdtTf)
-  >
-  > face_recognition_1684X int8 model NAS cloud download address：[face_recognition_1684x.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/1egR6hEjU)
-  >
-  > face_recognition_1684X fp16 model NAS cloud download address：[face_recognition_1684x_fp16.bmodel](http://disk-sophgo-vip.quickconnect.cn/sharing/lROpB2hzn)
-  >
-  > Download address of the video for testing：[elevator-1080p-25fps-4000kbps.h264](http://disk-sophgo-vip.quickconnect.cn/sharing/7ExA940x2)
+Download address of the video for testing:
+```bash
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/common/elevator-1080p-25fps-4000kbps.h264
+```
+
+Download address of the bmodels for testing:
+```bash
+python3 -m dfss --url=sophon-pipeline/models/face_recognition.tar.gz 
+```
 
 Description of parameters
 
