@@ -55,7 +55,7 @@ namespace bm {
             #endif
             while (m_appInst != nullptr) {
                 std::vector <UIFrame> frames;
-                m_frameQue[chan_id].pop_front(frames, 1, 16);
+                m_frameQue[chan_id].pop_front(frames, 1, 4);
                 for (auto &it : frames) {
                     assert(chan_id == it.chan_id);
                     video_widget *pWnd = m_pMainWindow->videoWidget(it.chan_id);
@@ -90,7 +90,7 @@ namespace bm {
     public:
         VideoUIAppQT(int argc, char *argv[]) : m_argc(argc), m_argv(argv),
                                              m_appInst(nullptr), m_pUIThread(nullptr) {
-
+            
         }
 
         ~VideoUIAppQT() {
@@ -104,6 +104,10 @@ namespace bm {
             if(num > MAX_CHAN_NUM){
                 std::cerr << "Please adjust macro MAX_CHAN_NUM!" << std::endl;
                 exit(1);
+            }
+            for(int i = 0; i < num; i++){
+                std::string q_name = "gui_receiver_" + std::to_string(i);
+                m_frameQue[i].set_queue_name(q_name);
             }
             m_channel_num = num;
             m_pUIThread = std::make_shared<std::thread>(&VideoUIAppQT::uithread_entry, this, num);
