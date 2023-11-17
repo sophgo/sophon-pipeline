@@ -9,6 +9,9 @@
 
 #ifndef SOPHON_PIPELINE_WORKER_H
 #define SOPHON_PIPELINE_WORKER_H
+#include <future>
+#include <chrono>
+#include <iostream>
 #include "bmutility.h"
 #include "bmgui.h"
 #include "inference.h"
@@ -31,6 +34,9 @@
 #define WITH_OUTPUTER 1
 #endif
 #define DECODE_TIMER 0
+#ifndef DEBUG_SYNC
+#define DEBUG_SYNC 1
+#endif
 
 struct TChannel: public bm::NoCopyable {
     int channel_id;
@@ -141,8 +147,31 @@ struct TChannel: public bm::NoCopyable {
         decoder_timer_count++;
         auto start_send = std::chrono::high_resolution_clock::now();
     #endif
+    #if DEBUG_SYNC
+        std::chrono::seconds limit(1);
+        std::future<void> fut = std::async([&dec_ctx, &pkt, &ret](){
+            ret = avcodec_send_packet(dec_ctx, pkt);
+            });
+        while(fut.wait_for(limit) == std::future_status::timeout){
+            std::cerr << "channel:" << channel_id << "; avcodec_send_packet stuck!" << std::endl;
+        } 
+
+        // std::future<void> fut_ = std::async([]{std::this_thread::sleep_for(std::chrono::seconds(3));});
+        // if(fut_.wait_for(limit) == std::future_status::timeout){
+        //     std::cerr << "test1 failed" << std::endl;
+        // } else{
+        //     std::cout<<"test1 passed"<<std::endl;
+        // }
+
+        // std::future<void> fut__ = std::async([]{std::this_thread::sleep_for(std::chrono::seconds(1));});
+        // if(fut__.wait_for(limit) == std::future_status::timeout){
+        //     std::cerr << "test2 failed" << std::endl;
+        // } else{
+        //     std::cout<<"test2 passed"<<std::endl;
+        // }
+    #else
         ret = avcodec_send_packet(dec_ctx, pkt);
-        
+    #endif
     #if DECODE_TIMER
         auto end_send = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_send = end_send - start_send;
@@ -168,7 +197,16 @@ struct TChannel: public bm::NoCopyable {
     #if DECODE_TIMER
         auto start_receive = std::chrono::high_resolution_clock::now();
     #endif
+        #if DEBUG_SYNC
+            std::future<void> fut_receive = std::async([&dec_ctx, &frame, &ret](){
+                ret = avcodec_receive_frame(dec_ctx, frame);
+                });
+            while(fut_receive.wait_for(limit) == std::future_status::timeout){
+                std::cerr << "channel:" << channel_id << "avcodec_receive_frame stuck!" << std::endl;
+            } 
+        #else
             ret = avcodec_receive_frame(dec_ctx, frame);
+        #endif
     #if DECODE_TIMER
         auto end_receive = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_receive = end_receive - start_receive;

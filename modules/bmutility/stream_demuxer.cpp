@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "stream_demuxer.h"
+#include <future>
 //#include "otl_utils.h"
 
 namespace bm {
@@ -124,8 +125,19 @@ int StreamDemuxer::get_codec_type(int stream_index, int *p_codec_type)
 
         m_start_time = av_gettime();
         int64_t frame_index = 0;
+        int ret = 0;
         while (Service == m_work_state) {
-            int ret = av_read_frame(m_ifmt_ctx, pkt);
+        #if DEBUG_SYNC
+            std::chrono::seconds limit(1);
+            std::future<void> fut = std::async([this, &ret, pkt](){
+                ret = av_read_frame(m_ifmt_ctx, pkt);    
+            });
+            while(fut.wait_for(limit) == std::future_status::timeout){
+                std::cerr << "channel:" << m_id << "; av_read_frame stuck!" << std::endl;
+            } 
+        #else
+            ret = av_read_frame(m_ifmt_ctx, pkt);    
+        #endif
             #if PLD
                 static int rrr = 0;
                 rrr++;
@@ -135,6 +147,20 @@ int StreamDemuxer::get_codec_type(int stream_index, int *p_codec_type)
             if (ret < 0) {
                 if (ret != AVERROR_EOF) continue;
                 if (m_repeat && m_is_file_url) {
+                #if DEBUG_SYNC
+                    std::future<void> fut_ = std::async([this, &ret](){
+                        ret = av_seek_frame(m_ifmt_ctx, -1, m_ifmt_ctx->start_time, 0);
+                        if (ret != 0) {
+                            ret = av_seek_frame(m_ifmt_ctx,  -1, m_ifmt_ctx->start_time, AVSEEK_FLAG_BYTE);
+                            if (ret < 0) {
+                                std::cout << "av_seek_frame failed!" << std::endl;
+                            }
+                        }    
+                    });
+                    while(fut_.wait_for(limit) == std::future_status::timeout){
+                        std::cerr << "channel:" << m_id << "; av_seek_frame stuck!" << std::endl;
+                    } 
+                #else
                     ret = av_seek_frame(m_ifmt_ctx, -1, m_ifmt_ctx->start_time, 0);
                     if (ret != 0) {
                         ret = av_seek_frame(m_ifmt_ctx,  -1, m_ifmt_ctx->start_time, AVSEEK_FLAG_BYTE);
@@ -142,6 +168,7 @@ int StreamDemuxer::get_codec_type(int stream_index, int *p_codec_type)
                             std::cout << "av_seek_frame failed!" << std::endl;
                         }
                     }
+                #endif
                     frame_index = 0;
                     m_start_time = av_gettime();
                     printf("seek_to_start\n");

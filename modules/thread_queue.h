@@ -35,8 +35,13 @@ private:
     void wait_and_push_one(T &&data) {
         if (m_limit > 0 && this->size_impl() >= m_limit && !m_stop) {
 # if 1//USE_DEBUG
-            std::cout << "WARNING: " << m_name << " queue_size(" << this->size_impl() << ") > "
-                      << m_limit << std::endl;
+            if((++m_warning_push_count) % 200 == 0){                
+                std::cout << "WARNING:(warning_count = "<< m_warning_push_count <<  "); queue_name: " 
+                          << m_name << " queue_size(" << this->size_impl() << ") > " << m_limit << std::endl;
+                if(m_warning_push_count > 2147483600){
+                    m_warning_push_count = 0;
+                }
+            }
 # endif
             // flow control by dropping
             if (m_drop_fn != nullptr) {
@@ -81,6 +86,10 @@ public:
         std::queue<T> empty;
         m_queue.swap(empty);
         pthread_mutex_unlock(&m_qmtx);
+    }
+    
+    void set_queue_name(const std::string& name){
+        m_name = name;
     }
 
     void stop() {
@@ -143,7 +152,14 @@ err:
 #ifdef BLOCKING_QUEUE_PERF
             m_timer.tic();
 #endif
-
+            // std::this_thread::sleep_for(std::chrono::milliseconds(40));
+            // if((++m_warning_pop_count) % 800 == 0){                
+            //     std::cout << "WARNING:(warning_count = "<< m_warning_pop_count <<  "); queue_name: " 
+            //               << m_name << " queue_size(" << this->size_impl() << ") < " << min_num << std::endl;
+            //     if(m_warning_pop_count > 2147483600){
+            //         m_warning_pop_count = 0;
+            //     }
+            // }
             // pthread_timestruc_t to;
             int err = pthread_cond_timedwait(&m_condv, &m_qmtx, &to);
             if (err == ETIMEDOUT) {
@@ -266,6 +282,8 @@ err:
 
 private:
     bool m_stop;
+    int m_warning_push_count = 0;
+    int m_warning_pop_count = 0;
     // Timer m_timer;
     std::string m_name;
     std::vector<T> m_vec;

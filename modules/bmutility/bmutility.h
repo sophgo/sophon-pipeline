@@ -308,7 +308,7 @@ namespace bm {
             struct bm_misc_info misc_info;
             bm_status_t ret = bm_get_misc_info(handle, &misc_info);
             assert(BM_SUCCESS == ret);
-            m_can_mmap = 0; //misc_info.pcie_soc_mode == 1;
+            m_can_mmap = misc_info.pcie_soc_mode == 1;
         }
 
         virtual ~BMNNTensor() {
@@ -754,11 +754,13 @@ namespace bm {
                 std::cout << "bm_thread_sync: Failed to sync: " << m_netinfo->name << " inference" << std::endl;
                 return -1;
             }
+        #if A2_SDK
             res = (bm_status_t)bm_thread_sync_from_core (m_handle, 1);
             if (res != BM_SUCCESS) {
                 std::cout << "bm_thread_sync: Failed to sync core2: " << m_netinfo->name << " inference" << std::endl;
                 return -1;
             }
+        #endif
         #endif
         #if PLD
             bm_get_profile(m_handle, &end);

@@ -16,7 +16,10 @@ extern "C" {
 }
 #include "common_types.h"
 #include "bmutility_basemodel.hpp"
-
+#ifndef USE_MMAP
+#define USE_MMAP 1
+#endif
+#define USE_D2S !USE_MMAP
 class FaceDetector : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo> 
                    , public bm::BaseModel 
 {

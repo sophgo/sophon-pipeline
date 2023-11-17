@@ -250,7 +250,17 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             //     if(ddd > 2147483600) ddd = 0;
             // }
             // std::cout<<"decode times: " << ddd << std::endl;
+        #if DEBUG_SYNC
+            std::chrono::seconds limit(1);
+            std::future<void> fut = std::async([pchan, frame, &got_picture, pkt](){
+                pchan->decode_video2(pchan->m_decoder, frame, &got_picture, pkt);
+                });
+            while(fut.wait_for(limit) == std::future_status::timeout){
+                std::cerr << "channel:" << ch << "; decode_video2 stuck!" << std::endl;
+            } 
+        #else
             pchan->decode_video2(pchan->m_decoder, frame, &got_picture, pkt);
+        #endif
             if(got_picture){
                 m_appStatis.m_statis_decode_lock.lock();
                 m_appStatis.m_total_decode++;
@@ -331,7 +341,6 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                         int plane_size[1];
                         assert(0 == bm_image_get_byte_size(image2, plane_size));
                         uint8_t *buffers_image2[1]={0};
-                    #define USE_MMAP 0 //todo:mmap may has bug, fix it.
                     #define USE_D2S !USE_MMAP
                     #if USE_D2S
                         buffers_image2[0] = new uint8_t[plane_size[0]];
