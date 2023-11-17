@@ -21,7 +21,7 @@ link_directories(${link_dirs})
 
 find_package(Qt5Widgets)
 
-add_library(bmgui SHARED bmgui.cpp mainwindow.cpp
+add_library(bmgui bmgui.cpp mainwindow.cpp
         container_widget.cpp
         video_pixmap_widget.cpp
         video_widget.cpp)
