@@ -82,6 +82,7 @@ struct cvs10FrameBaseInfo {
     int width, height, original_width, original_height;
     bool skip;
     std::queue<skipedFrameinfo> skip_frame_queue;
+    
 
     cvs10FrameBaseInfo() : chan_id(0), seq(0), jpeg_data(nullptr), skip(false) {
         memset(&resized, 0, sizeof(bm_image));

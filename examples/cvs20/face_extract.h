@@ -33,6 +33,7 @@ public:
     FaceExtract(bm::BMNNContextPtr bmctx);
     ~FaceExtract();
 
+    virtual int process_qtgui(std::vector<bm::FeatureFrame>& frames) override{return 0;};
     virtual int preprocess(std::vector<bm::FeatureFrame> &in, std::vector<bm::FeatureFrameInfo> &of) override;
     virtual int forward(std::vector<bm::FeatureFrameInfo> &frames) override;
     virtual int postprocess(std::vector<bm::FeatureFrameInfo> &frames) override;

@@ -250,17 +250,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
             //     if(ddd > 2147483600) ddd = 0;
             // }
             // std::cout<<"decode times: " << ddd << std::endl;
-        #if DEBUG_SYNC
-            std::chrono::seconds limit(1);
-            std::future<void> fut = std::async([pchan, frame, &got_picture, pkt](){
-                pchan->decode_video2(pchan->m_decoder, frame, &got_picture, pkt);
-                });
-            while(fut.wait_for(limit) == std::future_status::timeout){
-                std::cerr << "channel:" << ch << "; decode_video2 stuck!" << std::endl;
-            } 
-        #else
             pchan->decode_video2(pchan->m_decoder, frame, &got_picture, pkt);
-        #endif
             if(got_picture){
                 m_appStatis.m_statis_decode_lock.lock();
                 m_appStatis.m_total_decode++;
@@ -324,50 +314,50 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 if(pchan->seq % (m_skipN + 1) != 0){
                     //push frame to skip frame queue
                     bm::skipedFrameinfo skip_fbi;
-                    
                 #if USE_QTGUI
-                    // auto start_skip = std::chrono::high_resolution_clock::now();
-                    //same part in face_detector.cpp.
-                    if(ch < m_display_num){
-                        bm_image image1;
-                        bm::BMImage::from_avframe(m_bmctx->handle(), frame, image1, true);
-                        bm_image image2;
-                        int image2_h = gui_resize_h;
-                        int image2_w = gui_resize_w;
-                        bm_image_create(m_bmctx->handle(), image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, NULL);
-                        bmcv_image_vpp_convert(m_bmctx->handle(), 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
-                        bm_image_destroy_allinone(&image1);
-                        int plane_num = bm_image_get_plane_num(image2);
-                        int plane_size[1];
-                        assert(0 == bm_image_get_byte_size(image2, plane_size));
-                        uint8_t *buffers_image2[1]={0};
-                    #define USE_D2S !USE_MMAP
-                    #if USE_D2S
-                        buffers_image2[0] = new uint8_t[plane_size[0]];
-                        assert(BM_SUCCESS == bm_image_copy_device_to_host(image2, (void**)buffers_image2));//RGB
-                    #elif USE_MMAP
-                        unsigned long long addr;
-                        bm_device_mem_t image2_dmem;
-                        bm_image_get_device_mem(image2, &image2_dmem);
-                        bm_mem_mmap_device_mem(m_bmctx->handle(), &image2_dmem, &addr);
-                        buffers_image2[0] = (uint8_t*)addr;
+                    #if DO_SKIP_AFTER_DECODE
+                        if(ch < m_display_num){
+                            bm_image image1;
+                            bm::BMImage::from_avframe(m_bmctx->handle(), frame, image1, true);
+                            bm_image image2;
+                            int image2_h = gui_resize_h;
+                            int image2_w = gui_resize_w;
+                            bm_image_create(m_bmctx->handle(), image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, NULL);
+                            bmcv_image_vpp_convert(m_bmctx->handle(), 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
+                            bm_image_destroy_allinone(&image1);
+                            int plane_num = bm_image_get_plane_num(image2);
+                            int plane_size[1];
+                            assert(0 == bm_image_get_byte_size(image2, plane_size));
+                            uint8_t *buffers_image2[1]={0};
+                        #define USE_D2S !USE_MMAP
+                        #if USE_D2S
+                            buffers_image2[0] = new uint8_t[plane_size[0]];
+                            assert(BM_SUCCESS == bm_image_copy_device_to_host(image2, (void**)buffers_image2));//RGB
+                        #elif USE_MMAP
+                            unsigned long long addr;
+                            bm_device_mem_t image2_dmem;
+                            bm_image_get_device_mem(image2, &image2_dmem);
+                            bm_mem_mmap_device_mem(m_bmctx->handle(), &image2_dmem, &addr);
+                            buffers_image2[0] = (uint8_t*)addr;
+                        #endif
+                            skip_fbi.img_data = std::make_shared<bm::Data>(buffers_image2[0], plane_size[0]);
+                        #if USE_MMAP
+                            skip_fbi.img_data->bmimg_formmap = image2;
+                            skip_fbi.img_data->is_mmap = true;
+                        #endif
+                            skip_fbi.img_data->height = image2.height;
+                            skip_fbi.img_data->width = image2.width;
+                            skip_fbi.img_data->image_format = FORMAT_RGB_PACKED;
+                        #if USE_D2S
+                            bm_image_destroy_allinone(&image2);
+                        #endif
+                        }
+                    #else
+                        if(ch < m_display_num){
+                            skip_fbi.avframe = av_frame_alloc();
+                            av_frame_ref(skip_fbi.avframe, frame);
+                        }
                     #endif
-                        skip_fbi.img_data = std::make_shared<bm::Data>(buffers_image2[0], plane_size[0]);
-                    #if USE_MMAP
-                        skip_fbi.img_data->bmimg_formmap = image2;
-                        skip_fbi.img_data->is_mmap = true;
-                    #endif
-                        skip_fbi.img_data->height = image2.height;
-                        skip_fbi.img_data->width = image2.width;
-                        skip_fbi.img_data->image_format = FORMAT_RGB_PACKED;
-                    #if USE_D2S
-                        bm_image_destroy_allinone(&image2);
-                    #endif
-                    }
-                    // auto end_skip = std::chrono::high_resolution_clock::now();
-                    // std::chrono::duration<double> elapsed_skip = end_skip - start_skip;
-                    // double seconds_skip = 1000 * elapsed_skip.count();
-                    // std::cout << "skip time: " << seconds_skip << " ms" << std::endl;
                 #elif WITH_OUTPUTER //pipeline client
                     skip_fbi.avpkt = av_packet_alloc();
                     av_packet_ref(skip_fbi.avpkt, pkt);
@@ -583,6 +573,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         #endif
         
         #if WITH_DECODE
+            av_frame_unref(frame);
             av_frame_free(&frame);
         #endif
         #if WITH_EXTRACTOR

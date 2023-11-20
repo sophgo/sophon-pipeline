@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "face_detector.h"
+#include <chrono>
 #include <algorithm>
 #include "bm_wrapper.hpp"
 
@@ -54,6 +55,9 @@ FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num, int display
     m_display_num = display_num;
     gui_resize_h = gui_resize_h_;
     gui_resize_w = gui_resize_w_;
+    calc_resized_HW(input_frame_height, input_frame_width, &m_net_h, &m_net_w);
+    img_qt_x_scale_ = ((float)input_frame_width / (float)gui_resize_w);
+    img_qt_y_scale_ = ((float)input_frame_height / (float)gui_resize_h);
 }
 
 FaceDetector::~FaceDetector()
@@ -94,14 +98,124 @@ void FaceDetector::calc_resized_HW(int image_h, int image_w, int *p_h, int *p_w)
 #endif
 }
 
+void FaceDetector::get_data_qtgui(bm_image &image1, bm::DataPtr& img_data){
+    bm_handle_t handle = bmctx_->handle();
+    bm_image image2;
+    #if USE_JPEG
+        uint8_t *jpeg_data=NULL;
+        size_t out_size = 0;
+        bm::BMImage::create_batch(handle, gui_resize_h, gui_resize_w, image1.image_format, image1.data_type, &image2, 1);
+        bmcv_image_vpp_convert(handle, 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
+        bmcv_image_jpeg_enc(handle, 1, &image2, (void**)&jpeg_data, &out_size, 85);
+        img_data = std::make_shared<bm::Data>(jpeg_data, out_size);
+    #else
+        bm::BMImage::create_batch(handle, gui_resize_h, gui_resize_w, FORMAT_RGB_PACKED, image1.data_type, &image2, 1);
+        #if PREPROCESS_TIMER
+            auto start_vpp_convert1 = std::chrono::high_resolution_clock::now();
+        #endif
+        bmcv_image_vpp_convert(handle, 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
+        #if PREPROCESS_TIMER
+            preprocess_timer_lock[2].lock();
+            preprocess_timer_count[2]++;  
+            auto end_vpp_convert1 = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> elapsed_vpp_convert1 = end_vpp_convert1 - start_vpp_convert1;
+            double seconds_vpp_convert1 = 1000 * elapsed_vpp_convert1.count();
+            preprocess_api_time[2] += seconds_vpp_convert1;
+            if((preprocess_timer_count[2] + 1)% 100 == 0){
+                std::cout << "thread_id: "<< std::this_thread::get_id() << "; avg vpp_convert1 time: " << preprocess_api_time[2] / 100 << " ms;" << std::endl;
+                preprocess_api_time[2] = 0;
+            }
+            preprocess_timer_lock[2].unlock();
+        #endif
+        int plane_num = bm_image_get_plane_num(image2);
+        int plane_size[1];
+        assert(0 == bm_image_get_byte_size(image2, plane_size));
+        uint8_t *buffers_image2[1]={0};
+        // #if PREPROCESS_TIMER
+        //     auto start_get_rgb = std::chrono::high_resolution_clock::now();
+        // #endif
+    #if USE_D2S
+        buffers_image2[0] = new uint8_t[plane_size[0]];
+        assert(BM_SUCCESS == bm_image_copy_device_to_host(image2, (void**)buffers_image2));//RGB
+    #elif USE_MMAP
+        unsigned long long addr;
+        bm_device_mem_t image2_dmem;
+        bm_image_get_device_mem(image2, &image2_dmem);
+        bm_mem_mmap_device_mem(handle, &image2_dmem, &addr);
+        buffers_image2[0] = (uint8_t*)addr;
+    #endif
+        // #if PREPROCESS_TIMER
+        //     preprocess_timer_lock[3].lock();
+        //     preprocess_timer_count[3]++;  
+        //     auto end_get_rgb = std::chrono::high_resolution_clock::now();
+        //     std::chrono::duration<double> elapsed_get_rgb = end_get_rgb - start_get_rgb;
+        //     double seconds_get_rgb = 1000 * elapsed_get_rgb.count();
+        //     preprocess_api_time[3] += seconds_get_rgb;
+        //     if((preprocess_timer_count[3] + 1)% 100 == 0){
+        //         std::cout << "thread_id: "<< std::this_thread::get_id() << "; get rgb(mmap) time: " << preprocess_api_time[3] / 100 << " ms;" << std::endl;
+        //         preprocess_api_time[3] = 0;
+        //     }
+        //     preprocess_timer_lock[3].unlock();
+        // #endif
+        img_data = std::make_shared<bm::Data>(buffers_image2[0], plane_size[0]);
+    #if USE_MMAP
+        img_data->bmimg_formmap = image2;
+        img_data->is_mmap = true;
+    #endif
+        img_data->height = image2.height;
+        img_data->width = image2.width;
+        img_data->image_format = FORMAT_RGB_PACKED;
+    #endif
+    #if USE_D2S
+        bm_image_destroy_allinone(&image2);
+    #endif
+}
+
+int FaceDetector::process_qtgui(std::vector<bm::cvs10FrameBaseInfo>& frames){
+    bm_handle_t handle = bmctx_->handle();
+    for(int i = 0; i < frames.size(); i++){
+        #if PREPROCESS_TIMER
+            auto start_from_avframe = std::chrono::high_resolution_clock::now();
+        #endif
+        bm::BMImage::from_avframe(handle, frames[i].avframe, frames[i].original, true);
+        #if PREPROCESS_TIMER
+            preprocess_timer_lock[0].lock();
+            preprocess_timer_count[0]++;  
+            auto end_from_avframe = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> elapsed_from_avframe = end_from_avframe - start_from_avframe;
+            double seconds_from_avframe = 1000 * elapsed_from_avframe.count();
+            preprocess_api_time[0] += seconds_from_avframe;
+            if((preprocess_timer_count[0] + 1)% 100 == 0){
+                std::cout << "thread_id: "<< std::this_thread::get_id() << "; avg from_avframe time: " << preprocess_api_time[0] / 100 << " ms;" << std::endl;
+                preprocess_api_time[0] = 0;
+            }
+            preprocess_timer_lock[0].unlock();
+        #endif
+        if(frames[i].chan_id < m_display_num){
+            get_data_qtgui(frames[i].original, frames[i].jpeg_data);
+            int qsize = frames[i].skip_frame_queue.size();
+            while(qsize--){
+                bm::skipedFrameinfo skip_finfo = frames[i].skip_frame_queue.front();
+                frames[i].skip_frame_queue.pop();
+                bm_image skip_bm_image;
+                bm::BMImage::from_avframe(handle, skip_finfo.avframe, skip_bm_image, true);
+                get_data_qtgui(skip_bm_image, skip_finfo.img_data);
+                av_frame_unref(skip_finfo.avframe);
+                av_frame_free(&skip_finfo.avframe);
+                frames[i].skip_frame_queue.push(skip_finfo);
+                bm_image_destroy_allinone(&skip_bm_image);
+            }
+        }
+    }
+    return 0;
+}
 
 int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::vector<bm::cvs10FrameInfo> &frame_infos)
 {
 #if 1
     int ret = 0;
     bm_handle_t handle = bmctx_->handle();
-    calc_resized_HW(1080, 1920, &m_net_h, &m_net_w);
-
+    // calc_resized_HW(1080, 1920, &m_net_h, &m_net_w);
     // Check input
     int total = frames.size();
     if (total != 4) {
@@ -160,42 +274,85 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
 
         for(int i = 0;i < num; ++i) {
             bm_image image1;
+        // #if PREPROCESS_TIMER
+        //     auto start_from_avframe = std::chrono::high_resolution_clock::now();
+        // #endif
+        #if !USE_QTGUI || DO_QTGUI_IN_PREPROCESS
             bm::BMImage::from_avframe(handle, frames[start_idx + i].avframe, image1, true);
+        #else
+            image1 = frames[start_idx + i].original;
+        #endif
+        // #if PREPROCESS_TIMER
+        //     preprocess_timer_lock[0].lock();
+        //     preprocess_timer_count[0]++;  
+        //     auto end_from_avframe = std::chrono::high_resolution_clock::now();
+        //     std::chrono::duration<double> elapsed_from_avframe = end_from_avframe - start_from_avframe;
+        //     double seconds_from_avframe = 1000 * elapsed_from_avframe.count();
+        //     preprocess_api_time[0] += seconds_from_avframe;
+        //     if((preprocess_timer_count[0] + 1)% 100 == 0){
+        //         std::cout << "thread_id: "<< std::this_thread::get_id() << "; avg from_avframe time: " << preprocess_api_time[0] / 100 << " ms;" << std::endl;
+        //         preprocess_api_time[0] = 0;
+        //     }
+        //     preprocess_timer_lock[0].unlock();
+        // #endif
         #if PLD
             std::cout<<"This is face_detector.cpp:159: bmcv_image_vpp_convert."<<std::endl;
         #endif
+        #if PREPROCESS_TIMER
+            auto start_vpp_convert0 = std::chrono::high_resolution_clock::now();
+        #endif
             ret = bmcv_image_vpp_convert(handle, 1, image1, &resized_imgs[i], NULL, BMCV_INTER_LINEAR);
             assert(BM_SUCCESS == ret);
-
-
-#if USE_QTGUI
+        #if PREPROCESS_TIMER
+            preprocess_timer_lock[1].lock();
+            preprocess_timer_count[1]++;  
+            auto end_vpp_convert0 = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> elapsed_vpp_convert0 = end_vpp_convert0 - start_vpp_convert0;
+            double seconds_vpp_convert0 = 1000 * elapsed_vpp_convert0.count();
+            preprocess_api_time[1] += seconds_vpp_convert0;
+            if((preprocess_timer_count[1] + 1)% 100 == 0){
+                std::cout << "thread_id: "<< std::this_thread::get_id() << "; avg vpp_convert0 time: " << preprocess_api_time[1] / 100 << " ms;" << std::endl;
+                preprocess_api_time[1] = 0;
+            }
+            preprocess_timer_lock[1].unlock();
+        #endif
+#if USE_QTGUI && DO_QTGUI_IN_PREPROCESS
             if(frames[start_idx + i].chan_id < m_display_num){
+        #if DO_SKIP_AFTER_DECODE
                 bm_image image2;
-                int image2_h = gui_resize_h;
-                int image2_w = gui_resize_w;
-
             #if USE_JPEG
                 uint8_t *jpeg_data=NULL;
                 size_t out_size = 0;
-                bm::BMImage::create_batch(handle, image2_h, image2_w, image1.image_format, image1.data_type, &image2, 1);
-                // bm_image_create(handle, image2_h, image2_w, image1.image_format, image1.data_type, &image2, NULL);
+                bm::BMImage::create_batch(handle, gui_resize_h, gui_resize_w, image1.image_format, image1.data_type, &image2, 1);
                 bmcv_image_vpp_convert(handle, 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
                 bmcv_image_jpeg_enc(handle, 1, &image2, (void**)&jpeg_data, &out_size, 85);
                 frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(jpeg_data, out_size);
             #else
-                bm::BMImage::create_batch(handle, image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, 1);
-                // bm_image_create(handle, image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, NULL);
-                // auto start_convert = std::chrono::high_resolution_clock::now();
+                bm::BMImage::create_batch(handle, gui_resize_h, gui_resize_w, FORMAT_RGB_PACKED, image1.data_type, &image2, 1);
+                #if PREPROCESS_TIMER
+                    auto start_vpp_convert1 = std::chrono::high_resolution_clock::now();
+                #endif
                 bmcv_image_vpp_convert(handle, 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
-                // auto end_convert = std::chrono::high_resolution_clock::now();
-                // std::chrono::duration<double> elapsed_convert = end_convert - start_convert;
-                // double seconds_convert = 1000 * elapsed_convert.count();
-                // std::cout << "vpp convert time: " << seconds_convert << " ms" << std::endl;
+                #if PREPROCESS_TIMER
+                    preprocess_timer_lock[2].lock();
+                    preprocess_timer_count[2]++;  
+                    auto end_vpp_convert1 = std::chrono::high_resolution_clock::now();
+                    std::chrono::duration<double> elapsed_vpp_convert1 = end_vpp_convert1 - start_vpp_convert1;
+                    double seconds_vpp_convert1 = 1000 * elapsed_vpp_convert1.count();
+                    preprocess_api_time[2] += seconds_vpp_convert1;
+                    if((preprocess_timer_count[2] + 1)% 100 == 0){
+                        std::cout << "thread_id: "<< std::this_thread::get_id() << "; avg vpp_convert1 time: " << preprocess_api_time[2] / 100 << " ms;" << std::endl;
+                        preprocess_api_time[2] = 0;
+                    }
+                    preprocess_timer_lock[2].unlock();
+                #endif
                 int plane_num = bm_image_get_plane_num(image2);
                 int plane_size[1];
                 assert(0 == bm_image_get_byte_size(image2, plane_size));
                 uint8_t *buffers_image2[1]={0};
-                // auto start_copy = std::chrono::high_resolution_clock::now();
+                #if PREPROCESS_TIMER
+                    auto start_get_rgb = std::chrono::high_resolution_clock::now();
+                #endif
             #if USE_D2S
                 buffers_image2[0] = new uint8_t[plane_size[0]];
                 assert(BM_SUCCESS == bm_image_copy_device_to_host(image2, (void**)buffers_image2));//RGB
@@ -206,10 +363,19 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
                 bm_mem_mmap_device_mem(handle, &image2_dmem, &addr);
                 buffers_image2[0] = (uint8_t*)addr;
             #endif
-                // auto end_copy = std::chrono::high_resolution_clock::now();
-                // std::chrono::duration<double> elapsed_copy = end_copy - start_copy;
-                // double seconds_copy = 1000 * elapsed_copy.count();
-                // std::cout << "copy time: " << seconds_copy << " ms" << std::endl;
+                #if PREPROCESS_TIMER
+                    preprocess_timer_lock[3].lock();
+                    preprocess_timer_count[3]++;  
+                    auto end_get_rgb = std::chrono::high_resolution_clock::now();
+                    std::chrono::duration<double> elapsed_get_rgb = end_get_rgb - start_get_rgb;
+                    double seconds_get_rgb = 1000 * elapsed_get_rgb.count();
+                    preprocess_api_time[3] += seconds_get_rgb;
+                    if((preprocess_timer_count[3] + 1)% 100 == 0){
+                        std::cout << "thread_id: "<< std::this_thread::get_id() << "; get rgb(mmap) time: " << preprocess_api_time[3] / 100 << " ms;" << std::endl;
+                        preprocess_api_time[3] = 0;
+                    }
+                    preprocess_timer_lock[3].unlock();
+                #endif
                 frames[start_idx + i].jpeg_data = std::make_shared<bm::Data>(buffers_image2[0], plane_size[0]);
             #if USE_MMAP
                 frames[start_idx + i].jpeg_data->bmimg_formmap = image2;
@@ -219,14 +385,29 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
                 frames[start_idx + i].jpeg_data->width = image2.width;
                 frames[start_idx + i].jpeg_data->image_format = FORMAT_RGB_PACKED;
             #endif
-                frames[start_idx + i].height= image2.height;
-                frames[start_idx + i].width = image2.width;
-                img_qt_x_scale_ = ((float)image1.width / (float)image2.width);
-                img_qt_y_scale_ = ((float)image1.height / (float)image2.height);
             #if USE_D2S
                 bm_image_destroy_allinone(&image2);
             #endif
+        #else
+                get_data_qtgui(image1, frames[start_idx + i].jpeg_data);
+                int qsize = frames[start_idx + i].skip_frame_queue.size();
+                while(qsize--){
+                    bm::skipedFrameinfo skip_finfo = frames[start_idx + i].skip_frame_queue.front();
+                    frames[start_idx + i].skip_frame_queue.pop();
+                    bm_image skip_bm_image;
+                    bm::BMImage::from_avframe(handle, skip_finfo.avframe, skip_bm_image, true);
+                    get_data_qtgui(skip_bm_image, skip_finfo.img_data);
+                    av_frame_unref(skip_finfo.avframe);
+                    av_frame_free(&skip_finfo.avframe);
+                    frames[start_idx + i].skip_frame_queue.push(skip_finfo);
+                    bm_image_destroy_allinone(&skip_bm_image);
+                }
+        #endif
+ 
+
             }
+            frames[start_idx + i].height= gui_resize_h;
+            frames[start_idx + i].width = gui_resize_w;
 #else
             frames[start_idx + i].height= image1.height;
             frames[start_idx + i].width = image1.width;
@@ -236,7 +417,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
         #if DRAW_DETECTOR
             frames[start_idx + i].original = image1;
         #else
-            bm_image_destroy_allinone(&image1);
+            bm_image_destroy_allinone(&image1); 
         #endif
             finfo.frames.push_back(frames[start_idx + i]);
 
@@ -298,9 +479,24 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
     #if PLD
         std::cout<<"This is face_detector.cpp:227, bmcv_image_convert_to."<<std::endl;
     #endif
+        #if PREPROCESS_TIMER
+            auto start_convert_to = std::chrono::high_resolution_clock::now();
+        #endif
         ret = bmcv_image_convert_to(bmctx_->handle(), num, convert_to_attr, resized_imgs, convertto_imgs);
         assert(ret == 0);
-
+            #if PREPROCESS_TIMER
+                preprocess_timer_lock[4].lock();
+                preprocess_timer_count[4]++;  
+                auto end_convert_to = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<double> elapsed_convert_to = end_convert_to - start_convert_to;
+                double seconds_convert_to = 1000 * elapsed_convert_to.count();
+                preprocess_api_time[4] += seconds_convert_to;
+                if((preprocess_timer_count[4] + 1)% 100 == 0){
+                    std::cout << "thread_id: "<< std::this_thread::get_id() << "; convert_to time: " << preprocess_api_time[4] / 100 << " ms;" << std::endl;
+                    preprocess_api_time[4] = 0;
+                }
+                preprocess_timer_lock[4].unlock();
+            #endif
     #if A2_SDK
         bm_image_detach_contiguous_mem(num, convertto_imgs);
     #else
@@ -341,6 +537,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
 
     return 0;
 }
+
 
 int FaceDetector::forward(std::vector<bm::cvs10FrameInfo>& frame_infos)
 {
