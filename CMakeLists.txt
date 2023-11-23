@@ -93,6 +93,7 @@ add_definitions(-DSAVE_QT_FRAME=0)
 # add_definitions(-DPRINT_QUEUE=1)        #print blocking queue name and pop size
 add_definitions(-DWITH_LOAD=1)          #load bmodel
 add_definitions(-DDEBUG_SYNC=1)         #std::future async debug
+add_definitions(-DPREPROCESS_TIMER=0)
 add_compile_options(-Wno-deprecated-declarations -fPIC)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

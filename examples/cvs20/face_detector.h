@@ -16,10 +16,19 @@ extern "C" {
 }
 #include "common_types.h"
 #include "bmutility_basemodel.hpp"
+
+#define MAX_INT 2147483600
+
 #ifndef USE_MMAP
 #define USE_MMAP 1
 #endif
+
 #define USE_D2S !USE_MMAP
+
+#ifndef PREPROCESS_TIMER
+#define PREPROCESS_TIMER 1
+#endif
+
 class FaceDetector : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo> 
                    , public bm::BaseModel 
 {
@@ -49,11 +58,18 @@ class FaceDetector : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs
     int m_display_num;
     int gui_resize_h = 360;
     int gui_resize_w = 640;
+    int input_frame_width = 1920;
+    int input_frame_height = 1080;
+#if PREPROCESS_TIMER
+    int preprocess_timer_count[32] = {0};
+    double preprocess_api_time[32] = {0};
+    std::mutex preprocess_timer_lock[32];
+#endif
 
 public:
     FaceDetector(bm::BMNNContextPtr bmctx, int resize_num, int display_num, int gui_resize_h_, int gui_resize_w_);
     ~FaceDetector();
-
+    virtual int process_qtgui(std::vector<bm::cvs10FrameBaseInfo>& frames) override ;
     virtual int preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::vector<bm::cvs10FrameInfo>& frame_info) override ;
     virtual int forward(std::vector<bm::cvs10FrameInfo>& frame_info) override ;
     virtual int postprocess(std::vector<bm::cvs10FrameInfo> &frame_info) override;
@@ -74,8 +90,8 @@ private:
                            bm::NetOutputObjects &proposals);
     void nms(const bm::NetOutputObjects &proposals,
              bm::NetOutputObjects&      nmsProposals);
-
     void calc_resized_HW(int image_h, int image_w, int *p_h, int *p_w);
+    void get_data_qtgui(bm_image &image1, bm::DataPtr& img_data);
 };
 
 
