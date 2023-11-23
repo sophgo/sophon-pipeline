@@ -99,6 +99,9 @@ void FaceDetector::calc_resized_HW(int image_h, int image_w, int *p_h, int *p_w)
 }
 
 void FaceDetector::get_data_qtgui(bm_image &image1, bm::DataPtr& img_data){
+    // #if PREPROCESS_TIMER
+    //     auto start_getdata = std::chrono::high_resolution_clock::now();
+    // #endif
     bm_handle_t handle = bmctx_->handle();
     bm_image image2;
     #if USE_JPEG
@@ -169,9 +172,27 @@ void FaceDetector::get_data_qtgui(bm_image &image1, bm::DataPtr& img_data){
     #if USE_D2S
         bm_image_destroy_allinone(&image2);
     #endif
+
+    // #if PREPROCESS_TIMER
+    //     int lock_id = 5;
+    //     preprocess_timer_lock[lock_id].lock();
+    //     preprocess_timer_count[lock_id]++;  
+    //     auto end_getdata = std::chrono::high_resolution_clock::now();
+    //     std::chrono::duration<double> elapsed_getdata = end_getdata - start_getdata;
+    //     double seconds_getdata = 1000 * elapsed_getdata.count();
+    //     preprocess_api_time[lock_id] += seconds_getdata;
+    //     if((preprocess_timer_count[lock_id] + 1)% 100 == 0){
+    //         std::cout << "thread_id: "<< std::this_thread::get_id() << "; avg getdata time: " << preprocess_api_time[lock_id] / 100 << " ms;" << std::endl;
+    //         preprocess_api_time[lock_id] = 0;
+    //     }
+    //     preprocess_timer_lock[lock_id].unlock();
+    // #endif
 }
 
 int FaceDetector::process_qtgui(std::vector<bm::cvs10FrameBaseInfo>& frames){
+    // #if PREPROCESS_TIMER
+    //     auto start_qtgui = std::chrono::high_resolution_clock::now();
+    // #endif
     bm_handle_t handle = bmctx_->handle();
     for(int i = 0; i < frames.size(); i++){
         #if PREPROCESS_TIMER
@@ -207,6 +228,20 @@ int FaceDetector::process_qtgui(std::vector<bm::cvs10FrameBaseInfo>& frames){
             }
         }
     }
+    // #if PREPROCESS_TIMER
+    //     int lock_id = 5;
+    //     preprocess_timer_lock[lock_id].lock();
+    //     preprocess_timer_count[lock_id]++;  
+    //     auto end_qtgui = std::chrono::high_resolution_clock::now();
+    //     std::chrono::duration<double> elapsed_qtgui = end_qtgui - start_qtgui;
+    //     double seconds_qtgui = 1000 * elapsed_qtgui.count();
+    //     preprocess_api_time[lock_id] += seconds_qtgui;
+    //     if((preprocess_timer_count[lock_id] + 1)% 100 == 0){
+    //         std::cout << "thread_id: "<< std::this_thread::get_id() << "; avg process qtgui time: " << preprocess_api_time[lock_id] / 100 << " ms;" << std::endl;
+    //         preprocess_api_time[lock_id] = 0;
+    //     }
+    //     preprocess_timer_lock[lock_id].unlock();
+    // #endif
     return 0;
 }
 
@@ -298,24 +333,24 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
         #if PLD
             std::cout<<"This is face_detector.cpp:159: bmcv_image_vpp_convert."<<std::endl;
         #endif
-        #if PREPROCESS_TIMER
-            auto start_vpp_convert0 = std::chrono::high_resolution_clock::now();
-        #endif
+        // #if PREPROCESS_TIMER
+        //     auto start_vpp_convert0 = std::chrono::high_resolution_clock::now();
+        // #endif
             ret = bmcv_image_vpp_convert(handle, 1, image1, &resized_imgs[i], NULL, BMCV_INTER_LINEAR);
             assert(BM_SUCCESS == ret);
-        #if PREPROCESS_TIMER
-            preprocess_timer_lock[1].lock();
-            preprocess_timer_count[1]++;  
-            auto end_vpp_convert0 = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> elapsed_vpp_convert0 = end_vpp_convert0 - start_vpp_convert0;
-            double seconds_vpp_convert0 = 1000 * elapsed_vpp_convert0.count();
-            preprocess_api_time[1] += seconds_vpp_convert0;
-            if((preprocess_timer_count[1] + 1)% 100 == 0){
-                std::cout << "thread_id: "<< std::this_thread::get_id() << "; avg vpp_convert0 time: " << preprocess_api_time[1] / 100 << " ms;" << std::endl;
-                preprocess_api_time[1] = 0;
-            }
-            preprocess_timer_lock[1].unlock();
-        #endif
+        // #if PREPROCESS_TIMER
+        //     preprocess_timer_lock[1].lock();
+        //     preprocess_timer_count[1]++;  
+        //     auto end_vpp_convert0 = std::chrono::high_resolution_clock::now();
+        //     std::chrono::duration<double> elapsed_vpp_convert0 = end_vpp_convert0 - start_vpp_convert0;
+        //     double seconds_vpp_convert0 = 1000 * elapsed_vpp_convert0.count();
+        //     preprocess_api_time[1] += seconds_vpp_convert0;
+        //     if((preprocess_timer_count[1] + 1)% 100 == 0){
+        //         std::cout << "thread_id: "<< std::this_thread::get_id() << "; avg vpp_convert0 time: " << preprocess_api_time[1] / 100 << " ms;" << std::endl;
+        //         preprocess_api_time[1] = 0;
+        //     }
+        //     preprocess_timer_lock[1].unlock();
+        // #endif
 #if USE_QTGUI && DO_QTGUI_IN_PREPROCESS
             if(frames[start_idx + i].chan_id < m_display_num){
         #if DO_SKIP_AFTER_DECODE
@@ -479,24 +514,24 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
     #if PLD
         std::cout<<"This is face_detector.cpp:227, bmcv_image_convert_to."<<std::endl;
     #endif
-        #if PREPROCESS_TIMER
-            auto start_convert_to = std::chrono::high_resolution_clock::now();
-        #endif
+            // #if PREPROCESS_TIMER
+            //     auto start_convert_to = std::chrono::high_resolution_clock::now();
+            // #endif
         ret = bmcv_image_convert_to(bmctx_->handle(), num, convert_to_attr, resized_imgs, convertto_imgs);
         assert(ret == 0);
-            #if PREPROCESS_TIMER
-                preprocess_timer_lock[4].lock();
-                preprocess_timer_count[4]++;  
-                auto end_convert_to = std::chrono::high_resolution_clock::now();
-                std::chrono::duration<double> elapsed_convert_to = end_convert_to - start_convert_to;
-                double seconds_convert_to = 1000 * elapsed_convert_to.count();
-                preprocess_api_time[4] += seconds_convert_to;
-                if((preprocess_timer_count[4] + 1)% 100 == 0){
-                    std::cout << "thread_id: "<< std::this_thread::get_id() << "; convert_to time: " << preprocess_api_time[4] / 100 << " ms;" << std::endl;
-                    preprocess_api_time[4] = 0;
-                }
-                preprocess_timer_lock[4].unlock();
-            #endif
+            // #if PREPROCESS_TIMER
+            //     preprocess_timer_lock[4].lock();
+            //     preprocess_timer_count[4]++;  
+            //     auto end_convert_to = std::chrono::high_resolution_clock::now();
+            //     std::chrono::duration<double> elapsed_convert_to = end_convert_to - start_convert_to;
+            //     double seconds_convert_to = 1000 * elapsed_convert_to.count();
+            //     preprocess_api_time[4] += seconds_convert_to;
+            //     if((preprocess_timer_count[4] + 1)% 100 == 0){
+            //         std::cout << "thread_id: "<< std::this_thread::get_id() << "; avg convert_to time: " << preprocess_api_time[4] / 100 << " ms;" << std::endl;
+            //         preprocess_api_time[4] = 0;
+            //     }
+            //     preprocess_timer_lock[4].unlock();
+            // #endif
     #if A2_SDK
         bm_image_detach_contiguous_mem(num, convertto_imgs);
     #else
