@@ -278,6 +278,7 @@ struct BMImage {
             data_four_denominator = 1;
             data_five_denominator = -1;
             data_six_denominator = -1;
+            break;
         case AV_PIX_FMT_GRAY8:
             plane = 1;
             data_four_denominator = -1;
