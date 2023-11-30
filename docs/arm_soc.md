@@ -31,7 +31,7 @@ cp -rf libsophon_soc_${x.y.z}_aarch64/opt/sophon/libsophon-${x.y.z}/include ${so
 ### 2.3 准备ffmpeg和opencv
 
 ```bash
-# 解压sophon-mw包里的sophon-mw-soc_${x.y.z}_aarch64.tar.gz，其中x.y.z为版本号
+# 解压sophon-mw或sophon_media包里的sophon-mw-soc_${x.y.z}_aarch64.tar.gz，其中x.y.z为版本号
 tar -zxf sophon-mw-soc_${x.y.z}_aarch64.tar.gz
 # 将ffmpeg和opencv的库目录和头文件目录拷贝到依赖文件根目录下
 cp -rf sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-ffmpeg_${x.y.z}/lib ${soc-sdk}
