@@ -150,6 +150,9 @@ function build_all() {
 }
 
 build_all $1 $2 $3
+git log > cvs20_version.txt
+echo "$2" > soc_sdk_version.txt
+mv *_version.txt test_execs
 tar cvf test_execs.tar test_execs
 # cp -r test_execs release/cvs20/
 

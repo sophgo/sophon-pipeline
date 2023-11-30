@@ -239,6 +239,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
 
         pchan->demuxer->set_read_Frame_callback([this, pchan, ch, feature_mat](AVPacket* pkt){
             int ret = 0;
+            bm_handle_t handle = m_bmctx->handle();
 
         #if WITH_DECODE
             int got_picture = 0;
@@ -307,55 +308,15 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
 
         #if WITH_DETECTOR
             if (got_picture) {
-            #if 1 //new frame skip strategy
                 pchan->seq++;
                 if(pchan->seq % (m_skipN + 1) != 0){
                     //push frame to skip frame queue
                     bm::skipedFrameinfo skip_fbi;
                 #if USE_QTGUI
-                    #if DO_SKIP_AFTER_DECODE
-                        if(ch < m_display_num){
-                            bm_image image1;
-                            bm::BMImage::from_avframe(m_bmctx->handle(), frame, image1, true);
-                            bm_image image2;
-                            int image2_h = gui_resize_h;
-                            int image2_w = gui_resize_w;
-                            bm_image_create(m_bmctx->handle(), image2_h, image2_w, FORMAT_RGB_PACKED, image1.data_type, &image2, NULL);
-                            bmcv_image_vpp_convert(m_bmctx->handle(), 1, image1, &image2, NULL, BMCV_INTER_LINEAR);
-                            bm_image_destroy_allinone(&image1);
-                            int plane_num = bm_image_get_plane_num(image2);
-                            int plane_size[1];
-                            assert(0 == bm_image_get_byte_size(image2, plane_size));
-                            uint8_t *buffers_image2[1]={0};
-                        #define USE_D2S !USE_MMAP
-                        #if USE_D2S
-                            buffers_image2[0] = new uint8_t[plane_size[0]];
-                            assert(BM_SUCCESS == bm_image_copy_device_to_host(image2, (void**)buffers_image2));//RGB
-                        #elif USE_MMAP
-                            unsigned long long addr;
-                            bm_device_mem_t image2_dmem;
-                            bm_image_get_device_mem(image2, &image2_dmem);
-                            bm_mem_mmap_device_mem(m_bmctx->handle(), &image2_dmem, &addr);
-                            buffers_image2[0] = (uint8_t*)addr;
-                        #endif
-                            skip_fbi.img_data = std::make_shared<bm::Data>(buffers_image2[0], plane_size[0]);
-                        #if USE_MMAP
-                            skip_fbi.img_data->bmimg_formmap = image2;
-                            skip_fbi.img_data->is_mmap = true;
-                        #endif
-                            skip_fbi.img_data->height = image2.height;
-                            skip_fbi.img_data->width = image2.width;
-                            skip_fbi.img_data->image_format = FORMAT_RGB_PACKED;
-                        #if USE_D2S
-                            bm_image_destroy_allinone(&image2);
-                        #endif
-                        }
-                    #else
-                        if(ch < m_display_num){
-                            skip_fbi.avframe = av_frame_alloc();
-                            av_frame_ref(skip_fbi.avframe, frame);
-                        }
-                    #endif
+                    if(ch < m_display_num){
+                        skip_fbi.avframe = av_frame_alloc();
+                        av_frame_ref(skip_fbi.avframe, frame);
+                    }
                 #elif WITH_OUTPUTER //pipeline client
                     skip_fbi.avpkt = av_packet_alloc();
                     av_packet_ref(skip_fbi.avpkt, pkt);
@@ -377,46 +338,33 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     av_packet_ref(fbi.avpkt, pkt);
                     m_inferPipe.push_frame(&fbi);
                 }
-            #else // old skip strategy
-                bm::cvs10FrameBaseInfo fbi;
-                fbi.seq = pchan->seq++;
-                fbi.chan_id = ch;
-                fbi.pkt_id = 0;
-                if (m_skipN > 0) {
-                    if (fbi.seq % (m_skipN + 1) != 0) fbi.skip = true;
-                }
-#if 0
-                if (ch == 0) std::cout << " seq = " << fbi.seq << " skip= " << fbi.skip << std::endl;
-#endif
-                if (!fbi.skip) {
-                    fbi.avframe = av_frame_alloc();
-                    fbi.avpkt = av_packet_alloc();
-                    av_frame_ref(fbi.avframe, frame);
-                    av_packet_ref(fbi.avpkt, pkt);
-                    m_inferPipe.push_frame(&fbi);
-                }
-            #endif
             }
         #endif
 
         #if WITH_ENCODE_H264 //need output format=0
             if(got_picture && ch < m_save_num){
+                AVFrame *frame_yuv420p = av_frame_alloc(); //for encoder
+                bm_image* bm_image_yuv420p = NULL;
+                bm_image_yuv420p = (bm_image *) malloc(sizeof(bm_image));;
+                bm::BMImage::from_avframe(handle, frame, *bm_image_yuv420p, true);
+                bm_image_to_avframe(handle, bm_image_yuv420p, frame_yuv420p);
+                // AVFrameConvert(handle, frame, frame_yuv420p, frame->height, frame->width, AV_PIX_FMT_YUV420P);
             #if !FF_ENCODE_WRITE_AVFRAME
                 #define STEP_ALIGNMENT 32
-                int stride = (frame->width + STEP_ALIGNMENT - 1) & ~(STEP_ALIGNMENT - 1);
+                int stride = (frame_yuv420p->width + STEP_ALIGNMENT - 1) & ~(STEP_ALIGNMENT - 1);
                 int buffer_size = av_image_get_buffer_size(
-                                        (AVPixelFormat)frame->format, frame->width, frame->height, 32
+                                        (AVPixelFormat)frame_yuv420p->format, frame_yuv420p->width, frame_yuv420p->height, 32
                                     );
                 uint8_t *yuv_buffer = (uint8_t *)av_malloc(buffer_size);
                 if (!yuv_buffer) {
                     fprintf(stderr, "Could not allocate buffer for YUV data\n");
-                    av_frame_free(&frame);
+                    av_frame_free(&frame_yuv420p);
                     return;
                 }
                 av_image_copy_to_buffer(
                     yuv_buffer, buffer_size,
-                    (const uint8_t * const *)frame->data, frame->linesize,
-                    (AVPixelFormat)frame->format, frame->width, frame->height, 32
+                    (const uint8_t * const *)frame_yuv420p->data, frame_yuv420p->linesize,
+                    (AVPixelFormat)frame_yuv420p->format, frame_yuv420p->width, frame_yuv420p->height, 32
                 );
             #endif
                 if(!pchan->writer.is_opened){
@@ -425,9 +373,9 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                                                                 "h264_bm", 
                                                                 0,
                                                                 25, 
-                                                                frame->width, 
-                                                                frame->height, 
-                                                                frame->format, 
+                                                                frame_yuv420p->width, 
+                                                                frame_yuv420p->height, 
+                                                                frame_yuv420p->format, 
                                                                 4000);
                     if (ret_writer != 0) {
                         av_log(NULL, AV_LOG_ERROR,"writer.openEnc failed\n");
@@ -435,15 +383,15 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     }
                     pchan->writer.is_opened = true;
                 #if FF_ENCODE_WRITE_AVFRAME
-                    pchan->writer.writeFrame(frame);
+                    pchan->writer.writeFrame(frame_yuv420p);
                 #else
-                    pchan->writer.writeFrame(yuv_buffer, stride, frame->width, frame->height);
+                    pchan->writer.writeFrame(yuv_buffer, stride, frame_yuv420p->width, frame_yuv420p->height);
                 #endif
                 } else{
                 #if FF_ENCODE_WRITE_AVFRAME
-                    pchan->writer.writeFrame(frame);
+                    pchan->writer.writeFrame(frame_yuv420p);
                 #else
-                    pchan->writer.writeFrame(yuv_buffer, stride, frame->width, frame->height);
+                    pchan->writer.writeFrame(yuv_buffer, stride, frame_yuv420p->width, frame_yuv420p->height);
                 #endif
                 }
             #if !FF_ENCODE_WRITE_AVFRAME
@@ -452,6 +400,8 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     yuv_buffer = NULL;
                 }
             #endif
+                av_frame_unref(frame_yuv420p);
+                av_frame_free(&frame_yuv420p);
                 m_appStatis.m_statis_encode_lock.lock();
                 m_appStatis.m_total_encode++;
                 m_appStatis.m_statis_encode_lock.unlock();
