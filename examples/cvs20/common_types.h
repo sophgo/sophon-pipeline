@@ -67,6 +67,7 @@ struct skipedFrameinfo{
     AVPacket *avpkt;
     AVFrame *avframe;
     bm::DataPtr img_data;
+    bm_image original;
 };
 struct cvs10FrameBaseInfo {
     int chan_id;

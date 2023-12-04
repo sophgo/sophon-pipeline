@@ -26,17 +26,9 @@ extern "C" {
 #else
 #include "bmcv_api_ext.h"
 #endif
+#include "bm_wrapper.hpp"
 
-static int bm_image_destroy_allinone(bm_image *image){
-  int ret = 0;
-  #if A2_SDK
-    ret = bm_image_destroy(image);
-  #else
-    ret = bm_image_destroy(*image);
-  #endif
-  assert(ret == BM_SUCCESS);
-  return ret;
-}
+
 namespace bm {
 ///////////////////////////////////////////////////////////////////////////
 #define BM_MEM_DDR0 1
