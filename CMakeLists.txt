@@ -33,7 +33,7 @@ option(WITH_HDMI "with hdmi encode" OFF)
 option(WITH_DETECTOR "with detector" OFF)
 option(WITH_EXTRACTOR "with extractor" OFF)
 option(WITH_OUTPUTER "with client outputer" OFF)
-
+option(WITH_JPEG_160FPS "with jpeg 160fps" OFF)
 if(A2_SDK)
     add_definitions(-DA2_SDK=1)
 else()
@@ -78,7 +78,11 @@ if(WITH_OUTPUTER)
 else()
     add_definitions(-DWITH_OUTPUTER=0)
 endif()
-
+if(WITH_JPEG_160FPS)
+    add_definitions(-DWITH_JPEG_160FPS=1)
+else()
+    add_definitions(-DWITH_JPEG_160FPS=0)
+endif()
 if(TEST_PREPROCESS)
     add_definitions(-DWITH_RESIZE_TEST=1)   #depend on decode\encode_jpeg.
     add_definitions(-DWITH_CONVERTO_TEST=1) #depend on decode\encode_jpeg\resize_test.
@@ -94,6 +98,8 @@ add_definitions(-DSAVE_QT_FRAME=0)
 add_definitions(-DWITH_LOAD=1)          #load bmodel
 add_definitions(-DDEBUG_SYNC=0)         #std::future async debug
 add_definitions(-DPREPROCESS_TIMER=0)
+
+
 add_compile_options(-Wno-deprecated-declarations -fPIC)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

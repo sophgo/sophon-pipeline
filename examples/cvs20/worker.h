@@ -260,7 +260,7 @@ class OneCardInferApp {
     int m_channel_start;
     int m_channel_num;
     int m_dev_id;
-    int m_skipN;
+    int m_skip_x = 0, m_skip_y = 1;
     std::string m_output_url;
     int m_feature_delay;
     int m_feature_num;
@@ -271,6 +271,7 @@ class OneCardInferApp {
     int m_display_num;
     int gui_resize_h = 360;
     int gui_resize_w = 640;
+    bm_image jpeg_bmimg_40x40;
 
     FILE *outputFile;
     bm::BMInferencePipe<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo> m_inferPipe;
@@ -283,7 +284,7 @@ class OneCardInferApp {
     std::vector<std::string> m_urls;
 public:
     OneCardInferApp(AppStatis& statis,bm::VideoUIAppPtr& gui, bm::TimerQueuePtr tq, bm::BMNNContextPtr ctx, std::string& output_url, 
-            int start_index, int num, int skip=0, int feat_delay=1000, int feat_num=8,
+            int start_index, int num, int skip_x=0, int skip_y=1, int feat_delay=1000, int feat_num=8,
             int use_l2_ddrr=0, int stop_frame_num=0, int save_num=0, int display_num=1): m_detectorDelegate(nullptr), m_channel_num(num),
             m_bmctx(ctx), m_appStatis(statis),m_use_l2_ddrr(use_l2_ddrr), m_stop_frame_num(stop_frame_num), m_save_num(save_num), m_display_num(display_num)
     {
@@ -291,7 +292,8 @@ public:
         m_dev_id = m_bmctx->dev_id();
         m_timeQueue = tq;
         m_channel_start = start_index;
-        m_skipN = skip;
+        m_skip_x = skip_x;
+        m_skip_y = skip_y;
         m_feature_delay = feat_delay;
         m_feature_num = feat_num;
         m_output_url = output_url;
@@ -303,6 +305,9 @@ public:
         if (outputFile){
             fclose(outputFile);
         }
+        #if WITH_JPEG_160FPS
+            bm_image_destroy_allinone(&jpeg_bmimg_40x40);
+        #endif
         std::cout << cv::format("OneCardInfoApp (devid=%d) dtor", m_dev_id) <<std::endl;
     }
 

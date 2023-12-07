@@ -197,24 +197,24 @@ struct AppStatis {
     std::mutex m_statis_lock;
     std::mutex m_statis_decode_lock;
     std::mutex m_statis_encode_lock;
-
+    std::mutex m_statis_feat_encode_lock;
+    
     bm::StatToolPtr m_total_decode_fpsPtr;
-    bm::StatToolPtr m_total_encode_fpsPtr;
-
+    bm::StatToolPtr m_total_encode_fpsPtr; //main stream
     bm::StatToolPtr m_chan_det_fpsPtr;
     bm::StatToolPtr m_total_det_fpsPtr;
     bm::StatToolPtr m_chan_feat_fpsPtr;
     bm::StatToolPtr m_total_feat_fpsPtr;
+    bm::StatToolPtr m_total_feat_encode_fpsPtr; //feat 40x40
     
     uint64_t *m_chan_statis;
     uint64_t m_total_statis = 0;
     uint64_t m_total_decode = 0;
     uint64_t  m_total_encode = 0;
-
     uint64_t  *m_chan_feat_stat;
     uint64_t  m_total_feat_stat=0;
     uint64_t  m_total_feat_decode=0;
-
+    uint64_t  m_total_feat_encode=0;
 
     AppStatis(int num):m_channel_num(num) {
         m_total_decode_fpsPtr = bm::StatTool::create(5);
@@ -223,6 +223,7 @@ struct AppStatis {
         m_total_det_fpsPtr = bm::StatTool::create(5);
         m_chan_feat_fpsPtr = bm::StatTool::create(5);
         m_total_feat_fpsPtr = bm::StatTool::create(5);
+        m_total_feat_encode_fpsPtr = bm::StatTool::create(5);
 
         m_chan_statis = new uint64_t[m_channel_num];
         memset(m_chan_statis, 0, sizeof(uint64_t)*m_channel_num);
