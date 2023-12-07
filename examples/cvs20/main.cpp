@@ -122,7 +122,8 @@ int main(int argc, char *argv[])
                           "{feat_delay | 500 | feature delay in msec}"
                           "{feat_num | 10 | feature num per channel}"
                           "{num | 1 | number of channel to infer}"
-                          "{skip_frame_num | 1 | skip N frames to detect}"
+                          "{skip_x | 0 | skip skip_x frames in skip_y frames}"
+                          "{skip_y | 1 | skip skip_x frames in skip_y frames}"
                           "{display_num | 1 | display number of channel in QT}"
                           "{resize_num | 0 | resize number of channel in hardware emulation}"
                           "{stop_frame_num | 1 | frame number early stop}"
@@ -131,7 +132,8 @@ int main(int argc, char *argv[])
                           "{config | ./cameras_cvs.json | path to cameras_cvs.json}"
                           "{gui_delay | 30 | ms, for gui flow control}"
                           "{gui_resize_h | 1440 | height of each widget in your hdmi displayer }"
-                          "{gui_resize_w | 2560 | width of each widget in your hdmi displayer}";
+                          "{gui_resize_w | 2560 | width of each widget in your hdmi displayer}"
+                          "{results_folder | ./results | save encoded results.}";
 
     std::string keys;
     keys = base_keys;
@@ -140,8 +142,12 @@ int main(int argc, char *argv[])
         parser.printMessage();
         return 0;
     }
+    std::string results_folder = parser.get<std::string>("results_folder");
     if (access("results", 0) != F_OK){
         mkdir("results", S_IRWXU);
+    }
+    if (access("results/jpegs", 0) != F_OK){
+        mkdir("results/jpegs", S_IRWXU);
     }
     std::string output_url  = parser.get<std::string>("output");
     std::string config_file = parser.get<std::string>("config");
@@ -150,7 +156,8 @@ int main(int argc, char *argv[])
     int feature_delay = parser.get<int>("feat_delay");
     int feature_num = parser.get<int>("feat_num");
     int num = parser.get<int>("num");
-    int skip_frame_num = parser.get<int>("skip_frame_num");
+    int skip_x = parser.get<int>("skip_x");
+    int skip_y = parser.get<int>("skip_y");
     int stop_frame_num = parser.get<int>("stop_frame_num");
     int save_num = parser.get<int>("save_num");
     int display_num = parser.get<int>("display_num");
@@ -203,7 +210,7 @@ int main(int argc, char *argv[])
 
         std::cout << "start_chan_index=" << start_chan_index << ", channel_num=" << channel_num << std::endl;
         OneCardInferAppPtr appPtr = std::make_shared<OneCardInferApp>(appStatis, gui,
-                tqp, contextPtr, output_url, start_chan_index, channel_num, skip_frame_num, feature_delay, feature_num,
+                tqp, contextPtr, output_url, start_chan_index, channel_num, skip_x, skip_y, feature_delay, feature_num,
                 enable_l2_ddrr, stop_frame_num, save_num, display_num);
         appPtr->set_gui_resize_hw(gui_resize_h, gui_resize_w);
         start_chan_index += channel_num;
@@ -276,7 +283,11 @@ int main(int argc, char *argv[])
 
         appStatis.m_total_encode_fpsPtr->update(appStatis.m_total_encode);
         double encodefps = appStatis.m_total_encode_fpsPtr->getSpeed();
-        std::cout << "total encode fps = " << encodefps << std::endl;
+        std::cout << "total stream encode fps = " << encodefps << std::endl;
+
+        appStatis.m_total_feat_encode_fpsPtr->update(appStatis.m_total_feat_encode);
+        double featencodefps = appStatis.m_total_feat_encode_fpsPtr->getSpeed();
+        std::cout << "total feat encode fps = " << featencodefps << std::endl;
 
         appStatis.m_chan_det_fpsPtr->update(appStatis.m_chan_statis[ch]);
         appStatis.m_total_det_fpsPtr->update(appStatis.m_total_statis);

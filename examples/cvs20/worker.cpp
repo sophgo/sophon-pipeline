@@ -127,18 +127,18 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 av_packet_unref(&sei_pkt);
             }
 
-            m_frame_count += 1;
-            if ((m_frame_count >= m_stop_frame_num*m_channel_num/(1+m_skipN)) && (m_stop_frame_num*m_channel_num/(1+m_skipN) >= 0)){
-                std::cout<<"======================"<<std::endl;
-                std::cout<<"m_frame_count:"<<m_frame_count<<std::endl;
-                std::cout<<"======================"<<std::endl;
-                m_frame_count = 0;
-                // std::cout <<  "-=-=-=-======exit==============>>> " << std::endl;
-                // if (enable_outputer && ((ch < m_save_num) || (m_save_num == -1))){
-                //     m_chans[ch]->outputer->CloseOutputStream();
-                // }
-                // exit(-1);
-            }
+            // m_frame_count += 1;
+            // if ((m_frame_count >= m_stop_frame_num*m_channel_num) && (m_stop_frame_num*m_channel_num >= 0)){
+            //     std::cout<<"======================"<<std::endl;
+            //     std::cout<<"m_frame_count:"<<m_frame_count<<std::endl;
+            //     std::cout<<"======================"<<std::endl;
+            //     m_frame_count = 0;
+            //     // std::cout <<  "-=-=-=-======exit==============>>> " << std::endl;
+            //     // if (enable_outputer && ((ch < m_save_num) || (m_save_num == -1))){
+            //     //     m_chans[ch]->outputer->CloseOutputStream();
+            //     // }
+            //     // exit(-1);
+            // }
         }
     });
 #endif //WITH_DETECTOR
@@ -182,6 +182,59 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
 #else
     feature_mat = cv::imread("face.jpeg", cv::IMREAD_COLOR);
 #endif
+#endif
+#if WITH_JPEG_160FPS
+    FILE *jpeg_fp = fopen("face.jpeg", "rb+");
+    assert(jpeg_fp != NULL);
+    fseek(jpeg_fp, 0, SEEK_END);
+    size_t jpeg_size = ftell(jpeg_fp);
+    uint8_t* jpeg_data = (uint8_t*)malloc(jpeg_size);
+    fseek(jpeg_fp, 0, SEEK_SET);
+    fread(jpeg_data, jpeg_size, 1, jpeg_fp);
+    fclose(jpeg_fp);
+    bm_image jpeg_bmimg;
+    memset((char*)&jpeg_bmimg, 0, sizeof(bm_image));
+    assert(BM_SUCCESS == bmcv_image_jpeg_dec(m_bmctx->handle(), (void**)&jpeg_data, &jpeg_size, 1, &jpeg_bmimg));
+    assert(BM_SUCCESS == bm_image_create(m_bmctx->handle(), 128, 128, jpeg_bmimg.image_format, jpeg_bmimg.data_type, &jpeg_bmimg_40x40));
+    assert(BM_SUCCESS == bmcv_image_vpp_convert(m_bmctx->handle(), 1, jpeg_bmimg, &jpeg_bmimg_40x40));
+    assert(BM_SUCCESS == bm_image_destroy_allinone(&jpeg_bmimg)); 
+
+        int jpeg_channel_num = m_channel_num;
+        int jpeg_delay_thresh = 100 / jpeg_channel_num;
+        for(int ch = 0; ch < jpeg_channel_num; ch++){
+            auto jpeg_thread = new std::thread([this, ch, jpeg_delay_thresh]{
+                int jpeg_feat_num = 10;
+                int jpeg_idx = 0;
+                uint64_t last_time = 0;
+                int m_jpeg_delay = m_feature_delay / 10;
+                while(true){
+                    jpeg_idx %= jpeg_feat_num;
+                    uint64_t current_time = bm::gettime_msec();
+                    int jpeg_delay = int(current_time - last_time);
+                    if((m_jpeg_delay - jpeg_delay) < jpeg_delay_thresh){
+                        void *jpeg_data = NULL;
+                        size_t out_size = 0;
+                        if(BM_SUCCESS == bmcv_image_jpeg_enc(m_bmctx->handle(), 1, &jpeg_bmimg_40x40, &jpeg_data, &out_size)){
+                            std::string save_path = "results/jpegs/jpeg_40x40_ch"+std::to_string(ch)+"_id"+std::to_string(jpeg_idx)+".jpg";
+                            FILE *jpeg40x40_fp = fopen(save_path.c_str(), "wb");
+                            fwrite(jpeg_data, out_size, 1, jpeg40x40_fp);
+                            fclose(jpeg40x40_fp);
+                        }else{
+                            std::cerr << "enc jpeg failed......" << std::endl;
+                        }
+                        free(jpeg_data);
+                        m_appStatis.m_statis_feat_encode_lock.lock();
+                        m_appStatis.m_total_feat_encode+=1;
+                        m_appStatis.m_statis_feat_encode_lock.unlock();
+                        last_time = current_time;
+                        jpeg_idx += 1; 
+                    }
+                    else{
+                        bm::msleep(m_jpeg_delay - jpeg_delay - 1);
+                    }
+                }
+            });
+        }
 #endif
 
     for(int i = 0; i < m_channel_num; ++i) {
@@ -308,8 +361,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
 
         #if WITH_DETECTOR
             if (got_picture) {
-                pchan->seq++;
-                if(pchan->seq % (m_skipN + 1) != 0){
+                if(pchan->seq % m_skip_y < m_skip_x){
                     //push frame to skip frame queue
                     bm::skipedFrameinfo skip_fbi;
                 #if USE_QTGUI
@@ -387,7 +439,12 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 #else
                     pchan->writer.writeFrame(yuv_buffer, stride, frame_yuv420p->width, frame_yuv420p->height);
                 #endif
-                } else{
+                } else if(pchan->seq % 10000 == 0){
+                    std::cout << "ch: " << ch << "; encode frame num = 10000, restart encoder."<<std::endl;
+                    pchan->writer.is_opened = false;
+                    pchan->writer.closeEnc();
+                } 
+                else{
                 #if FF_ENCODE_WRITE_AVFRAME
                     pchan->writer.writeFrame(frame_yuv420p);
                 #else
@@ -521,6 +578,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         #endif
         
         #if WITH_DECODE
+            pchan->seq++;
             av_frame_unref(frame);
             av_frame_free(&frame);
         #endif
@@ -542,11 +600,29 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     m_appStatis.m_statis_lock.unlock();
                     m_featurePipe.push_frame(&featureFrame);
                 }
-
+            // write here cannot reach 160FPS
+            // #if WITH_JPEG_160FPS
+            //     int jpeg_feat_num = 10;
+            //     for(int jpeg_idx = 0; jpeg_idx < jpeg_feat_num; jpeg_idx++){
+            //         void *jpeg_data = NULL;
+            //         size_t out_size = 0;
+            //         if(BM_SUCCESS == bmcv_image_jpeg_enc(m_bmctx->handle(), 1, &jpeg_bmimg_40x40, &jpeg_data, &out_size)){
+            //             std::string save_path = "results/jpegs/jpeg_40x40_ch"+std::to_string(ch)+"_id"+std::to_string(jpeg_idx)+".jpg";
+            //             FILE *jpeg40x40_fp = fopen(save_path.c_str(), "wb");
+            //             fwrite(jpeg_data, out_size, 1, jpeg40x40_fp);
+            //             fclose(jpeg40x40_fp);
+            //         }else{
+            //             std::cerr << "enc jpeg failed......" << std::endl;
+            //         }
+            //         free(jpeg_data);
+            //     }
+            //     m_appStatis.m_statis_lock.lock();
+            //     m_appStatis.m_total_feat_encode+=jpeg_feat_num;
+            //     m_appStatis.m_statis_lock.unlock();
+            // #endif
                 m_chans[ch]->m_last_feature_time = current_time;
             }
         #endif
-
         });
 
         bool repeat = true;
