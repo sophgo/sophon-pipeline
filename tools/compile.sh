@@ -116,7 +116,7 @@ function build_all() {
     build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON" cvs20_all_gui $3
     build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON -DWITH_ENCODE=ON -DWITH_HDMI=OFF -DENC_H264=ON" cvs20_all_gui_enc_h264 $3
     build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON -DWITH_ENCODE=ON -DWITH_HDMI=OFF -DENC_H264=ON -DWITH_JPEG_160FPS=ON" cvs20_all_gui_enc_h264_and_jpeg160fps $3
-    # build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON -DWITH_ENCODE=ON -DWITH_HDMI=OFF -DENC_JPEG=ON" cvs20_all_gui_enc_jpg $3
+    build_app $1 $2 "-DUSE_QTGUI=ON -DWITH_DETECTOR=ON -DWITH_EXTRACTOR=ON -DWITH_ENCODE=ON -DWITH_HDMI=OFF -DENC_JPEG=ON" cvs20_all_gui_enc_jpg $3
 
     # build_app $1 /home/lihengfang/work/sophon-pipeline/soc-sdk-230501 \
     # "-DA2_SDK=OFF -DUSE_SOPHON_OPENCV=ON -DUSE_QTGUI=OFF -DWITH_DETECTOR=OFF -DWITH_EXTRACTOR=OFF -DTEST_PREPROCESS=ON" cvs20_decode_preprocess_se5
@@ -151,7 +151,7 @@ function build_all() {
 }
 
 build_all $1 $2 $3
-git log > cvs20_version.txt
+#git log > cvs20_version.txt
 echo "$2" > soc_sdk_version.txt
 mv *_version.txt test_execs
 tar cvf test_execs.tar test_execs

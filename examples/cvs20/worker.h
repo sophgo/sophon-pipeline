@@ -119,13 +119,13 @@ struct TChannel: public bm::NoCopyable {
         //for PCIE
         AVDictionary* opts = NULL;
         av_dict_set_int(&opts, "sophon_idx", dev_id, 0x0);
-        av_dict_set(&opts, "extra_frame_buffer_num", "6", 0); //6 37%，12 41%
-    // #if WITH_ENCODE_H264
-    //     av_dict_set(&opts, "cbcr_interleave", "0", 0);
-    //     av_dict_set(&opts, "output_format", "0", 0);
-    // #else
+        av_dict_set(&opts, "extra_frame_buffer_num", "5", 0); //6 37%，12 41%
+    #if DECODE_YUY420P
+        av_dict_set(&opts, "cbcr_interleave", "0", 0);
+        av_dict_set(&opts, "output_format", "0", 0);
+    #else
         av_dict_set(&opts, "output_format", "101", 0);
-    // #endif
+    #endif
     #if PLD
         std::cout<<"opening decoder!"<<std::endl;
     #endif
@@ -133,6 +133,7 @@ struct TChannel: public bm::NoCopyable {
             std::cout << "Unable to open codec";
             return -1;
         }
+        demuxer->m_decoder = m_decoder;
     #if PLD
         std::cout<<"open decoder success!"<<std::endl;
     #endif

@@ -174,8 +174,8 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
     cv::Mat feature_mat;
 #if WITH_EXTRACTOR
     param.batch_num = m_featureDelegate->get_max_batch();
-    param.preprocess_thread_num = 2;
-    param.preprocess_queue_size = 8;
+    param.preprocess_thread_num = 1;
+    param.preprocess_queue_size = 4;
     m_featurePipe.init(param, m_featureDelegate, "extractor");
 #if USE_SOPHON_OPENCV
     feature_mat = cv::imread("face.jpeg", cv::IMREAD_COLOR, m_dev_id);
@@ -249,7 +249,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         AVDictionary *opts = NULL;
         av_dict_set_int(&opts, "sophon_idx", m_dev_id, 0);
         av_dict_set(&opts, "output_format", "101", 18); //101
-        av_dict_set(&opts, "extra_frame_buffer_num", "18", 0);
+        av_dict_set(&opts, "extra_frame_buffer_num", "5", 0);
 
         pchan->demuxer->set_avformat_opend_callback([this, pchan](AVFormatContext *ifmt) {
             pchan->create_video_decoder(m_dev_id, ifmt);
@@ -396,11 +396,15 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         #if WITH_ENCODE_H264 //need output format=0
             if(got_picture && ch < m_save_num){
                 AVFrame *frame_yuv420p = av_frame_alloc(); //for encoder
+            #if DECODE_YUY420P //directly decode yuv420p
+                av_frame_ref(frame_yuv420p, frame);
+            #else
                 bm_image* bm_image_yuv420p = NULL;
                 bm_image_yuv420p = (bm_image *) malloc(sizeof(bm_image));;
                 bm::BMImage::from_avframe(handle, frame, *bm_image_yuv420p, true);
                 bm_image_to_avframe(handle, bm_image_yuv420p, frame_yuv420p);
                 // AVFrameConvert(handle, frame, frame_yuv420p, frame->height, frame->width, AV_PIX_FMT_YUV420P);
+            #endif
             #if !FF_ENCODE_WRITE_AVFRAME
                 #define STEP_ALIGNMENT 32
                 int stride = (frame_yuv420p->width + STEP_ALIGNMENT - 1) & ~(STEP_ALIGNMENT - 1);
@@ -428,7 +432,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                                                                 frame_yuv420p->width, 
                                                                 frame_yuv420p->height, 
                                                                 frame_yuv420p->format, 
-                                                                4000);
+                                                                25 * frame_yuv420p->width * frame_yuv420p->height / 8);
                     if (ret_writer != 0) {
                         av_log(NULL, AV_LOG_ERROR,"writer.openEnc failed\n");
                         return;

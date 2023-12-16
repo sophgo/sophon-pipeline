@@ -89,6 +89,9 @@ namespace bm {
 
         //int get_codec_parameters(int stream_index, AVCodecParameters **p_codecpar);
         //int get_codec_type(int stream_index, int *p_codec_type);
+
+        //for decoder flushing
+        AVCodecContext* m_decoder=nullptr;
     };
 }
 

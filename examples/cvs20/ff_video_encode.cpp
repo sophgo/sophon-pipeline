@@ -91,7 +91,7 @@ int VideoEnc_FFMPEG::openEnc(const char* output_filename, const char* codec_name
 #ifdef BM_PCIE_MODE
     av_dict_set_int(&dict, "sophon_idx", sophon_idx, 0);
 #endif
-    av_dict_set_int(&dict, "gop_preset", 3, 0);
+    av_dict_set_int(&dict, "gop_preset", 2, 0);
     /* Use system memory */
 
     av_dict_set_int(&dict, "is_dma_buffer", 1 , 0);
