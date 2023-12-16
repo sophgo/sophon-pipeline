@@ -51,19 +51,6 @@ chmod +x tools/compile.sh
 
 ## 3 运行方法
 
-> **NOTE**  
-如果你的1688 evb板子/SE9是4g配置，运行 `free -m`，输出的系统内存大约是这么大：
-```
-              total        used        free      shared  buff/cache   available
-Mems:           1375         264         279           2         831         951
-Swap:             0           0           0
-```
-如果是8g配置，那么系统内存大约是这么大：
-```
-              total        used        free      shared  buff/cache   available
-Mem:           2833         260        1235           3        1337        2341
-Swap:             0           0           0
-```
 下载cvs20测试程序包，请放到对应的板子上面，测试步骤：
   ```bash
   pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
