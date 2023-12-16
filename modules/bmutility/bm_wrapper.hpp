@@ -505,7 +505,7 @@ static int avframe_to_bm_image(bm_handle_t &bm_handle,AVFrame &in, bm_image &out
 
         bmcv_rect_t crop_rect = {0, 0, in.width, in.height};
         bmcv_image_vpp_convert(bm_handle, 1, cmp_bmimg, &out, &crop_rect,BMCV_INTER_LINEAR);
-        bm_image_destroy(&cmp_bmimg);
+        bm_image_destroy_allinone(&cmp_bmimg);
     }
     else {
         int stride[3];
@@ -656,7 +656,7 @@ static int AVFrameConvert(bm_handle_t &bmHandle,AVFrame *inPic,AVFrame *outPic,i
     if(bm_image_to_avframe(bmHandle,bmImageout,outPic) != 0){
         return -1;
     }
-    bm_image_destroy(bmImagein);
+    bm_image_destroy_allinone(bmImagein);
 
     free(bmImagein);
     return 0;

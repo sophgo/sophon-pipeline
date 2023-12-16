@@ -146,6 +146,34 @@ int StreamDemuxer::get_codec_type(int stream_index, int *p_codec_type)
             
             if (ret < 0) {
                 if (ret != AVERROR_EOF) continue;
+
+                //flush decoder
+                // if (m_decoder){
+                    // static int flush_ret;
+                    // while(1){
+                    //     std::cout<<"AVERROR_EOF: "<<AVERROR_EOF<<std::endl;
+                    //     std::cout<<"AVERROR(EAGAIN): "<<AVERROR(EAGAIN)<<std::endl;
+                    //     flush_ret = avcodec_send_packet(m_decoder, pkt);
+                    //     std::cout<<"flush_decoder, sent ret:"<<flush_ret<<std::endl;
+                    //     AVFrame* flush_frame = av_frame_alloc();
+                    //     flush_ret = avcodec_receive_frame(m_decoder, flush_frame);
+                    //     av_frame_unref(flush_frame);
+                    //     av_frame_free(&flush_frame);
+                    //     std::cout<<"flush_decoder, receive ret:"<<flush_ret<<std::endl;
+                    //     if(flush_ret == AVERROR(EAGAIN) || flush_ret == 0){
+                    //         break;
+                    //     } else if(flush_ret == AVERROR_EOF){
+                    //         break;   
+                    //     }
+                    // }
+                    // avcodec_flush_buffers(m_decoder);
+                    // AVPacket null_pkt;
+                    // memset(&null_pkt, 0, sizeof(null_pkt));
+                    // if(flush_ret = avcodec_send_packet(m_decoder, &null_pkt) < 0){
+                    //     std::cout << "error when reset decoder, ret: " << flush_ret << std::endl;
+                    // }
+                // }
+
                 if (m_repeat && m_is_file_url) {
                 #if DEBUG_SYNC
                     std::future<void> fut_ = std::async([this, &ret](){
@@ -163,6 +191,7 @@ int StreamDemuxer::get_codec_type(int stream_index, int *p_codec_type)
                 #else
                     ret = av_seek_frame(m_ifmt_ctx, -1, m_ifmt_ctx->start_time, 0);
                     if (ret != 0) {
+                        // std::cout << "av_seek_frame failed, ret=" << ret << std::endl;
                         ret = av_seek_frame(m_ifmt_ctx,  -1, m_ifmt_ctx->start_time, AVSEEK_FLAG_BYTE);
                         if (ret < 0) {
                             std::cout << "av_seek_frame failed!" << std::endl;
