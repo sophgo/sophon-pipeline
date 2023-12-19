@@ -67,18 +67,6 @@ chmod +x tools/compile.sh
 ./setup.sh test_execs/cvs20_all_gui_enc_h264_and_jpeg160fps 16 16 10 # 对应bm1688
 ```
 
-SATA测试：另开一个终端
-
-从sata读数据到host，1G，这里我的sata是/dev/sda。
-```bash
-time dd if=/dev/sda of=/dev/null bs=1M count=1000 #read data from sata to host，blocksize=1m, 1000 times
-```
-
-从host写数据到sata，1G，这里我sata挂载的目录是/media/usb-sda。
-```bash
-time dd if=/dev/zero of=/media/usb-sda/data/liheng.fang/1g.file bs=1M count=1000 #write data from host to sata.
-```
-
 ### 3.2 稳定性测试
 按照3.1中的命令进行测试，时间不小于12小时。
 
