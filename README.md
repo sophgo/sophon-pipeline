@@ -63,21 +63,21 @@ chmod +x tools/compile.sh
 ### 3.1 全流程测试
 板子插上hdmi显示器，在`test_pack_cvs20`目录中运行如下命令：
 ```bash
-sudo -s
-./setup.sh test_execs/cvs20_all_gui 12 12 #如果你的板子是4g配置，那么就只能跑12路
-#or
-./setup.sh test_execs/cvs20_all_gui 16 16 #如果你的板子是8g配置，那么可以跑16路
+./setup_cv186ah.sh test_execs/cvs20_all_gui_enc_h264_and_jpeg160fps 8 8 8 # 对应cv186h
+./setup.sh test_execs/cvs20_all_gui_enc_h264_and_jpeg160fps 16 16 10 # 对应bm1688
 ```
->**NOTE**  
->如果出现：
->```bash
->./test_execs/cvs20_all_gui: error while loading shared libraries: libyuv.so.1: cannot open >shared object file: No such file or directory
->```
->运行：
->```bash
->export LD_LIBRARY_PATH=/opt/sophon/libsophon-current/lib/:$LD_LIBRARY_PATH
-> #建议把上面的环境变量写到系统环境变量中，具体方法请使用搜索引擎查找。
->```
+
+SATA测试：另开一个终端
+
+从sata读数据到host，1G，这里我的sata是/dev/sda。
+```bash
+time dd if=/dev/sda of=/dev/null bs=1M count=1000 #read data from sata to host，blocksize=1m, 1000 times
+```
+
+从host写数据到sata，1G，这里我sata挂载的目录是/media/usb-sda。
+```bash
+time dd if=/dev/zero of=/media/usb-sda/data/liheng.fang/1g.file bs=1M count=1000 #write data from host to sata.
+```
 
 ### 3.2 稳定性测试
 按照3.1中的命令进行测试，时间不小于12小时。
@@ -92,7 +92,9 @@ dmesg > dmesg_<your name>_<test time>.log #建议log的名字也用姓名和时�
 
 ## 4 性能测试
 请参考该wiki页面进行测试：
-https://wiki.sophgo.com/pages/viewpage.action?pageId=102741616
+https://wiki.sophgo.com/pages/viewpage.action?pageId=112854015
 
 结果填到这个wiki页面：
-https://wiki.sophgo.com/pages/viewpage.action?pageId=106566385
+https://wiki.sophgo.com/pages/viewpage.action?pageId=112872612
+
+如果只测cv186ah就只填cv186ah的内容即可，bm1688同理。
