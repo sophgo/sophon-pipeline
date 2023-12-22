@@ -57,8 +57,8 @@ chmod +x tools/compile.sh
   python3 -m dfss --url=open@sophgo.com:sophon-pipeline/a2_bringup/test_pack_cvs20_latest.tar
   tar xvf test_pack_cvs20_latest.tar
   cd test_pack_cvs20 #这里面有个readme.md, 是对各个文件的介绍。
-  ./setup.sh <exe> <chan_num> <display_num> # <exe>即可执行程序，如果想要测试自己编译出来的可执行程序，直接用`${SOPHON_PIPELINE}/test_execs/`下的程序替换即可。
-  #chan_num 表示跑几路，display_num 表示几路显示
+  ./setup.sh <exe> <chan_num> <display_num> <save_num> # <exe>即可执行程序，如果想要测试自己编译出来的可执行程序，直接用`${SOPHON_PIPELINE}/test_execs/`下的程序替换即可。
+  #chan_num 表示跑几路，display_num 表示几路显示，save_num 表示几路编码
   ```
 ### 3.1 全流程测试
 板子插上hdmi显示器，在`test_pack_cvs20`目录中运行如下命令：
