@@ -45,8 +45,7 @@ tar xvf official_opencv.tar.gz
 ### 2.4 准备第三方库qtbase
 可以自行编译公版qt，也可以下载我们准备好的qtbase库，下载方式如下：
 ```bash
-pip3 install dfn
-python3 -m dfn --url http://disk-sophgo-vip.quickconnect.to/sharing/PxpsFEvEc
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/a2_bringup/qtbase.zip
 sudo apt install unzip #如果有unzip可以跳过这步
 unzip qtbase.zip #qtbase-5.14.2-aarch64
 ```
