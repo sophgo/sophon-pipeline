@@ -41,7 +41,7 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 
 ### 2.2 编译指令
 ```` bash
-# 若编译需要SoC平台上运行的程序，需要先根据2.2.2节准备好相关依赖，再运行下述命令进行编译：
+# 若编译需要SoC平台上运行的程序，需要先根据2.1节准备好相关依赖，再运行下述命令进行编译：
 chmod +x tools/compile.sh
 ./tools/compile.sh soc ${soc-sdk} ${qtbase-5.14.2-aarch64}
 ````
