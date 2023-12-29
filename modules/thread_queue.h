@@ -299,11 +299,12 @@ template <typename T>
 class WorkerPool {
     BlockingQueue<T> *m_work_que;
     int m_thread_num;
-    using OnWorkItemsCallback = std::function<void(std::vector<T> &item)>;
+    using OnWorkItemsCallback = std::function<void(std::vector<T> &item, int thread_id)>;
     OnWorkItemsCallback m_work_item_func;
     std::vector<std::thread *> m_threads;
     int m_max_pop_num;
     int m_min_pop_num;
+    int m_core_num = 2;
 public:
     WorkerPool():m_work_que(nullptr),m_thread_num(0),m_work_item_func(nullptr),m_max_pop_num(1),
     m_min_pop_num(1) {}
@@ -347,7 +348,7 @@ public:
                 #if PRINT_QUEUE
                     std::cout<<"thread "<< i <<", poping queue: "<< m_work_que->name() << ", poped size = " << queue_size_start - queue_size_end << std::endl;
                 #endif
-                    m_work_item_func(items);
+                    m_work_item_func(items, i);
                 }
             });
             //setCPU(*pth);

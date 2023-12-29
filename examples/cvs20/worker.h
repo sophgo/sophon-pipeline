@@ -272,7 +272,6 @@ class OneCardInferApp {
     int m_display_num;
     int gui_resize_h = 360;
     int gui_resize_w = 640;
-    bm_image jpeg_bmimg_40x40;
 
     FILE *outputFile;
     bm::BMInferencePipe<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo> m_inferPipe;
@@ -306,9 +305,6 @@ public:
         if (outputFile){
             fclose(outputFile);
         }
-        #if WITH_JPEG_160FPS
-            bm_image_destroy_allinone(&jpeg_bmimg_40x40);
-        #endif
         std::cout << cv::format("OneCardInfoApp (devid=%d) dtor", m_dev_id) <<std::endl;
     }
 

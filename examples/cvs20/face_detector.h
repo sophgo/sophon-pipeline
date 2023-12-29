@@ -39,8 +39,11 @@ class FaceDetector : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs
     double             target_size_{360};
     double             max_size_ {640};
     double             im_scale_;
+
+    // for squeezenet, not yolov5
     float              nms_threshold_{0.3};
     float              base_threshold_{0.5};
+    
     std::vector<float> anchor_ratios_;
     std::vector<float> anchor_scales_;
     int                per_nms_topn_{1000};
@@ -53,6 +56,7 @@ class FaceDetector : public bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs
     double             img_qt_x_scale_ = 1;
     double             img_qt_y_scale_ = 1;
     int  m_net_h, m_net_w;
+    int m_output_num = 0;
     int MAX_BATCH = 1;
     int resize_num_;
     int m_display_num;
@@ -71,7 +75,7 @@ public:
     ~FaceDetector();
     virtual int process_qtgui(std::vector<bm::cvs10FrameBaseInfo>& frames) override ;
     virtual int preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::vector<bm::cvs10FrameInfo>& frame_info) override ;
-    virtual int forward(std::vector<bm::cvs10FrameInfo>& frame_info) override ;
+    virtual int forward(std::vector<bm::cvs10FrameInfo>& frame_info, int core_id=0) override ;
     virtual int postprocess(std::vector<bm::cvs10FrameInfo> &frame_info) override;
     virtual int get_max_batch() override{
         return MAX_BATCH;
@@ -92,6 +96,10 @@ private:
              bm::NetOutputObjects&      nmsProposals);
     void calc_resized_HW(int image_h, int image_w, int *p_h, int *p_w);
     void get_data_qtgui(bm_image &image1, bm::DataPtr& img_data);
+
+    int extract_facebox_cpu_yolov5(bm::cvs10FrameInfo &frame_info);
+    void NMS_yolov5(bm::NetOutputObjects &dets, float nmsConfidence);
+
 };
 
 

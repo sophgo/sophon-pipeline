@@ -63,7 +63,7 @@ chmod +x tools/compile.sh
 ### 3.1 全流程测试
 板子插上hdmi显示器，在`test_pack_cvs20`目录中运行如下命令：
 ```bash
-./setup_cv186ah.sh test_execs/cvs20_all_gui_enc_h264_and_jpeg160fps 8 8 8 # 对应cv186h
+./setup_cv186ah.sh test_execs/cvs20_all_gui_enc_h264_and_jpeg160fps 8 8 8 # 对应cv186ah
 ./setup.sh test_execs/cvs20_all_gui_enc_h264_and_jpeg160fps 16 16 10 # 对应bm1688
 ```
 

@@ -770,6 +770,40 @@ namespace bm {
         #endif
             return 0;
         }
+    #if A2_SDK
+        int forward_core(const bm_tensor_t *input_tensors, int input_num, bm_tensor_t *output_tensors, int output_num, int core_id = 0)
+        {
+        #if PLD
+            bm_profile_t start,end;
+            memset(&start, 0, sizeof(bm_profile_t));
+            memset(&end, 0, sizeof(bm_profile_t));
+            bm_get_profile(m_handle, &start);
+        #endif
+            // std::cout << "forward core " << core_id << std::endl;
+            bool ok = bmrt_launch_tensor_multi_cores(m_bmrt, m_netinfo->name, input_tensors, input_num,
+                    output_tensors, output_num, false, false, &core_id, 1);
+
+            if (!ok) {
+                std::cout << "bm_launch_tensor_ex() failed=" << std::endl;
+                return -1;
+            }
+
+            /* wait for inference done */
+        #if BM_THREAD_SYNC
+            int res = (bm_status_t)bm_thread_sync_from_core (m_handle, core_id);
+            if (res != BM_SUCCESS) {
+                std::cout << "bm_thread_sync: Failed to sync from core" << core_id <<"; " << m_netinfo->name << " inference" << std::endl;
+                return -1;
+            }
+        #endif
+        #if PLD
+            bm_get_profile(m_handle, &end);
+            auto npu_time = end.tpu_process_time - start.tpu_process_time;
+            std::cout<<"npu time:" << npu_time<<std::endl;
+        #endif
+            return 0;
+        }
+    #endif // BMCV_VERSION_MAJOR
 
         int forward_user_mem(
             const bm_tensor_t *input_tensors,
@@ -834,6 +868,7 @@ namespace bm {
     class BMNNContext : public NoCopyable {
         BMNNHandlePtr m_handlePtr;
         void *m_bmrt;
+        int m_core_id = -1;
         std::vector<std::string> m_network_names;
 
     public:
@@ -908,6 +943,14 @@ namespace bm {
             return std::make_shared<BMNNNetwork>(m_bmrt, m_network_names[net_index]);
         }
 
+    #if A2_SDK
+        void set_core_id(int core_id){
+            m_core_id = core_id;
+        }
+        int get_core_id(){
+            return m_core_id;
+        }
+    #endif
 
     };
 

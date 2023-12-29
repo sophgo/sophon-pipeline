@@ -138,7 +138,7 @@ int Resnet::preprocess(std::vector<bm::cvs10FrameBaseInfo> &frames, std::vector<
     return ret;
 }
 
-int Resnet::forward(std::vector<bm::cvs10FrameInfo> &frame_infos)
+int Resnet::forward(std::vector<bm::cvs10FrameInfo> &frame_infos, int core_id)
 {
     int ret = 0;
     for(int b = 0; b < frame_infos.size(); ++b) {
