@@ -43,7 +43,7 @@ Sophon Pipeline提供一个简易的基于Pipeline的高性能加速框架，使
 ```` bash
 # 若编译需要SoC平台上运行的程序，需要先根据2.1节准备好相关依赖，再运行下述命令进行编译：
 chmod +x tools/compile.sh
-./tools/compile.sh soc ${soc-sdk} ${qtbase-5.14.2-aarch64}
+./tools/compile.sh soc ${soc-sdk} ${qtbase-5.14.2-aarch64} #注意，该命令是在x86上执行的。
 ````
 
 编译完成后，可执行程序将保存在`${SOPHON_PIPELINE}/test_execs/`文件夹下。
@@ -60,6 +60,21 @@ chmod +x tools/compile.sh
   ./setup.sh <exe> <chan_num> <display_num> <save_num> # <exe>即可执行程序，如果想要测试自己编译出来的可执行程序，直接用`${SOPHON_PIPELINE}/test_execs/`下的程序替换即可。
   #chan_num 表示跑几路，display_num 表示几路显示，save_num 表示几路编码
   ```
+
+注意，如果您的板子是cv186ah（SE9-6T）版本，该版本的vpp heap分配的可能比较小了，无法跑最新的cvs20 8路全流程，需要修改内存布局，在板子上参考以下命令修改：
+```bash
+cd /data/
+mkdir memedit
+wget -nd https://sophon-file.sophon.cn/sophon-prod-s3/drive/23/09/11/13/DeviceMemoryModificationKit.tgz
+tar xvf DeviceMemoryModificationKit.tgz
+cd DeviceMemoryModificationKit
+tar xvf memory_edit_v2.4.tar.xz
+cd memory_edit
+./memory_edit.sh -p #这个命令会打印当前的内存布局信息，当前版本可供修改的内存有2424MB，如果因为刷机包版本不同的原因导致可供修改的内存有升高或者降低，建议npu > 0.5G, vpp > 1.7G。
+./memory_edit.sh -c -npu 512 -vpu 0 -vpp 1912 #npu heap降低为512MB，vpp heap提高到1912MB
+sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/boot.itb /boot/boot.itb && sync
+sudo reboot
+```
 ### 3.1 全流程测试
 板子插上hdmi显示器，在`test_pack_cvs20`目录中运行如下命令：
 ```bash
