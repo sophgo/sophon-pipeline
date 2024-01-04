@@ -33,7 +33,7 @@ public:
 
     virtual int process_qtgui(std::vector<bm::cvs10FrameBaseInfo>& frames) override{return 0;};
     virtual int preprocess(std::vector<bm::cvs10FrameBaseInfo> &in, std::vector<bm::cvs10FrameInfo> &of) override;
-    virtual int forward(std::vector<bm::cvs10FrameInfo> &frames) override;
+    virtual int forward(std::vector<bm::cvs10FrameInfo> &frames, int core_id=0) override;
     virtual int postprocess(std::vector<bm::cvs10FrameInfo> &frames) override;
     virtual int get_max_batch() override{
         return MAX_BATCH;

@@ -207,7 +207,11 @@ int main(int argc, char *argv[])
 
         bm::BMNNHandlePtr handle = std::make_shared<bm::BMNNHandle>(dev_id);
         bm::BMNNContextPtr contextPtr = std::make_shared<bm::BMNNContext>(handle, cfg.get_model_path());
-
+    #if A2_SDK
+        if(card_num > 1){
+            contextPtr->set_core_id(card_idx % 2);
+        }
+    #endif
         std::cout << "start_chan_index=" << start_chan_index << ", channel_num=" << channel_num << std::endl;
         OneCardInferAppPtr appPtr = std::make_shared<OneCardInferApp>(appStatis, gui,
                 tqp, contextPtr, output_url, start_chan_index, channel_num, skip_x, skip_y, feature_delay, feature_num,
@@ -221,7 +225,10 @@ int main(int argc, char *argv[])
         }else if (MODEL_RESNET50 == model_type) {
             detector = std::make_shared<Resnet>(contextPtr);
         }
-        // set detector delegator
+        // model thresholds, not yet, should modify config before do this.
+        // detector->set_cls(model_cfg.class_threshold);
+        // detector->set_obj(model_cfg.obj_threshold);
+        // detector->set_nms(model_cfg.nms_threshold);
         appPtr->setDetectorDelegate(detector);
     #endif
     #if WITH_EXTRACTOR    
@@ -268,6 +275,78 @@ int main(int argc, char *argv[])
         });
     #endif
     }
+
+#if WITH_JPEG_160FPS
+    bm_handle_t jpeg_handle;
+    bm_dev_request(&jpeg_handle, 0);
+    FILE *jpeg_fp = fopen("face.jpeg", "rb+");
+    assert(jpeg_fp != NULL);
+    fseek(jpeg_fp, 0, SEEK_END);
+    size_t jpeg_size = ftell(jpeg_fp);
+    uint8_t* jpeg_data = (uint8_t*)malloc(jpeg_size);
+    fseek(jpeg_fp, 0, SEEK_SET);
+    fread(jpeg_data, jpeg_size, 1, jpeg_fp);
+    fclose(jpeg_fp);
+    bm_image jpeg_bmimg, jpeg_bmimg_resized;
+    memset((char*)&jpeg_bmimg, 0, sizeof(bm_image));
+    assert(BM_SUCCESS == bmcv_image_jpeg_dec(jpeg_handle, (void**)&jpeg_data, &jpeg_size, 1, &jpeg_bmimg));
+    assert(BM_SUCCESS == bm::BMImage::create_batch(jpeg_handle, 128, 128, jpeg_bmimg.image_format, jpeg_bmimg.data_type, &jpeg_bmimg_resized, 1));
+    assert(BM_SUCCESS == bmcv_image_vpp_convert(jpeg_handle, 1, jpeg_bmimg, &jpeg_bmimg_resized));
+    assert(BM_SUCCESS == bm_image_destroy_allinone(&jpeg_bmimg)); 
+
+        int jpeg_channel_num = total_num;
+        int jpeg_delay_thresh = 5;
+        for(int ch = 0; ch < jpeg_channel_num; ch++){
+            auto jpeg_thread = new std::thread([&, ch, jpeg_delay_thresh]{
+                int jpeg_feat_num = 10;
+                int jpeg_idx = 0;
+                uint64_t last_time = 0;
+                int m_jpeg_delay = feature_delay / 10;
+                int enc_time = 0;
+                int enc_timer_count = 0;
+                while(true){
+                    jpeg_idx %= jpeg_feat_num;
+                    uint64_t current_time = bm::gettime_msec();
+                    int jpeg_delay = int(current_time - last_time);
+                    if((m_jpeg_delay - jpeg_delay) < jpeg_delay_thresh){
+                        void *jpeg_data = NULL;
+                        size_t out_size = 0;
+                        
+                        // auto start_enc = std::chrono::high_resolution_clock::now();
+
+                        if(BM_SUCCESS == bmcv_image_jpeg_enc(jpeg_handle, 1, &jpeg_bmimg_resized, &jpeg_data, &out_size)){
+                            
+                            // auto end_enc = std::chrono::high_resolution_clock::now();
+                            // std::chrono::duration<double> elapsed_enc = end_enc - start_enc;
+                            // double seconds_enc = 1000 * elapsed_enc.count();
+                            // enc_time += seconds_enc;
+                            // if((++enc_timer_count) % 25 == 0){
+                            //     std::cout << "ch: " << ch << " avg enc time: " << enc_time/25 << " ms" << std::endl;
+                            //     enc_time = 0;
+                            //     enc_timer_count = 0;
+                            // }
+
+                            std::string save_path = "results/jpegs/jpeg_40x40_ch"+std::to_string(ch)+"_id"+std::to_string(jpeg_idx)+".jpg";
+                            FILE *jpeg40x40_fp = fopen(save_path.c_str(), "wb");
+                            fwrite(jpeg_data, out_size, 1, jpeg40x40_fp);
+                            fclose(jpeg40x40_fp);
+                        }else{
+                            std::cerr << "enc jpeg failed......" << std::endl;
+                        }
+                        free(jpeg_data);
+                        appStatis.m_statis_feat_encode_lock.lock();
+                        appStatis.m_total_feat_encode+=1;
+                        appStatis.m_statis_feat_encode_lock.unlock();
+                        last_time = current_time;
+                        jpeg_idx += 1; 
+                    }
+                    else{
+                        bm::msleep(m_jpeg_delay - jpeg_delay - 1);
+                    }
+                }
+            });
+        }
+#endif
 
 #if PLD
     while(true){
@@ -327,6 +406,11 @@ int main(int argc, char *argv[])
     }, 1, &timer_id);
 
     tqp->run_loop();
+#endif
+
+#if WITH_JPEG_160FPS
+    bm_image_destroy_allinone(&jpeg_bmimg_resized);
+    bm_dev_free(jpeg_handle);
 #endif
     return 0;
 }

@@ -25,10 +25,8 @@ static inline bool compareBBox(const bm::NetOutputObject &a, const bm::NetOutput
 
 FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num, int display_num, int gui_resize_h_, int gui_resize_w_)
 {
-#if 1
+#if USE_NETNAME
     auto net_name = "squeezenet"; // origin: 0
-#else
-    auto net_name = "squeezenet_bmnetc";
 #endif
     bmctx_ = bmctx;
     anchor_ratios_.push_back(1.0f);
@@ -38,9 +36,13 @@ FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num, int display
 
     is4N_ = false;
 
+#if USE_NETNAME
     bmnet_ = std::make_shared<bm::BMNNNetwork>(bmctx_->bmrt(), net_name); //squeezenet_bmnetc
 #if PLD
     std::cout << "net_name: "<< net_name << std::endl;
+#endif
+#else
+    bmnet_ = bmctx_->network(0); // cvs20 bmodel should assign detector as network 0.
 #endif
     assert(bmnet_ != nullptr);
     assert(bmnet_->inputTensorNum() == 1);
@@ -58,6 +60,8 @@ FaceDetector::FaceDetector(bm::BMNNContextPtr bmctx, int resize_num, int display
     calc_resized_HW(input_frame_height, input_frame_width, &m_net_h, &m_net_w);
     img_qt_x_scale_ = ((float)input_frame_width / (float)gui_resize_w);
     img_qt_y_scale_ = ((float)input_frame_height / (float)gui_resize_h);
+
+    m_output_num = bmnet_->outputTensorNum();
 }
 
 FaceDetector::~FaceDetector()
@@ -250,7 +254,6 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
 #if 1
     int ret = 0;
     bm_handle_t handle = bmctx_->handle();
-    // calc_resized_HW(1080, 1920, &m_net_h, &m_net_w);
     // Check input
     int total = frames.size();
     if (total != 4) {
@@ -265,38 +268,6 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             // last one
             num = left;
         }
-
-# if 0 // resize 1/3 for cvs20 test forcely
-        
-        int pre_width = 1920;
-        int pre_height = 1080;
-        pre_width /= 3;
-        pre_height /= 3;
-
-        bm_image cvs20_resized_imgs[MAX_BATCH];
-    #if USE_RGBP_SEPARATE
-        ret = bm::BMImage::create_batch(handle, pre_height, pre_width, FORMAT_RGBP_SEPARATE, DATA_TYPE_EXT_1N_BYTE, cvs20_resized_imgs, num, 64);
-    #else
-        ret = bm::BMImage::create_batch(handle, pre_height, pre_width, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, cvs20_resized_imgs, num, 64);
-    #endif
-        assert(BM_SUCCESS == ret);
-
-        for(int i = 0;i < num; ++i) {
-            if ((frames[start_idx + i].chan_id < resize_num_) || (resize_num_ == -1)){
-                bm_image cvs20_image1;
-                bm::BMImage::from_avframe(handle, frames[start_idx + i].avframe, cvs20_image1, true);
-                std::cout<<"bm_image_format: "<<cvs20_image1.image_format<<std::endl;
-                ret = bmcv_image_vpp_convert(handle, 1, cvs20_image1, &cvs20_resized_imgs[i], NULL, BMCV_INTER_LINEAR);
-                assert(BM_SUCCESS == ret);
-
-                bm_image_destroy_allinone(&cvs20_image1);
-            }
-        }
-
-        bm::BMImage::destroy_batch(cvs20_resized_imgs, num);
-
-#endif
-
         bm::cvs10FrameInfo finfo;
         //1. Resize
         bm_image resized_imgs[MAX_BATCH];
@@ -391,10 +362,11 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
         //2. Convert to
         bm_image convertto_imgs[MAX_BATCH];
 
-        float        R_bias  = -123.0f;
-        float        G_bias  = -117.0f;
-        float        B_bias  = -104.0f;
+        float        R_bias  = m_output_num == 1 ? 0 : -123.0f;
+        float        G_bias  = m_output_num == 1 ? 0 : -117.0f;
+        float        B_bias  = m_output_num == 1 ? 0 : -104.0f;
         float alpha, beta;
+
 
         bm_image_data_format_ext img_type = DATA_TYPE_EXT_FLOAT32;
         auto tensor = bmnet_->inputTensor(0);
@@ -409,7 +381,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
                                : (DATA_TYPE_EXT_1N_BYTE_SIGNED);
         #endif
         }else{
-            alpha            = 1.0;
+            alpha            = m_output_num == 1 ? 1.0 / 255 : 1.0;
             beta             = 0.0;
             img_type = DATA_TYPE_EXT_FLOAT32;
         }
@@ -500,7 +472,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
 }
 
 
-int FaceDetector::forward(std::vector<bm::cvs10FrameInfo>& frame_infos)
+int FaceDetector::forward(std::vector<bm::cvs10FrameInfo>& frame_infos, int core_id)
 {
 #if 1
     int ret = 0;
@@ -527,9 +499,19 @@ int FaceDetector::forward(std::vector<bm::cvs10FrameInfo>& frame_infos)
         }
         std::cout<<std::endl;
     #endif
-        ret = bmnet_->forward(frame_infos[b].input_tensors.data(), frame_infos[b].input_tensors.size(),
-                               frame_infos[b].output_tensors.data(), frame_infos[b].output_tensors.size());
+    //TODO: 2core bmodel cannot use this code do inference.
+    #if A2_SDK
+        if(bmctx_->get_core_id() != -1){
+            core_id = bmctx_->get_core_id();
+        }
+        ret = bmnet_->forward_core(frame_infos[b].input_tensors.data(), frame_infos[b].input_tensors.size(),
+                                   frame_infos[b].output_tensors.data(), frame_infos[b].output_tensors.size(), core_id);
         assert(BM_SUCCESS == ret);
+    #else
+        ret = bmnet_->forward(frame_infos[b].input_tensors.data(), frame_infos[b].input_tensors.size(),
+                              frame_infos[b].output_tensors.data(), frame_infos[b].output_tensors.size());
+        assert(BM_SUCCESS == ret);
+    #endif
     #if PLD
         std::cout<<"face_detector forward success."<<std::endl;
             const char* dtypeMap[] = {
@@ -581,13 +563,19 @@ int FaceDetector::postprocess(std::vector<bm::cvs10FrameInfo> &frames)
     #if PLD
         std::cout<<"This is face_detector.cpp, postprocess."<<std::endl;
     #endif
+    int output_num = bmnet_->outputTensorNum();
     for(int i=0;i < frames.size(); ++i) {
 
         // Free AVFrames
         auto &frame_info = frames[i];
 
         // extract face detection
-        extract_facebox_cpu(frame_info);
+        
+        if(output_num == 1){ // yolov5
+            extract_facebox_cpu_yolov5(frame_info);
+        }else{ // squeezenet
+            extract_facebox_cpu(frame_info);
+        }
 
         if (m_pfnDetectFinish != nullptr) {
         #if PLD
@@ -652,6 +640,56 @@ bm::BMNNTensorPtr FaceDetector::get_output_tensor(const std::string &name, bm::c
     bm::BMNNTensorPtr tensor = std::make_shared<bm::BMNNTensor>(bmctx_->handle(), name, scale,
                                   &frame_info.output_tensors[idx]);
     return tensor;
+}
+
+int FaceDetector::extract_facebox_cpu_yolov5(bm::cvs10FrameInfo &frame_info){
+    std::vector<bm::NetOutputObject> yolobox_vec;
+    auto& images = frame_info.frames;
+    for(int batch_idx = 0; batch_idx < (int)images.size(); ++ batch_idx)
+    {
+        yolobox_vec.clear();
+        auto& frame = images[batch_idx];
+        float ratio_x = (float)m_net_w / frame.width;
+        float ratio_y = (float)m_net_h / frame.height;
+        int tx1 = 0, ty1 = 0;
+
+        int output_num = bmnet_->outputTensorNum();
+        if (output_num == 1) {
+            // 1 output: [bs, box_num, num_classes + 5]
+            bm::BMNNTensor output_tensor(bmctx_->handle(), "", bmnet_->get_output_scale(0), &frame_info.output_tensors[0]);
+            int box_num = output_tensor.get_shape()->dims[1];
+            int nout = output_tensor.get_shape()->dims[2];
+            float *output_data = (float*)output_tensor.get_cpu_data() + batch_idx*box_num*nout;
+            for (int i = 0; i < box_num; i++) {
+                float *ptr = output_data + i * nout;
+                float score = ptr[4];
+                if (score >= m_cls_thres) {
+                    int class_id = 0; // only one class
+                    float confidence = ptr[class_id + 15];
+                    if (confidence * score >= m_obj_thres) {
+                        bm::NetOutputObject box;
+                        box.score = confidence * score;
+                        float centerX = (ptr[0]+1 - tx1)/ratio_x/img_qt_x_scale_ -1;
+                        float centerY = (ptr[1]+1 - ty1)/ratio_y/img_qt_y_scale_ -1;
+                        float width = (ptr[2]+0.5) /ratio_x/img_qt_x_scale_;
+                        float height = (ptr[3]+0.5) /ratio_y/img_qt_y_scale_;
+                        box.x1  = int(centerX - width  / 2);
+                        box.y1  = int(centerY - height / 2);
+                        box.x2  = box.x1 + width;
+                        box.y2  = box.y1 + height;
+                        box.class_id = class_id;
+                        yolobox_vec.push_back(box);
+                    }
+                }
+            }
+        }else{
+            std::cerr << "unsupport output num: " << output_num << std::endl;
+        }
+
+        NMS_yolov5(yolobox_vec, m_nms_thres);
+        bm::NetOutputDatum datum(yolobox_vec);
+        frame_info.out_datums.push_back(datum);
+    }
 }
 
 int FaceDetector::extract_facebox_cpu(bm::cvs10FrameInfo &frame_info)
@@ -998,5 +1036,45 @@ void FaceDetector::nms(const std::vector<bm::NetOutputObject> &proposals,
                 nms_threshold_)
                 mask_merged[i] = 1;
         }
+    }
+}
+
+void FaceDetector::NMS_yolov5(bm::NetOutputObjects &dets, float nmsConfidence)
+{
+    int length = dets.size();
+    int index = length - 1;
+
+    std::sort(dets.begin(), dets.end(), [](const bm::NetOutputObject& a, const bm::NetOutputObject& b) {
+        return a.score < b.score;
+    });
+
+    std::vector<float> areas(length);
+    for (int i=0; i<length; i++)
+    {
+        areas[i] = dets[i].width() * dets[i].height();
+    }
+
+    while (index  > 0)
+    {
+        int i = 0;
+        while (i < index)
+        {
+            float left    = std::max(dets[index].x1,   dets[i].x1);
+            float top     = std::max(dets[index].y1,    dets[i].y1);
+            float right   = std::min(dets[index].x1 + dets[index].width(),  dets[i].x1 + dets[i].width());
+            float bottom  = std::min(dets[index].y1 + dets[index].height(), dets[i].y1 + dets[i].height());
+            float overlap = std::max(0.0f, right - left) * std::max(0.0f, bottom - top);
+            if (overlap / (areas[index] + areas[i] - overlap) > nmsConfidence)
+            {
+                areas.erase(areas.begin() + i);
+                dets.erase(dets.begin() + i);
+                index --;
+            }
+            else
+            {
+                i++;
+            }
+        }
+        index--;
     }
 }

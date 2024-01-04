@@ -82,9 +82,7 @@ int FaceExtract::preprocess(std::vector<bm::FeatureFrame> &frames, std::vector<b
             int height = frames[start_idx + i].img.rows;
             int frameSize = width * height;
             int strides[1]={(int)frames[start_idx + i].img.step};
-            ret = bm_image_create(handle, height, width, FORMAT_BGR_PACKED, DATA_TYPE_EXT_1N_BYTE, &image1, strides);
-            assert(ret == 0);
-            ret = bm_image_alloc_dev_mem(image1, BMCV_HEAP_ANY);
+            ret = bm::BMImage::create_batch(handle, height, width, FORMAT_BGR_PACKED, DATA_TYPE_EXT_1N_BYTE, &image1, 1);
             assert(ret == 0);
             auto frame = frames[start_idx + i].img;
             void *buffers[4]={0};
@@ -121,9 +119,7 @@ int FaceExtract::preprocess(std::vector<bm::FeatureFrame> &frames, std::vector<b
         #if 1 //PLD
             // std::cout<<"convert packed to plannar"<<std::endl;
             bm_image image_planar;
-            int strides_planar[3];
-            strides_planar[0]=strides_planar[1]=strides_planar[2] = FFALIGN(width, 64);
-            assert(0 == bm_image_create(handle, height, width, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &image_planar, strides_planar));
+            assert(0 == bm::BMImage::create_batch(handle, height, width, FORMAT_RGB_PLANAR, DATA_TYPE_EXT_1N_BYTE, &image_planar, 1, 64));
             assert(0 == bmcv_image_storage_convert(handle, 1, &image1, &image_planar));
             // std::cout<<"this is face_extract.cpp:100 bmcv_image_vpp_convert"<<std::endl;
             ret = bmcv_image_vpp_convert(handle, 1, image_planar, &resized_imgs[i], NULL, BMCV_INTER_LINEAR);   
@@ -214,7 +210,7 @@ int FaceExtract::preprocess(std::vector<bm::FeatureFrame> &frames, std::vector<b
     return ret;
 }
 
-int FaceExtract::forward(std::vector<bm::FeatureFrameInfo> &frame_infos)
+int FaceExtract::forward(std::vector<bm::FeatureFrameInfo> &frame_infos, int core_id)
 {
     int ret = 0;
     for(int b = 0; b < frame_infos.size(); ++b) {
@@ -233,8 +229,17 @@ int FaceExtract::forward(std::vector<bm::FeatureFrameInfo> &frame_infos)
         }
         std::cout<<std::endl;
     #endif
+    //TODO: 2core bmodel cannot use this code do inference.
+    #if A2_SDK
+        if(m_bmctx->get_core_id()!=-1){
+            core_id = m_bmctx->get_core_id();
+        }
+        ret = m_bmnet->forward_core(frame_infos[b].input_tensors.data(), frame_infos[b].input_tensors.size(),
+                              frame_infos[b].output_tensors.data(), frame_infos[b].output_tensors.size(), core_id);
+    #else
         ret = m_bmnet->forward(frame_infos[b].input_tensors.data(), frame_infos[b].input_tensors.size(),
                               frame_infos[b].output_tensors.data(), frame_infos[b].output_tensors.size());
+    #endif
         assert(BM_SUCCESS == ret);
         #if PLD
             std::cout<<"face_extractor forward success."<<std::endl;
