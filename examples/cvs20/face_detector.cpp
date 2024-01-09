@@ -370,7 +370,7 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
 
         bm_image_data_format_ext img_type = DATA_TYPE_EXT_FLOAT32;
         auto tensor = bmnet_->inputTensor(0);
-        if (tensor->get_dtype() == BM_UINT8 || tensor->get_dtype() == BM_INT8) {
+        if (tensor->get_dtype() == BM_INT8) {
             alpha            = tensor->get_scale() * 1.0;//0.847682119;
             if(m_output_num == 1){
                 alpha /= 255.0;
@@ -382,7 +382,20 @@ int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::v
             img_type = (is4N_) ? (DATA_TYPE_EXT_4N_BYTE_SIGNED)
                                : (DATA_TYPE_EXT_1N_BYTE_SIGNED);
         #endif
-        }else{
+        }else if(tensor->get_dtype() == BM_UINT8){
+            alpha            = tensor->get_scale() * 1.0;//0.847682119;
+            if(m_output_num == 1){
+                alpha /= 255.0;
+            }
+            beta             = 0.0;
+        #if A2_SDK
+            img_type = DATA_TYPE_EXT_1N_BYTE;
+        #else
+            img_type = (is4N_) ? (DATA_TYPE_EXT_4N_BYTE)
+                               : (DATA_TYPE_EXT_1N_BYTE);
+        #endif
+        }
+        else{
             alpha            = m_output_num == 1 ? 1.0 / 255.0 : 1.0;
             beta             = 0.0;
             img_type = DATA_TYPE_EXT_FLOAT32;

@@ -54,8 +54,8 @@ chmod +x tools/compile.sh
 下载cvs20测试程序包，请放到对应的板子上面，测试步骤：
   ```bash
   pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
-  python3 -m dfss --url=open@sophgo.com:sophon-pipeline/a2_bringup/test_pack_cvs20_latest.tar
-  tar xvf test_pack_cvs20_latest.tar
+  python3 -m dfss --url=open@sophgo.com:sophon-pipeline/a2_bringup/test_pack_cvs20_v1.4.tar #v1.4是版本号，最新版本为test_pack_cvs20_latest.tar
+  tar xvf test_pack_cvs20_v1.4.tar
   cd test_pack_cvs20 #这里面有个readme.md, 是对各个文件的介绍。
   ./setup.sh <exe> <chan_num> <display_num> <save_num> # <exe>即可执行程序，如果想要测试自己编译出来的可执行程序，直接用`${SOPHON_PIPELINE}/test_execs/`下的程序替换即可。
   #chan_num 表示跑几路，display_num 表示几路显示，save_num 表示几路编码
@@ -68,7 +68,7 @@ mkdir memedit
 wget -nd https://sophon-file.sophon.cn/sophon-prod-s3/drive/23/09/11/13/DeviceMemoryModificationKit.tgz
 tar xvf DeviceMemoryModificationKit.tgz
 cd DeviceMemoryModificationKit
-tar xvf memory_edit_v2.4.tar.xz
+tar xvf memory_edit_vx.x.tar.xz #注意，版本号可能会变
 cd memory_edit
 ./memory_edit.sh -p #这个命令会打印当前的内存布局信息，当前版本可供修改的内存有2424MB，如果因为刷机包版本不同的原因导致可供修改的内存有升高或者降低，建议npu > 0.5G, vpp > 1.7G。
 ./memory_edit.sh -c -npu 512 -vpu 0 -vpp 1912 #npu heap降低为512MB，vpp heap提高到1912MB
