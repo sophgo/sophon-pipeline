@@ -61,20 +61,6 @@ chmod +x tools/compile.sh
   #chan_num 表示跑几路，display_num 表示几路显示，save_num 表示几路编码
   ```
 
-注意，如果您的板子是cv186ah（SE9-6T）版本，该版本的vpp heap分配的可能比较小了，无法跑最新的cvs20 8路全流程，需要修改内存布局，在板子上参考以下命令修改：
-```bash
-cd /data/
-mkdir memedit
-wget -nd https://sophon-file.sophon.cn/sophon-prod-s3/drive/23/09/11/13/DeviceMemoryModificationKit.tgz
-tar xvf DeviceMemoryModificationKit.tgz
-cd DeviceMemoryModificationKit
-tar xvf memory_edit_vx.x.tar.xz #注意，版本号可能会变
-cd memory_edit
-./memory_edit.sh -p #这个命令会打印当前的内存布局信息，当前版本可供修改的内存有2424MB，如果因为刷机包版本不同的原因导致可供修改的内存有升高或者降低，建议npu > 0.5G, vpp > 1.7G。
-./memory_edit.sh -c -npu 512 -vpu 0 -vpp 1912 #npu heap降低为512MB，vpp heap提高到1912MB
-sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/boot.itb /boot/boot.itb && sync
-sudo reboot
-```
 ### 3.1 全流程测试
 板子插上hdmi显示器，在`test_pack_cvs20`目录中运行如下命令：
 ```bash
@@ -92,6 +78,21 @@ cvs20 程序不会自动停止，需要通过`ctrl+c`手动停止。也就是说
 dmesg > dmesg_<your name>_<test time>.log #建议log的名字也用姓名和时间打好标记，比如dmesg_liheng_231110_1840.log
 ```
 将`dmesg_xxx.log`从板子上拿出来，贴到相应的jira上。 
+
+4G版本可能会出现内存不足问题，比如程序运行报错：`bm_alloc_gemm failed`，如果出现这类错误，可以参考该内存修改方法：
+```bash
+cd /data/
+mkdir memedit
+wget -nd https://sophon-file.sophon.cn/sophon-prod-s3/drive/23/09/11/13/DeviceMemoryModificationKit.tgz
+tar xvf DeviceMemoryModificationKit.tgz
+cd DeviceMemoryModificationKit
+tar xvf memory_edit_vx.x.tar.xz #注意，版本号可能会变
+cd memory_edit
+./memory_edit.sh -p #这个命令会打印当前的内存布局信息，当前版本可供修改的内存有2424MB，如果因为刷机包版本不同的原因导致可供修改的内存有升高或者降低，4G版本建议npu > 0.5G, vpp > 1.7G。
+./memory_edit.sh -c -npu 512 -vpu 0 -vpp 1912 #npu heap降低为512MB，vpp heap提高到1912MB
+sudo cp /data/memedit/DeviceMemoryModificationKit/memory_edit/boot.itb /boot/boot.itb && sync
+sudo reboot
+```
 
 ## 4 性能测试
 请参考该wiki页面进行测试：

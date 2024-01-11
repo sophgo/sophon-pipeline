@@ -290,49 +290,46 @@ int main(int argc, char *argv[])
     bm_image jpeg_bmimg, jpeg_bmimg_resized;
     memset((char*)&jpeg_bmimg, 0, sizeof(bm_image));
     assert(BM_SUCCESS == bmcv_image_jpeg_dec(jpeg_handle, (void**)&jpeg_data, &jpeg_size, 1, &jpeg_bmimg));
-    assert(BM_SUCCESS == bm::BMImage::create_batch(jpeg_handle, 128, 128, jpeg_bmimg.image_format, jpeg_bmimg.data_type, &jpeg_bmimg_resized, 1, true, false));
+    assert(BM_SUCCESS == bm::BMImage::create_batch(jpeg_handle, 128, 128, jpeg_bmimg.image_format, jpeg_bmimg.data_type, &jpeg_bmimg_resized, 1));
     assert(BM_SUCCESS == bmcv_image_vpp_convert(jpeg_handle, 1, jpeg_bmimg, &jpeg_bmimg_resized));
     assert(BM_SUCCESS == bm_image_destroy_allinone(&jpeg_bmimg)); 
 
-        int jpeg_channel_num = total_num / 2;
+        int jpeg_channel_num = total_num;
+        int jpeg_delay_thresh = 5;
         for(int ch = 0; ch < jpeg_channel_num; ch++){
-            auto jpeg_thread = new std::thread([&, ch]{
-                double jpeg_delay_thresh = 1;
-                int jpeg_feat_num = 20;
+            auto jpeg_thread = new std::thread([&, ch, jpeg_delay_thresh]{
+                int jpeg_feat_num = 10;
                 int jpeg_idx = 0;
-                auto last_time = std::chrono::high_resolution_clock::now();
-                double m_jpeg_delay = (feature_delay / 2.0) / 10.0;
-                double enc_time = 0;
+                uint64_t last_time = 0;
+                int m_jpeg_delay = feature_delay / 10;
+                int enc_time = 0;
                 int enc_timer_count = 0;
                 while(true){
                     jpeg_idx %= jpeg_feat_num;
-                    auto current_time = std::chrono::high_resolution_clock::now();
-                    std::chrono::duration<double> elapsed_jpeg = current_time - last_time;
-                    double jpeg_delay = 1000 * elapsed_jpeg.count();
+                    uint64_t current_time = bm::gettime_msec();
+                    int jpeg_delay = int(current_time - last_time);
                     if((m_jpeg_delay - jpeg_delay) < jpeg_delay_thresh){
                         void *jpeg_data = NULL;
                         size_t out_size = 0;
                         
-                        auto start_enc = std::chrono::high_resolution_clock::now();
+                        // auto start_enc = std::chrono::high_resolution_clock::now();
 
                         if(BM_SUCCESS == bmcv_image_jpeg_enc(jpeg_handle, 1, &jpeg_bmimg_resized, &jpeg_data, &out_size)){
-                            std::string save_path = "results/jpegs/jpeg_40x40_ch"+std::to_string(ch)+"_id"+std::to_string(jpeg_idx)+".jpg";
-                            FILE *jpeg40x40_fp = fopen(save_path.c_str(), "wb");
-                            fwrite(jpeg_data, out_size, 1, jpeg40x40_fp);
-                            fclose(jpeg40x40_fp);
-
-                            auto end_enc = std::chrono::high_resolution_clock::now();
-                            std::chrono::duration<double> elapsed_enc = end_enc - start_enc;
-                            double seconds_enc = 1000 * elapsed_enc.count();
-                            jpeg_delay_thresh = seconds_enc;
-                            std::cout<<jpeg_delay_thresh<<std::endl;
+                            
+                            // auto end_enc = std::chrono::high_resolution_clock::now();
+                            // std::chrono::duration<double> elapsed_enc = end_enc - start_enc;
+                            // double seconds_enc = 1000 * elapsed_enc.count();
                             // enc_time += seconds_enc;
-                            // if((++enc_timer_count) % 100 == 0){
-                            //     // std::cout << "ch: " << ch << " avg enc time: " << jpeg_delay_thresh << " ms; " << "jpeg_delay_thresh: " << jpeg_delay_thresh << "ms." << std::endl;
+                            // if((++enc_timer_count) % 25 == 0){
+                            //     std::cout << "ch: " << ch << " avg enc time: " << enc_time/25 << " ms" << std::endl;
                             //     enc_time = 0;
                             //     enc_timer_count = 0;
                             // }
 
+                            std::string save_path = "results/jpegs/jpeg_40x40_ch"+std::to_string(ch)+"_id"+std::to_string(jpeg_idx)+".jpg";
+                            FILE *jpeg40x40_fp = fopen(save_path.c_str(), "wb");
+                            fwrite(jpeg_data, out_size, 1, jpeg40x40_fp);
+                            fclose(jpeg40x40_fp);
                         }else{
                             std::cerr << "enc jpeg failed......" << std::endl;
                         }
@@ -344,8 +341,7 @@ int main(int argc, char *argv[])
                         jpeg_idx += 1; 
                     }
                     else{
-                        int sleep_time = 1000*(m_jpeg_delay - jpeg_delay);
-                        std::this_thread::sleep_for(std::chrono::microseconds(sleep_time));
+                        bm::msleep(m_jpeg_delay - jpeg_delay - 1);
                     }
                 }
             });

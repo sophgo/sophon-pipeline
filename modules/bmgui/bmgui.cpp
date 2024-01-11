@@ -21,7 +21,7 @@ namespace bm {
         QApplication *m_appInst{nullptr};
         std::shared_ptr <std::thread> m_pUIThread;
         mainwindow *m_pMainWindow;
-        BlockingQueue <UIFrame> m_frameQue[MAX_CHAN_NUM];
+        BlockingQueue<UIFrame> m_frameQue[MAX_CHAN_NUM];
         std::shared_ptr <std::thread> m_pFrameDispatchThread[MAX_CHAN_NUM];
         int m_channel_num = 0;
         float flow_control_interval = 40;
@@ -107,12 +107,13 @@ namespace bm {
             }
             for(int i = 0; i < num; i++){
                 std::string q_name = "gui_receiver_" + std::to_string(i);
-                m_frameQue[i].set_queue_name(q_name);
+                m_frameQue[i] = BlockingQueue<UIFrame>(q_name, 0, 8);
             }
             m_channel_num = num;
             m_pUIThread = std::make_shared<std::thread>(&VideoUIAppQT::uithread_entry, this, num);
             assert(m_pUIThread != nullptr);
             flow_control_interval = gui_delay;
+            
             return 0;
         }
 
