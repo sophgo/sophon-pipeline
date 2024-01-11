@@ -515,7 +515,7 @@ int FaceDetector::forward(std::vector<bm::cvs10FrameInfo>& frame_infos, int core
         std::cout<<std::endl;
     #endif
     //TODO: 2core bmodel cannot use this code do inference.
-    #if A2_SDK
+    #if A2_SDK && !USE_2CORE
         if(bmctx_->get_core_id() != -1){
             core_id = bmctx_->get_core_id();
         }

@@ -230,7 +230,7 @@ int FaceExtract::forward(std::vector<bm::FeatureFrameInfo> &frame_infos, int cor
         std::cout<<std::endl;
     #endif
     //TODO: 2core bmodel cannot use this code do inference.
-    #if A2_SDK
+    #if A2_SDK && !USE_2CORE
         if(m_bmctx->get_core_id()!=-1){
             core_id = m_bmctx->get_core_id();
         }
