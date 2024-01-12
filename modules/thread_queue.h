@@ -33,7 +33,7 @@ private:
     }
 
     void wait_and_push_one(T &&data) {
-        if (m_limit > 0 && this->size_impl() > m_limit && !m_stop) {
+        if (m_limit > 0 && this->size_impl() >= m_limit && !m_stop) {
 # if 1//USE_DEBUG
             if((++m_warning_push_count) % 200 == 0){                
                 std::cout << "WARNING:(warning_count = "<< m_warning_push_count <<  "); queue_name: " 
