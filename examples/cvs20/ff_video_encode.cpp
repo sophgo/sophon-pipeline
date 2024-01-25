@@ -77,7 +77,7 @@ int VideoEnc_FFMPEG::openEnc(const char* output_filename, const char* codec_name
     enc_ctx->pix_fmt            = (AVPixelFormat)enc_pix_format;
     enc_ctx->bit_rate_tolerance = bitrate;
     enc_ctx->bit_rate           = (int64_t)bitrate;
-    enc_ctx->gop_size           = 1;
+    enc_ctx->gop_size           = 32;
     /* video time_base can be set to whatever is handy and supported by encoder */
     enc_ctx->time_base          = (AVRational){1, framerate};
     enc_ctx->framerate          = (AVRational){framerate,1};
