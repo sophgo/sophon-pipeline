@@ -8,7 +8,7 @@ arm SoC平台，内部已经集成了相应的libsophon、sophon-opencv和sophon
 
 ## 2 编译环境准备
 
-本章节需要提前准备libsophon-soc和sophon-mw包，请联系技术支持获取。
+本章节需要提前准备libsophon-soc和sophon_media包，请联系技术支持获取。
 
 ### 2.1 安装交叉编译工具链
 
@@ -31,11 +31,11 @@ cp -rf libsophon_soc_${x.y.z}_aarch64/opt/sophon/libsophon-${x.y.z}/include ${so
 ### 2.3 准备ffmpeg和opencv
 
 ```bash
-# 解压sophon-mw或sophon_media包里的sophon-mw-soc_${x.y.z}_aarch64.tar.gz，其中x.y.z为版本号
-tar -zxf sophon-mw-soc_${x.y.z}_aarch64.tar.gz
-# 将sophon-ffmpeg和official-opencv的库目录和头文件目录拷贝到依赖文件根目录下
-cp -rf sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-ffmpeg_${x.y.z}/lib ${soc-sdk}
-cp -rf sophon-mw-soc_${x.y.z}_aarch64/opt/sophon/sophon-ffmpeg_${x.y.z}/include ${soc-sdk}
+# 解压sophon_media包里的sophon_media-soc_${x.y.z}_aarch64.tar.gz，其中x.y.z为版本号
+tar -zxf sophon_media-soc_${x.y.z}_aarch64.tar.gz
+# 将ffmpeg和opencv的库目录和头文件目录拷贝到依赖文件根目录下
+cp -rf sophon_media-soc_${x.y.z}_aarch64/opt/sophon/sophon-ffmpeg_${x.y.z}/lib ${soc-sdk}
+cp -rf sophon_media-soc_${x.y.z}_aarch64/opt/sophon/sophon-ffmpeg_${x.y.z}/include ${soc-sdk}
 cd ${soc-sdk}
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
 python3 -m dfss --url=open@sophgo.com:sophon-pipeline/a2_bringup/official_opencv.tar.gz 
