@@ -13,7 +13,7 @@
 #include "mainwindow.h"
 #include "video_widget.h"
 #include "chrono"
-#define MAX_CHAN_NUM 16
+#define MAX_CHAN_NUM 32
 namespace bm {
     class VideoUIAppQT: public VideoUIApp {
         int m_argc;

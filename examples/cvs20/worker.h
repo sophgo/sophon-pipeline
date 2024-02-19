@@ -272,6 +272,7 @@ class OneCardInferApp {
     int m_display_num;
     int gui_resize_h = 360;
     int gui_resize_w = 640;
+    int enc_fps = 25;
 
     FILE *outputFile;
     bm::BMInferencePipe<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo> m_inferPipe;
@@ -337,6 +338,10 @@ public:
     void set_gui_resize_hw(int h, int w){
         gui_resize_h = h;
         gui_resize_w = w;
+    }
+    
+    void set_enc_fps(int fps){
+        enc_fps = fps;
     }
 };
 

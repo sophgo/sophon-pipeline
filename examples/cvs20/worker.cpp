@@ -375,11 +375,11 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                     int ret_writer = pchan->writer.openEnc(output_path.c_str(), 
                                                                 "h264_bm", 
                                                                 0,
-                                                                25, 
+                                                                enc_fps, 
                                                                 frame_yuv420p->width, 
                                                                 frame_yuv420p->height, 
                                                                 frame_yuv420p->format, 
-                                                                25 * frame_yuv420p->width * frame_yuv420p->height / 8);
+                                                                enc_fps * frame_yuv420p->width * frame_yuv420p->height / 8);
                     if (ret_writer != 0) {
                         av_log(NULL, AV_LOG_ERROR,"writer.openEnc failed\n");
                         return;
@@ -421,7 +421,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
                 bm::BMImage::from_avframe(m_bmctx->handle(), frame, image1, true);
                 bm_image* image_for_enc;
             #if WITH_RESIZE_TEST
-                int test_resize_h = 360;
+                int test_resize_h = 480;
                 int test_resize_w = 640;
                 int test_align = 64;
                 bm_image resized;

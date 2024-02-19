@@ -131,8 +131,9 @@ int main(int argc, char *argv[])
                           "{output | None | Output stream URL}"
                           "{config | ./cameras_cvs.json | path to cameras_cvs.json}"
                           "{gui_delay | 30 | ms, for gui flow control}"
-                          "{gui_resize_h | 1440 | height of each widget in your hdmi displayer }"
+                          "{gui_resize_h | 1440 | height of each widget in your hdmi displayer}"
                           "{gui_resize_w | 2560 | width of each widget in your hdmi displayer}"
+                          "{enc_fps | 25 | encode fps}"
                           "{results_folder | ./results | save encoded results.}";
 
     std::string keys;
@@ -165,6 +166,7 @@ int main(int argc, char *argv[])
     int gui_delay = parser.get<int>("gui_delay");
     int gui_resize_h = parser.get<int>("gui_resize_h");
     int gui_resize_w = parser.get<int>("gui_resize_w");
+    int enc_fps = parser.get<int>("enc_fps");
     int enable_l2_ddrr = 0;
 
     Config cfg(config_file.c_str());
@@ -217,6 +219,7 @@ int main(int argc, char *argv[])
                 tqp, contextPtr, output_url, start_chan_index, channel_num, skip_x, skip_y, feature_delay, feature_num,
                 enable_l2_ddrr, stop_frame_num, save_num, display_num);
         appPtr->set_gui_resize_hw(gui_resize_h, gui_resize_w);
+        appPtr->set_enc_fps(enc_fps);
         start_chan_index += channel_num;
     #if WITH_DETECTOR
         std::shared_ptr<bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo>> detector;
@@ -283,19 +286,23 @@ int main(int argc, char *argv[])
     assert(jpeg_fp != NULL);
     fseek(jpeg_fp, 0, SEEK_END);
     size_t jpeg_size = ftell(jpeg_fp);
-    uint8_t* jpeg_data = (uint8_t*)malloc(jpeg_size);
+    uint8_t* jpeg_data_in = (uint8_t*)malloc(jpeg_size);
     fseek(jpeg_fp, 0, SEEK_SET);
-    fread(jpeg_data, jpeg_size, 1, jpeg_fp);
+    fread(jpeg_data_in, jpeg_size, 1, jpeg_fp);
     fclose(jpeg_fp);
     bm_image jpeg_bmimg, jpeg_bmimg_resized;
     memset((char*)&jpeg_bmimg, 0, sizeof(bm_image));
-    assert(BM_SUCCESS == bmcv_image_jpeg_dec(jpeg_handle, (void**)&jpeg_data, &jpeg_size, 1, &jpeg_bmimg));
-    assert(BM_SUCCESS == bm::BMImage::create_batch(jpeg_handle, 128, 128, jpeg_bmimg.image_format, jpeg_bmimg.data_type, &jpeg_bmimg_resized, 1));
+    assert(BM_SUCCESS == bmcv_image_jpeg_dec(jpeg_handle, (void**)&jpeg_data_in, &jpeg_size, 1, &jpeg_bmimg));
+    assert(BM_SUCCESS == bm::BMImage::create_batch(jpeg_handle, 128, 128, jpeg_bmimg.image_format, jpeg_bmimg.data_type, &jpeg_bmimg_resized, 1, 1, true, false, 2));
     assert(BM_SUCCESS == bmcv_image_vpp_convert(jpeg_handle, 1, jpeg_bmimg, &jpeg_bmimg_resized));
     assert(BM_SUCCESS == bm_image_destroy_allinone(&jpeg_bmimg)); 
+    int bmcv_stride[3];
+    int plane_num = bm_image_get_plane_num(jpeg_bmimg_resized);
+    bm_image_get_stride(jpeg_bmimg_resized, bmcv_stride);
 
         int jpeg_channel_num = total_num;
         int jpeg_delay_thresh = 5;
+        std::vector<std::thread *> jpeg_threads;
         for(int ch = 0; ch < jpeg_channel_num; ch++){
             auto jpeg_thread = new std::thread([&, ch, jpeg_delay_thresh]{
                 int jpeg_feat_num = 10;
@@ -326,10 +333,10 @@ int main(int argc, char *argv[])
                             //     enc_timer_count = 0;
                             // }
 
-                            std::string save_path = "results/jpegs/jpeg_40x40_ch"+std::to_string(ch)+"_id"+std::to_string(jpeg_idx)+".jpg";
-                            FILE *jpeg40x40_fp = fopen(save_path.c_str(), "wb");
-                            fwrite(jpeg_data, out_size, 1, jpeg40x40_fp);
-                            fclose(jpeg40x40_fp);
+                            std::string save_path = "results/jpegs/jpeg_128x128_ch"+std::to_string(ch)+"_id"+std::to_string(jpeg_idx)+".jpg";
+                            FILE *jpeg128x128_fp = fopen(save_path.c_str(), "wb");
+                            fwrite(jpeg_data, out_size, 1, jpeg128x128_fp);
+                            fclose(jpeg128x128_fp);
                         }else{
                             std::cerr << "enc jpeg failed......" << std::endl;
                         }
@@ -345,6 +352,7 @@ int main(int argc, char *argv[])
                     }
                 }
             });
+            jpeg_threads.push_back(jpeg_thread);
         }
 #endif
 
@@ -411,6 +419,11 @@ int main(int argc, char *argv[])
 #if WITH_JPEG_160FPS
     bm_image_destroy_allinone(&jpeg_bmimg_resized);
     bm_dev_free(jpeg_handle);
+    for (int i = 0; i < jpeg_channel_num; i++) {
+        jpeg_threads[i]->join();
+        delete jpeg_threads[i];
+        jpeg_threads[i] = nullptr;
+    }
 #endif
     return 0;
 }
