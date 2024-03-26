@@ -518,6 +518,8 @@ namespace bm {
         bm_tensor_t *m_inputTensors;
         bm_tensor_t *m_outputTensors;
         bm_handle_t m_handle;
+        char m_board_name[50];
+        unsigned int cpu_core_num;
         void *m_bmrt;
         std::vector<std::vector<bm_shape_t>> m_input_shapes;
 
@@ -563,6 +565,11 @@ namespace bm {
 
             showInfo();
             assert(m_netinfo->stage_num >= 1);
+            assert(BM_SUCCESS == bm_get_board_name(m_handle, m_board_name));
+            cpu_core_num = std::thread::hardware_concurrency();
+            printf("########################\n");
+            printf("board_name: %s, cpu_core_num: %d\n", m_board_name, cpu_core_num);
+            printf("########################\n");
         }
 
         void showInfo()
@@ -755,13 +762,6 @@ namespace bm {
                 std::cout << "bm_thread_sync: Failed to sync: " << m_netinfo->name << " inference" << std::endl;
                 return -1;
             }
-        #if A2_SDK
-            res = (bm_status_t)bm_thread_sync_from_core (m_handle, 1);
-            if (res != BM_SUCCESS) {
-                std::cout << "bm_thread_sync: Failed to sync core2: " << m_netinfo->name << " inference" << std::endl;
-                return -1;
-            }
-        #endif
         #endif
         #if PLD
             bm_get_profile(m_handle, &end);
@@ -773,6 +773,9 @@ namespace bm {
     #if A2_SDK
         int forward_core(const bm_tensor_t *input_tensors, int input_num, bm_tensor_t *output_tensors, int output_num, int core_id = 0)
         {
+            if(cpu_core_num < 8){
+                core_id = 0;
+            }
         #if PLD
             bm_profile_t start,end;
             memset(&start, 0, sizeof(bm_profile_t));
