@@ -54,8 +54,8 @@ chmod +x tools/compile.sh
 下载cvs20测试程序包，请放到对应的板子上面，测试步骤：
   ```bash
   pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
-  python3 -m dfss --url=open@sophgo.com:sophon-pipeline/a2_bringup/test_pack_cvs20_v1.5.tar #v1.5是版本号，最新版本为test_pack_cvs20_latest.tar
-  tar xvf test_pack_cvs20_v1.5.tar
+  python3 -m dfss --url=open@sophgo.com:sophon-pipeline/a2_bringup/test_pack_cvs20_v1.5_rc3.tar #v1.5_rc3是版本号，最新版本为test_pack_cvs20_latest.tar
+  tar xvf test_pack_cvs20_v1.5_rc3.tar
   cd test_pack_cvs20 #这里面有个readme.md, 是对各个文件的介绍。
   ./setup.sh <exe> <chan_num> <display_num> <save_num> # <exe>即可执行程序，如果想要测试自己编译出来的可执行程序，直接用`${SOPHON_PIPELINE}/test_execs/`下的程序替换即可。
   #chan_num 表示跑几路，display_num 表示几路显示，save_num 表示几路编码
