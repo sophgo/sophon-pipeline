@@ -192,12 +192,6 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         if (enable_outputer) pchan->outputer = new bm::FfmpegOutputer();
         pchan->channel_id = ch;
 
-        std::string media_file;
-        AVDictionary *opts = NULL;
-        av_dict_set_int(&opts, "sophon_idx", m_dev_id, 0);
-        av_dict_set(&opts, "output_format", "101", 18); //101
-        av_dict_set(&opts, "extra_frame_buffer_num", "5", 0);
-
         pchan->demuxer->set_avformat_opend_callback([this, pchan](AVFormatContext *ifmt) {
             pchan->create_video_decoder(m_dev_id, ifmt);
             // todo create DDR reduction for optimization
@@ -557,8 +551,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         });
 
         bool repeat = true;
-        pchan->demuxer->open_stream(urls[i % urls.size()], nullptr, repeat, opts);
-        av_dict_free(&opts);
+        pchan->demuxer->open_stream(urls[i % urls.size()], nullptr, repeat);
         m_chans[ch] = pchan;
     }
 }

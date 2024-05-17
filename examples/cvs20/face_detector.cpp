@@ -251,6 +251,13 @@ int FaceDetector::process_qtgui(std::vector<bm::cvs10FrameBaseInfo>& frames){
 
 int FaceDetector::preprocess(std::vector<bm::cvs10FrameBaseInfo>& frames, std::vector<bm::cvs10FrameInfo> &frame_infos)
 {
+    if(input_frame_width != frames[0].avframe->width || input_frame_height != frames[0].avframe->height){
+        input_frame_width = frames[0].avframe->width;
+        input_frame_height = frames[0].avframe->height;
+        calc_resized_HW(input_frame_height, input_frame_width, &m_net_h, &m_net_w);
+        img_qt_x_scale_ = ((float)input_frame_width / (float)gui_resize_w);
+        img_qt_y_scale_ = ((float)input_frame_height / (float)gui_resize_h);
+    }
 #if 1
     int ret = 0;
     bm_handle_t handle = bmctx_->handle();
@@ -702,8 +709,10 @@ int FaceDetector::extract_facebox_cpu_yolov5(bm::cvs10FrameInfo &frame_info){
         }
 
         NMS_yolov5(yolobox_vec, m_nms_thres);
+
         bm::NetOutputDatum datum(yolobox_vec);
         frame_info.out_datums.push_back(datum);
+    
     }
 }
 

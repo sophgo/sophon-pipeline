@@ -10,7 +10,13 @@
 #include "stream_demuxer.h"
 #include <future>
 //#include "otl_utils.h"
-
+void print_dictionary(AVDictionary *dict) {
+    AVDictionaryEntry *entry = NULL;
+    printf("print_av_dict:\n");
+    while ((entry = av_dict_get(dict, "", entry, AV_DICT_IGNORE_SUFFIX))) {
+        printf("%s: %s\n", entry->key, entry->value);
+    }
+}
 namespace bm {
 
     StreamDemuxer::StreamDemuxer(int id) : m_ifmt_ctx(nullptr), m_observer(nullptr),
@@ -49,12 +55,24 @@ int StreamDemuxer::get_codec_type(int stream_index, int *p_codec_type)
     int StreamDemuxer::do_initialize() {
 
         std::string prefix = "rtsp://";
+        std::string sensor_prefix = "/dev/video";
         AVDictionary *opts = NULL;
+        AVInputFormat *input_fmt = NULL;
         if (m_inputUrl.compare(0, prefix.size(), prefix) == 0) {
             av_dict_set(&opts, "rtsp_transport", "tcp", 0);
             av_dict_set(&opts, "stimeout", "2000000", 0);
             av_dict_set(&opts, "probesize", "400", 0);
             av_dict_set(&opts, "analyzeduration", "100", 0);
+        }else if(m_inputUrl.compare(0, sensor_prefix.size(), sensor_prefix) == 0){
+            input_fmt = const_cast<AVInputFormat*>(av_find_input_format("v4l2"));
+            if (input_fmt == NULL) {
+                printf("ERROR:can't find format: v4l2\n");
+            } else {
+                printf("find v4l2 success!\n");
+                const char *pixfmt = "mjpeg";
+                av_dict_set(&opts, "pixel_format", pixfmt, 0);
+                std::cout<<"pixfmt:"<<pixfmt<<std::endl;
+            }
         }else{
             m_is_file_url = true;
         }
@@ -62,9 +80,7 @@ int StreamDemuxer::get_codec_type(int stream_index, int *p_codec_type)
         av_dict_set(&opts, "rw_timeout", "15000", 0);
         
         std::cout << "Open stream " << m_inputUrl << std::endl;
-
-        int ret = avformat_open_input(&m_ifmt_ctx, m_inputUrl.c_str(), nullptr, &opts);
-        av_dict_free(&opts);
+        int ret = avformat_open_input(&m_ifmt_ctx, m_inputUrl.c_str(), input_fmt, &opts);
         if (ret < 0) {
             std::cout << "Can't open file " << m_inputUrl << std::endl;
             return ret;
@@ -90,6 +106,7 @@ int StreamDemuxer::get_codec_type(int stream_index, int *p_codec_type)
 
         // Enter Working service
         m_work_state = Service;
+        av_dict_free(&opts);
 
         return 0;
     }

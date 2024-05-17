@@ -213,7 +213,9 @@ struct BMImage {
   static inline int map_avformat_to_bmformat(int avformat) {
     int format;
     switch (avformat) {
-      case AV_PIX_FMT_YUV420P: format = FORMAT_YUV420P;
+      case AV_PIX_FMT_YUV420P:
+      case AV_PIX_FMT_YUVJ420P:
+        format = FORMAT_YUV420P;
         break;
       case AV_PIX_FMT_YUV422P: format = FORMAT_YUV422P;
         break;
@@ -227,6 +229,8 @@ struct BMImage {
         break;
       case AV_PIX_FMT_GBRP: format = FORMAT_RGBP_SEPARATE;
         break;
+      // case AV_PIX_FMT_YUYV422: format = FORMAT_YUV422_YUYV;
+        // break;
       default: printf("unsupported av_pix_format %d\n", avformat);
         assert(0);
         return -1;
@@ -318,8 +322,14 @@ struct BMImage {
             data_five_denominator = 1;
             data_six_denominator = 1;
             break;
+        // case AV_PIX_FMT_YUYV422:
+        //     plane = 1;
+        //     data_four_denominator = -1;
+        //     data_five_denominator = -1;
+        //     data_six_denominator = -1;
+        //     break;
         default:
-            printf("unsupported format, only gray,nv12,yuv420p,nv16,yuv422p horizontal,yuv444p,rgbp supported\n");
+            printf("unsupported format, only gray,nv12,yuv420p,nv16,yuv422p horizontal,yuv444p,rgbp, supported\n");
             break;
     }
     
@@ -393,11 +403,11 @@ struct BMImage {
             input_addr[0] = bm_mem_from_device((unsigned long long)in->data[4], size);
         } else {
           #if PLD_HEAP
-            bm_malloc_device_byte_heap(handle, &input_addr[0], BM_MEM_DDR0, size);
+            bm_malloc_device_byte_heap(handle, &input_addr[0], 0, size);
           #elif A2_SDK
-            bm_malloc_device_byte_heap(handle, &input_addr[0], BM_MEM_DDR1, size);
+            bm_malloc_device_byte_heap(handle, &input_addr[0], 1, size);
           #else
-            bm_malloc_device_byte_heap(handle, &input_addr[0], BM_MEM_DDR2, size);
+            bm_malloc_device_byte_heap(handle, &input_addr[0], 2, size);
           #endif
             bm_memcpy_s2d_partial(handle, input_addr[0], in->data[0], size);
         }
@@ -408,11 +418,11 @@ struct BMImage {
                 input_addr[1] = bm_mem_from_device((unsigned long long)in->data[5], size);
             } else {
               #if PLD_HEAP
-                bm_malloc_device_byte_heap(handle, &input_addr[1], BM_MEM_DDR0, size);
+                bm_malloc_device_byte_heap(handle, &input_addr[1], 0, size);
               #elif A2_SDK
-                bm_malloc_device_byte_heap(handle, &input_addr[1], BM_MEM_DDR1, size);
+                bm_malloc_device_byte_heap(handle, &input_addr[1], 1, size);
               #else
-                bm_malloc_device_byte_heap(handle, &input_addr[1], BM_MEM_DDR2, size);
+                bm_malloc_device_byte_heap(handle, &input_addr[1], 2, size);
               #endif
                 bm_memcpy_s2d_partial(handle, input_addr[1], in->data[1], size);
             }
@@ -424,11 +434,11 @@ struct BMImage {
                 input_addr[2] = bm_mem_from_device((unsigned long long)in->data[6], size);
             } else {
               #if PLD_HEAP
-                bm_malloc_device_byte_heap(handle, &input_addr[2], BM_MEM_DDR0, size);
+                bm_malloc_device_byte_heap(handle, &input_addr[2], 0, size);
               #elif A2_SDK
-                bm_malloc_device_byte_heap(handle, &input_addr[2], BM_MEM_DDR1, size);
+                bm_malloc_device_byte_heap(handle, &input_addr[2], 1, size);
               #else
-                bm_malloc_device_byte_heap(handle, &input_addr[2], BM_MEM_DDR2, size);
+                bm_malloc_device_byte_heap(handle, &input_addr[2], 2, size);
               #endif
                 bm_memcpy_s2d_partial(handle, input_addr[2], in->data[2], size);
             }
