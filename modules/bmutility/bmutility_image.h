@@ -198,6 +198,8 @@ struct BMImage {
         break;
       case FORMAT_NV12: format = AV_PIX_FMT_NV12;
         break;
+      case FORMAT_NV21: format = AV_PIX_FMT_NV21;
+        break;
       case FORMAT_NV16: format = AV_PIX_FMT_NV16;
         break;
       case FORMAT_GRAY: format = AV_PIX_FMT_GRAY8;
@@ -222,6 +224,8 @@ struct BMImage {
       case AV_PIX_FMT_YUV444P: format = FORMAT_YUV444P;
         break;
       case AV_PIX_FMT_NV12: format = FORMAT_NV12;
+        break;
+      case AV_PIX_FMT_NV21: format = FORMAT_NV21;
         break;
       case AV_PIX_FMT_NV16: format = FORMAT_NV16;
         break;
@@ -263,6 +267,8 @@ struct BMImage {
     int data_six_denominator = -1;
   #if PLD_HEAP
     static int mem_flags = BM_MEM_DDR0;
+  #elif A2_SDK
+    static int mem_flags = BM_MEM_DDR1;
   #else
     static int mem_flags = BM_MEM_DDR2;
   #endif  
@@ -288,6 +294,7 @@ struct BMImage {
             data_five_denominator = 2;
             data_six_denominator = 2;
             break;
+        case AV_PIX_FMT_NV21:
         case AV_PIX_FMT_NV12:
             plane = 2;
             data_four_denominator = -1;
@@ -387,12 +394,12 @@ struct BMImage {
         bm_image_create(handle, in->height, in->width, bm_format, DATA_TYPE_EXT_1N_BYTE, &tmp, stride);
         bm_image_create(handle, in->height, in->width, FORMAT_YUV420P, DATA_TYPE_EXT_1N_BYTE, &out, NULL);
       #if PLD_HEAP
-        bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR0);
+        assert(BM_SUCCESS == bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR0));
       #else
       #if A2_SDK
-        bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR1);
+        assert(BM_SUCCESS == bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR1));
       #else
-        bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR2);
+        assert(BM_SUCCESS == bm_image_alloc_dev_mem_heap_mask(out, BM_MEM_DDR2));
       #endif
       #endif
         int size = in->height * stride[0];
@@ -403,11 +410,11 @@ struct BMImage {
             input_addr[0] = bm_mem_from_device((unsigned long long)in->data[4], size);
         } else {
           #if PLD_HEAP
-            bm_malloc_device_byte_heap(handle, &input_addr[0], 0, size);
+            assert(BM_SUCCESS == bm_malloc_device_byte_heap(handle, &input_addr[0], 0, size));
           #elif A2_SDK
-            bm_malloc_device_byte_heap(handle, &input_addr[0], 1, size);
+            assert(BM_SUCCESS == bm_malloc_device_byte_heap(handle, &input_addr[0], 1, size));
           #else
-            bm_malloc_device_byte_heap(handle, &input_addr[0], 2, size);
+            assert(BM_SUCCESS == bm_malloc_device_byte_heap(handle, &input_addr[0], 2, size));
           #endif
             bm_memcpy_s2d_partial(handle, input_addr[0], in->data[0], size);
         }
@@ -418,11 +425,11 @@ struct BMImage {
                 input_addr[1] = bm_mem_from_device((unsigned long long)in->data[5], size);
             } else {
               #if PLD_HEAP
-                bm_malloc_device_byte_heap(handle, &input_addr[1], 0, size);
+                assert(BM_SUCCESS == bm_malloc_device_byte_heap(handle, &input_addr[1], 0, size));
               #elif A2_SDK
-                bm_malloc_device_byte_heap(handle, &input_addr[1], 1, size);
+                assert(BM_SUCCESS == bm_malloc_device_byte_heap(handle, &input_addr[1], 1, size));
               #else
-                bm_malloc_device_byte_heap(handle, &input_addr[1], 2, size);
+                assert(BM_SUCCESS == bm_malloc_device_byte_heap(handle, &input_addr[1], 2, size));
               #endif
                 bm_memcpy_s2d_partial(handle, input_addr[1], in->data[1], size);
             }
@@ -434,11 +441,11 @@ struct BMImage {
                 input_addr[2] = bm_mem_from_device((unsigned long long)in->data[6], size);
             } else {
               #if PLD_HEAP
-                bm_malloc_device_byte_heap(handle, &input_addr[2], 0, size);
+                assert(BM_SUCCESS == bm_malloc_device_byte_heap(handle, &input_addr[2], 0, size));
               #elif A2_SDK
-                bm_malloc_device_byte_heap(handle, &input_addr[2], 1, size);
+                assert(BM_SUCCESS == bm_malloc_device_byte_heap(handle, &input_addr[2], 1, size));
               #else
-                bm_malloc_device_byte_heap(handle, &input_addr[2], 2, size);
+                assert(BM_SUCCESS == bm_malloc_device_byte_heap(handle, &input_addr[2], 2, size));
               #endif
                 bm_memcpy_s2d_partial(handle, input_addr[2], in->data[2], size);
             }

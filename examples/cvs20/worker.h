@@ -46,6 +46,7 @@ struct TChannel: public bm::NoCopyable {
     // std::shared_ptr<bm::BMTracker> tracker;
     uint64_t m_last_feature_time=0; // last do feature time
     VideoEnc_FFMPEG writer;
+    int extra_frame_buffer_num = 5;
 #if DECODE_TIMER
     int decoder_timer_count = 0;
     double this_chan_total_secs_send = 0;
@@ -119,7 +120,10 @@ struct TChannel: public bm::NoCopyable {
         //for PCIE
         AVDictionary* opts = NULL;
         av_dict_set_int(&opts, "sophon_idx", dev_id, 0x0);
-        av_dict_set(&opts, "extra_frame_buffer_num", "5", 0); //6 37%，12 41%
+        av_dict_set_int(&opts, "extra_frame_buffer_num", extra_frame_buffer_num, 0); //6 37%，12 41%
+        av_dict_set(&opts, "sg_vi", "1", 0);
+        av_dict_set(&opts, "refcounted_frames", "1", 0);
+
     #if DECODE_YUY420P
         av_dict_set(&opts, "cbcr_interleave", "0", 0);
         av_dict_set(&opts, "output_format", "0", 0);
@@ -273,6 +277,7 @@ class OneCardInferApp {
     int gui_resize_h = 360;
     int gui_resize_w = 640;
     int enc_fps = 25;
+    int extra_frame_buffer_num = 5;
 
     FILE *outputFile;
     bm::BMInferencePipe<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo> m_inferPipe;
@@ -342,6 +347,10 @@ public:
     
     void set_enc_fps(int fps){
         enc_fps = fps;
+    }
+
+    void set_extra_frame_buffer_num(int n){
+        extra_frame_buffer_num = n;
     }
 };
 

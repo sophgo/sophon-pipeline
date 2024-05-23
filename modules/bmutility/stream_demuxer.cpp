@@ -64,15 +64,18 @@ int StreamDemuxer::get_codec_type(int stream_index, int *p_codec_type)
             av_dict_set(&opts, "probesize", "400", 0);
             av_dict_set(&opts, "analyzeduration", "100", 0);
         }else if(m_inputUrl.compare(0, sensor_prefix.size(), sensor_prefix) == 0){
-            input_fmt = const_cast<AVInputFormat*>(av_find_input_format("v4l2"));
-            if (input_fmt == NULL) {
-                printf("ERROR:can't find format: v4l2\n");
-            } else {
-                printf("find v4l2 success!\n");
-                const char *pixfmt = "mjpeg";
-                av_dict_set(&opts, "pixel_format", pixfmt, 0);
-                std::cout<<"pixfmt:"<<pixfmt<<std::endl;
-            }
+            av_dict_set_int(&opts, "v4l2_buffer_num", 8, 0);
+            av_dict_set_int(&opts, "use_isp_chn_num", 1, 0);
+            av_dict_set_int(&opts, "wdr_on", 0, 0);
+            // input_fmt = const_cast<AVInputFormat*>(av_find_input_format("v4l2"));
+            // if (input_fmt == NULL) {
+            //     printf("ERROR:can't find format: v4l2\n");
+            // } else {
+                // for usb camera.
+                // const char *pixfmt = "mjpeg";
+                // av_dict_set(&opts, "pixel_format", pixfmt, 0);
+                // std::cout<<"pixfmt:"<<pixfmt<<std::endl;
+            // }
         }else{
             m_is_file_url = true;
         }

@@ -130,6 +130,7 @@ static int map_bmformat_to_avformat(int bmformat)
         case FORMAT_YUV422P: format = AV_PIX_FMT_YUV422P; break;
         case FORMAT_YUV444P: format = AV_PIX_FMT_YUV444P; break;
         case FORMAT_NV12:    format = AV_PIX_FMT_NV12; break;
+        case FORMAT_NV21:    format = AV_PIX_FMT_NV21; break;
         case FORMAT_NV16:    format = AV_PIX_FMT_NV16; break;
         case FORMAT_GRAY:    format = AV_PIX_FMT_GRAY8; break;
         case FORMAT_RGBP_SEPARATE: format = AV_PIX_FMT_GBRP; break;
@@ -146,6 +147,7 @@ static inline int map_avformat_to_bmformat(int avformat)
         case AV_PIX_FMT_YUV422P: format = FORMAT_YUV422P; break;
         case AV_PIX_FMT_YUV444P: format = FORMAT_YUV444P; break;
         case AV_PIX_FMT_NV12:    format = FORMAT_NV12; break;
+        case AV_PIX_FMT_NV21:    format = FORMAT_NV21; break;
         case AV_PIX_FMT_NV16:    format = FORMAT_NV16; break;
         case AV_PIX_FMT_GRAY8:   format = FORMAT_GRAY; break;
         case AV_PIX_FMT_GBRP:    format = FORMAT_RGBP_SEPARATE; break;
@@ -297,7 +299,7 @@ static inline bm_status_t bm_image_to_avframe(bm_handle_t &bm_handle,bm_image *i
 static inline bm_status_t bm_image_from_frame (bm_handle_t       &bm_handle,
                                                AVFrame           &in,
                                                bm_image          &out) {
-  if (in.format != AV_PIX_FMT_NV12) {
+  if (in.format != AV_PIX_FMT_NV12 || in.format != AV_PIX_FMT_NV21) {
     std::cout << "format donot support" << std::endl;
     return BM_NOT_SUPPORTED;
   }
@@ -437,6 +439,7 @@ static int avframe_to_bm_image(bm_handle_t &bm_handle,AVFrame &in, bm_image &out
         data_five_denominator = 4;
         data_six_denominator = 4;
         break;
+    case AV_PIX_FMT_NV21:
     case AV_PIX_FMT_NV12:
         plane = 2;
         data_five_denominator = 2;

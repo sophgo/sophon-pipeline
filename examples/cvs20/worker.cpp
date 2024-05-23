@@ -188,6 +188,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         int ch = m_channel_start + i;
 
         TChannelPtr pchan = std::make_shared<TChannel>();
+        pchan->extra_frame_buffer_num = extra_frame_buffer_num;
         pchan->demuxer = new bm::StreamDemuxer(ch);
         if (enable_outputer) pchan->outputer = new bm::FfmpegOutputer();
         pchan->channel_id = ch;

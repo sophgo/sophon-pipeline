@@ -134,6 +134,7 @@ int main(int argc, char *argv[])
                           "{gui_resize_h | 1440 | height of each widget in your hdmi displayer}"
                           "{gui_resize_w | 2560 | width of each widget in your hdmi displayer}"
                           "{enc_fps | 25 | encode fps}"
+                          "{extra_frame_buffer_num | 5 | ffmpeg extra_frame_buffer_num}"
                           "{results_folder | ./results | save encoded results.}";
 
     std::string keys;
@@ -168,6 +169,7 @@ int main(int argc, char *argv[])
     int gui_resize_w = parser.get<int>("gui_resize_w");
     int enc_fps = parser.get<int>("enc_fps");
     int enable_l2_ddrr = 0;
+    int extra_frame_buffer_num = parser.get<int>("extra_frame_buffer_num");
 
     Config cfg(config_file.c_str());
     if (!cfg.valid_check()) {
@@ -220,6 +222,7 @@ int main(int argc, char *argv[])
                 enable_l2_ddrr, stop_frame_num, save_num, display_num);
         appPtr->set_gui_resize_hw(gui_resize_h, gui_resize_w);
         appPtr->set_enc_fps(enc_fps);
+        appPtr->set_extra_frame_buffer_num(extra_frame_buffer_num);
         start_chan_index += channel_num;
     #if WITH_DETECTOR
         std::shared_ptr<bm::DetectorDelegate<bm::cvs10FrameBaseInfo, bm::cvs10FrameInfo>> detector;
