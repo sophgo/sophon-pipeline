@@ -189,6 +189,7 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
 
         TChannelPtr pchan = std::make_shared<TChannel>();
         pchan->extra_frame_buffer_num = extra_frame_buffer_num;
+        pchan->decode_yuv420p = decode_yuv420p;
         pchan->demuxer = new bm::StreamDemuxer(ch);
         if (enable_outputer) pchan->outputer = new bm::FfmpegOutputer();
         pchan->channel_id = ch;
@@ -338,15 +339,15 @@ void OneCardInferApp::start(const std::vector<std::string>& urls, Config& config
         #if WITH_ENCODE_H264 //need output format=0
             if(got_picture && ch < m_save_num){
                 AVFrame *frame_yuv420p = av_frame_alloc(); //for encoder
-            #if DECODE_YUY420P //directly decode yuv420p
-                av_frame_ref(frame_yuv420p, frame);
-            #else
-                bm_image* bm_image_yuv420p = NULL;
-                bm_image_yuv420p = (bm_image *) malloc(sizeof(bm_image));;
-                bm::BMImage::from_avframe(handle, frame, *bm_image_yuv420p, true);
-                bm_image_to_avframe(handle, bm_image_yuv420p, frame_yuv420p);
-                // AVFrameConvert(handle, frame, frame_yuv420p, frame->height, frame->width, AV_PIX_FMT_YUV420P);
-            #endif
+                if(decode_yuv420p){
+                    av_frame_ref(frame_yuv420p, frame);
+                }else{
+                    bm_image* bm_image_yuv420p = NULL;
+                    bm_image_yuv420p = (bm_image *) malloc(sizeof(bm_image));;
+                    bm::BMImage::from_avframe(handle, frame, *bm_image_yuv420p, true);
+                    bm_image_to_avframe(handle, bm_image_yuv420p, frame_yuv420p);
+                    // AVFrameConvert(handle, frame, frame_yuv420p, frame->height, frame->width, AV_PIX_FMT_YUV420P);
+                }
             #if !FF_ENCODE_WRITE_AVFRAME
                 #define STEP_ALIGNMENT 32
                 int stride = (frame_yuv420p->width + STEP_ALIGNMENT - 1) & ~(STEP_ALIGNMENT - 1);
