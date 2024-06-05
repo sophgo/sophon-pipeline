@@ -36,10 +36,9 @@ tar -zxf sophon-media-soc_${x.y.z}_aarch64.tar.gz
 # 将ffmpeg和opencv的库目录和头文件目录拷贝到依赖文件根目录下
 cp -rf sophon-media-soc_${x.y.z}_aarch64/opt/sophon/sophon-ffmpeg_${x.y.z}/lib ${soc-sdk}
 cp -rf sophon-media-soc_${x.y.z}_aarch64/opt/sophon/sophon-ffmpeg_${x.y.z}/include ${soc-sdk}
-cd ${soc-sdk}
-pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
-python3 -m dfss --url=open@sophgo.com:sophon-pipeline/a2_bringup/official_opencv.tar.gz 
-tar xvf official_opencv.tar.gz
+cp -rf sophon-media-soc_${x.y.z}_aarch64/opt/sophon/sophon-opencv_${x.y.z}/lib ${soc-sdk}
+cp -rf sophon-media-soc_${x.y.z}_aarch64/opt/sophon/sophon-opencv_${x.y.z}/include ${soc-sdk}
+
 ```
 
 ### 2.4 准备第三方库qtbase

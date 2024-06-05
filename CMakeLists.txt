@@ -22,7 +22,7 @@ endif()
 
 option(HAVE_TRACKER "Enable tracker" OFF)
 option(USE_SOPHON_FFMPEG "Use sophon-ffmpeg" ON)
-option(USE_SOPHON_OPENCV "Use sophon-opencv" OFF)
+option(USE_SOPHON_OPENCV "Use sophon-opencv" ON)
 option(CMODEL_MODE "Run in cmodel mode" OFF)
 option(USE_DEBUG "use debug to print result" OFF)
 option(USE_QTGUI "Whether has GUI support" OFF)
