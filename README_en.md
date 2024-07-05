@@ -2,6 +2,9 @@ English | [简体中文](README.md)
 
 # sophon-pipeline
 
+# Note: New inference framework sophon-stream
+Now sophon-pipeline will not add any new feature or support new platform, you can go to [sophon-stream github](https://github.com/sophgo/sophon-stream) if you have new demands.
+
 # Note: New data download method.
 Currently, the download method of models, test video streams and other data provided by sophon-pipeline has been changed from nas cloud disk to sftp. Please install the following dependencies to download data.
 ```

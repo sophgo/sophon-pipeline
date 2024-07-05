@@ -80,12 +80,12 @@ YOLO series model list and NAS cloud disk download address
 
 | model_type     | download command |
 | ----------     | --------    |
-| yolov5s        | python3 -m dfss --url=sophon-pipeline/models/yolov5.tar.gz           |
-| yolov6s        | python3 -m dfss --url=sophon-pipeline/models/yolov6.tar.gz           |
-| yolov7         | python3 -m dfss --url=sophon-pipeline/models/yolov7.tar.gz           |
-| yolov8s        | python3 -m dfss --url=sophon-pipeline/models/yolov8.tar.gz           |
-| yolov5s_opt🚀  | python3 -m dfss --url=sophon-pipeline/models/yolov5_opt.tar.gz        |
-| yolov7_opt🚀  |  python3 -m dfss --url=sophon-pipeline/models/yolov7_opt.tar.gz        |
+| yolov5s        | python3 -m dfss --url=open@sophgo.com:sophon-pipeline/models/yolov5.tar.gz           |
+| yolov6s        | python3 -m dfss --url=open@sophgo.com:sophon-pipeline/models/yolov6.tar.gz           |
+| yolov7         | python3 -m dfss --url=open@sophgo.com:sophon-pipeline/models/yolov7.tar.gz           |
+| yolov8s        | python3 -m dfss --url=open@sophgo.com:sophon-pipeline/models/yolov8.tar.gz           |
+| yolov5s_opt🚀  | python3 -m dfss --url=open@sophgo.com:sophon-pipeline/models/yolov5_opt.tar.gz        |
+| yolov7_opt🚀  |  python3 -m dfss --url=open@sophgo.com:sophon-pipeline/models/yolov7_opt.tar.gz        |
 
 > **NOTE*:  In the JSON configuration, you need to select the model_type corresponding to the model, otherwise the detection accuracy may be affected. 
 >

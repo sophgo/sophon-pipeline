@@ -75,7 +75,7 @@ python3 -m dfss --url=open@sophgo.com:sophon-pipeline/common/elevator-1080p-25fp
 
 PP-YOLO系列模型下载方式：
 ```bash
-python3 -m dfss --url=sophon-pipeline/models/ppyoloe.tar.gz 
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/models/ppyoloe.tar.gz 
 ```
 
 参数说明

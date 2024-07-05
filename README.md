@@ -1,9 +1,14 @@
 简体中文 | [English](README_en.md)
+
+# Note: 新的推理框架sophon-stream
+目前sophon-pipeline已不再添加新feature，不再适配新平台，如果您有新需求，请移步sophon-stream: https://github.com/sophgo/sophon-stream
+
 # Note: 新的数据下载方式
 目前sophon-pipeline所提供的模型、测试视频流等数据的下载方式由nas云盘变更为sftp，请安装以下依赖用于下载数据：
 ```
 pip3 install dfss -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade
 ```
+
 # sophon-pipeline介绍
 
 ## 1 简介

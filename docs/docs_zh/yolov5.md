@@ -80,12 +80,12 @@ YOLO系列模型列表及下载方式
 
 | model_type     | 模型下载方式 |
 | ----------     | --------    |
-| yolov5s        | python3 -m dfss --url=sophon-pipeline/models/yolov5.tar.gz           |
-| yolov6s        | python3 -m dfss --url=sophon-pipeline/models/yolov6.tar.gz           |
-| yolov7         | python3 -m dfss --url=sophon-pipeline/models/yolov7.tar.gz           |
-| yolov8s        | python3 -m dfss --url=sophon-pipeline/models/yolov8.tar.gz           |
-| yolov5s_opt🚀  | python3 -m dfss --url=sophon-pipeline/models/yolov5_opt.tar.gz        |
-| yolov7_opt🚀  |  python3 -m dfss --url=sophon-pipeline/models/yolov7_opt.tar.gz        |
+| yolov5s        | python3 -m dfss --url=open@sophgo.com:sophon-pipeline/models/yolov5.tar.gz           |
+| yolov6s        | python3 -m dfss --url=open@sophgo.com:sophon-pipeline/models/yolov6.tar.gz           |
+| yolov7         | python3 -m dfss --url=open@sophgo.com:sophon-pipeline/models/yolov7.tar.gz           |
+| yolov8s        | python3 -m dfss --url=open@sophgo.com:sophon-pipeline/models/yolov8.tar.gz           |
+| yolov5s_opt🚀  | python3 -m dfss --url=open@sophgo.com:sophon-pipeline/models/yolov5_opt.tar.gz        |
+| yolov7_opt🚀  |  python3 -m dfss --url=open@sophgo.com:sophon-pipeline/models/yolov7_opt.tar.gz        |
 
 > 注意：在json配置中需选择使用模型对应的model_type，否则可能会影响检测精度。
 >

@@ -74,7 +74,7 @@
 
 模型下载：
 ```bash
-python3 -m dfss --url=sophon-pipeline/models/yolact.tar.gz   
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/models/yolact.tar.gz   
 ```
 
 参数说明

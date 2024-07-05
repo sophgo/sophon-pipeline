@@ -73,7 +73,7 @@ python3 -m dfss --url=open@sophgo.com:sophon-pipeline/common/elevator-1080p-25fp
 
 Download address of the bmodels for testing:
 ```bash
-python3 -m dfss --url=sophon-pipeline/models/face_detect.tar.gz 
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/models/face_detect.tar.gz 
 ```
 
 Description of parameters

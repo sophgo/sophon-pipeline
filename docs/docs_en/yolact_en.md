@@ -75,7 +75,7 @@ Please note to modify the`${SOPHON_PIPELINE}/release/yolact_demo/cameras_yolact.
 PP-YOLO series model list and NAS cloud disk download address
 
 ```bash
-python3 -m dfss --url=sophon-pipeline/models/yolact.tar.gz   
+python3 -m dfss --url=open@sophgo.com:sophon-pipeline/models/yolact.tar.gz   
 ```
 
 Description of parameters
